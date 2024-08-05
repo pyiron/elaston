@@ -110,7 +110,6 @@ class Isotropic(Green):
         """First coefficient of the Green's function. For more, cf. DocString in the class level."""
         return (3 - 4 * self.poissons_ratio) * self.B
 
-    # Rewrite B using cached_property
     @cached_property
     def B(self):
         """Second coefficient of the Green's function. For more, cf. DocString in the class level."""
@@ -354,7 +353,6 @@ class Anisotropic(Green):
                 "ijkl,...j,...l->...ik", self.C, self.r, self.r, optimize=self.optimize
             )
             return np.linalg.inv(G)
-        self._initialize()
         if derivative == 0:
             M = np.einsum("n...ij->...ij", self.Ms) * self.dphi / (4 * np.pi**2)
             return np.einsum("...ij,...->...ij", M, 1 / np.linalg.norm(self.r, axis=-1))
