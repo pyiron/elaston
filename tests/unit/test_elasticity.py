@@ -101,7 +101,7 @@ class TestElasticity(unittest.TestCase):
         medium = LinearElasticity(create_random_C(isotropic=True))
         self.assertAlmostEqual(
             medium.get_greens_function([1, 1, 1], isotropic=True)[0, 0],
-            medium.get_greens_function([1, 1, 1], isotropic=False)[0, 0]
+            medium.get_greens_function([1, 1, 1], isotropic=False)[0, 0],
         )
 
 
