@@ -1,7 +1,7 @@
 import numpy as np
 import unittest
-from elaston.linear_elasticity.green import Anisotropic, Isotropic
-from elaston.linear_elasticity import tools
+from elaston.green import Anisotropic, Isotropic
+from elaston import tools
 
 
 def create_random_C(isotropic=False):
