@@ -1,4 +1,6 @@
 channels:
 - conda-forge
 dependencies:
+- coveralls
+- coverage
 - numpy =2.0.0

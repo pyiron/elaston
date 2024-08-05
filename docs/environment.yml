@@ -7,4 +7,6 @@ dependencies:
 - sphinx-gallery
 - sphinx-rtd-theme
 - versioneer
+- coveralls
+- coverage
 - numpy =2.0.0
