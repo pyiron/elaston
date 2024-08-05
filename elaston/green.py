@@ -4,7 +4,6 @@
 
 import numpy as np
 from elaston import tools
-from tqdm.auto import tqdm
 from functools import cached_property
 
 __author__ = "Sam Waseda"
