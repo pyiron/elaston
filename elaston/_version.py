@@ -50,9 +50,9 @@ def get_config() -> VersioneerConfig:
     cfg = VersioneerConfig()
     cfg.VCS = "git"
     cfg.style = "pep440-pre"
-    cfg.tag_prefix = "pyiron_module_template-"
-    cfg.parentdir_prefix = "pyiron_module_template"
-    cfg.versionfile_source = "pyiron_module_template/_version.py"
+    cfg.tag_prefix = "elaston-"
+    cfg.parentdir_prefix = "elaston"
+    cfg.versionfile_source = "elaston/_version.py"
     cfg.verbose = False
     return cfg
 
