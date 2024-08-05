@@ -9,18 +9,18 @@ for file in .binder/postBuild \
             docs/conf.py \
             docs/index.rst \
             notebooks/example.ipynb \
-            pyiron_module_template/_version.py \
+            elaston/_version.py \
             tests/unit/test_tests.py \
             .coveragerc \
             .gitattributes \
             MANIFEST.in \
             pyproject.toml
 do
-  sed -i "s/pyiron_module_template/${module_name}/g" ${file}
+  sed -i "s/elaston/${module_name}/g" ${file}
   sed -i "s/======================/${rst_delimit}/g" ${file}
 done
 
 
-mv pyiron_module_template ${module_name}
+mv elaston ${module_name}
 
 rm update_module_name.sh
