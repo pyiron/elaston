@@ -3,7 +3,7 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 import numpy as np
-from elaston.linear_elasticity import tools
+from elaston import tools
 from tqdm.auto import tqdm
 from functools import cached_property
 

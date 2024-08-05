@@ -4,9 +4,9 @@
 
 import numpy as np
 from typing import Optional
-from elaston.linear_elasticity.green import Anisotropic, Isotropic, Green
-from elaston.linear_elasticity.eshelby import Eshelby
-from elaston.linear_elasticity import tools
+from elaston.green import Anisotropic, Isotropic, Green
+from elaston.eshelby import Eshelby
+from elaston import tools
 
 __author__ = "Sam Waseda"
 __copyright__ = (
