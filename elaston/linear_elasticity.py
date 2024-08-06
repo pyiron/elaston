@@ -85,11 +85,13 @@ Vol. 1. Elsevier, 2012.
 
 class LinearElasticity:
     """
-    Linear elastic field class based on the 3x3x3x3 elastic tensor C_ijkl:
+    Linear elastic field class based on the 3x3x3x3 elastic tensor :math:C_{ijkl}:
 
-    sigma_ij = C_ijkl*epsilon_kl
+    .. math:
+        \\sigma_{ij} = C_{ijkl} * \\epsilon_{kl}
 
-    where sigma_ij is the ij-component of stress and epsilon_kl is the kl-component of strain.
+    where :math:\\sigma_{ij} is the ij-component of stress and
+    :math:\\epsilon_{kl} is the kl-component of strain.
 
     Examples I: Get bulk modulus from the elastic tensor:
 
@@ -256,7 +258,7 @@ class LinearElasticity:
         Returns:
             (float): Bulk modulus
         """
-        return 3 * (1 - 2 * self.poissons_ratio.mean()) / self.youngs_modulus.mean()
+        return self.youngs_modulus.mean() / (3 * (1 - 2 * self.poissons_ratio.mean()))
 
     @property
     def poissons_ratio(self):
@@ -615,7 +617,7 @@ class LinearElasticity:
         Force per unit length along the dislocation line.
 
         Args:
-            stress ((3,3)-array): External stress field at the dislocation line
+            stress ((n, 3, 3)-array): External stress field at the dislocation line
             glide_plane ((3,)-array): Glide plane
             burgers_vector ((3,)-array): Burgers vector
 
@@ -624,5 +626,5 @@ class LinearElasticity:
         """
         g = np.asarray(glide_plane) / np.linalg.norm(glide_plane)
         return np.einsum(
-            "i,ij,j,k->k", g, stress, burgers_vector, np.cross(g, [0, 0, 1])
+            "i,...ij,j,k->...k", g, stress, burgers_vector, np.cross(g, [0, 0, 1])
         )
