@@ -85,7 +85,7 @@ Vol. 1. Elsevier, 2012.
 
 class LinearElasticity:
     """
-    Linear elastic field class based on the 3x3x3x3 elastic tensor C_ijkl:
+    Linear elastic field class based on the 3x3x3x3 elastic tensor :math:C_{ijkl}:
 
     .. math:
         \\sigma_{ij} = C_{ijkl} * \\epsilon_{kl}
@@ -617,7 +617,7 @@ class LinearElasticity:
         Force per unit length along the dislocation line.
 
         Args:
-            stress ((3,3)-array): External stress field at the dislocation line
+            stress ((n, 3, 3)-array): External stress field at the dislocation line
             glide_plane ((3,)-array): Glide plane
             burgers_vector ((3,)-array): Burgers vector
 
@@ -626,5 +626,5 @@ class LinearElasticity:
         """
         g = np.asarray(glide_plane) / np.linalg.norm(glide_plane)
         return np.einsum(
-            "i,ij,j,k->k", g, stress, burgers_vector, np.cross(g, [0, 0, 1])
+            "i,...ij,j,k->...k", g, stress, burgers_vector, np.cross(g, [0, 0, 1])
         )
