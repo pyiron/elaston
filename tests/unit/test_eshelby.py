@@ -67,19 +67,14 @@ class TestEschelby(unittest.TestCase):
         hl = create_random_HL(b=[0, 0, 1])
         positions = (np.random.random((100, 2)) - 0.5) * 10
         strain_analytical = positions[:, 0] / np.sum(positions**2, axis=-1) / 4 / np.pi
+        strain = hl.get_strain(positions)
         self.assertTrue(
-            np.all(
-                np.absolute(hl.get_strain(positions)[:, 1, 2] - strain_analytical)
-                < 1.0e-4
-            ),
+            np.all(np.absolute(strain[:, 1, 2] - strain_analytical) < 1.0e-4),
             "Screw dislocation strain field (yz-component) not reproduced",
         )
         strain_analytical = -positions[:, 1] / np.sum(positions**2, axis=-1) / 4 / np.pi
         self.assertTrue(
-            np.all(
-                np.absolute(hl.get_strain(positions)[:, 0, 2] - strain_analytical)
-                < 1.0e-4
-            ),
+            np.all(np.absolute(strain[:, 0, 2] - strain_analytical) < 1.0e-4),
             "Screw dislocation strain field (xz-component) not reproduced",
         )
 

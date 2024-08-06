@@ -29,9 +29,6 @@ class Eshelby:
         self.elastic_tensor = elastic_tensor
         self.burgers_vector = burgers_vector
         self.fit_range = np.linspace(0, 1, 10)
-        self._p = None
-        self._Ak = None
-        self._D = None
 
     def _get_pmat(self, x):
         return (
@@ -68,7 +65,7 @@ class Eshelby:
         F = np.einsum("nik,nk->ni", F, self.Ak)
         F = np.concatenate((F.T, self.Ak.T), axis=0)
         F = np.concatenate((np.real(F), -np.imag(F)), axis=-1)
-        D =  np.linalg.solve(F, np.concatenate((np.zeros(3), self.burgers_vector)))
+        D = np.linalg.solve(F, np.concatenate((np.zeros(3), self.burgers_vector)))
         return D[:3] + 1j * D[3:]
 
     @property
