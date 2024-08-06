@@ -91,6 +91,8 @@ class TestElasticity(unittest.TestCase):
         C = create_random_C()
         medium = LinearElasticity([C[0, 0, 0, 0], C[0, 0, 1, 1], C[0, 1, 0, 1]])
         self.assertTrue(np.allclose(C, medium.elastic_tensor))
+        medium.isotropy_tolerance = 1e-6
+        self.assertEqual(medium.isotropy_tolerance, 1e-6)
         self.assertRaises(ValueError, LinearElasticity, np.random.random((3, 3)))
 
     def test_isotropy_tolerance(self):
