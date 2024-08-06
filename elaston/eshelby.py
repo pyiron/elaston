@@ -3,6 +3,7 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 import numpy as np
+from functools import cached_property
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -28,9 +29,6 @@ class Eshelby:
         self.elastic_tensor = elastic_tensor
         self.burgers_vector = burgers_vector
         self.fit_range = np.linspace(0, 1, 10)
-        self._p = None
-        self._Ak = None
-        self._D = None
 
     def _get_pmat(self, x):
         return (
@@ -43,39 +41,32 @@ class Eshelby:
             + np.einsum("...,ij->...ij", x**2, self.elastic_tensor[:, 1, :, 1])
         )
 
-    @property
+    @cached_property
     def p(self):
-        if self._p is None:
-            coeff = np.polyfit(
-                self.fit_range, np.linalg.det(self._get_pmat(self.fit_range)), 6
-            )
-            self._p = np.roots(coeff)
-            self._p = self._p[np.imag(self._p) > 0]
-        return self._p
+        coeff = np.polyfit(
+            self.fit_range, np.linalg.det(self._get_pmat(self.fit_range)), 6
+        )
+        p = np.roots(coeff)
+        p = p[np.imag(p) > 0]
+        return p
 
-    @property
+    @cached_property
     def Ak(self):
-        if self._Ak is None:
-            self._Ak = []
-            for mat in self._get_pmat(self.p):
-                values, vectors = np.linalg.eig(mat.T)
-                self._Ak.append(vectors.T[np.absolute(values).argmin()])
-            self._Ak = np.array(self._Ak)
-        return self._Ak
+        Ak = []
+        for mat in self._get_pmat(self.p):
+            values, vectors = np.linalg.eig(mat.T)
+            Ak.append(vectors.T[np.absolute(values).argmin()])
+        return np.array(Ak)
 
-    @property
+    @cached_property
     def D(self):
-        if self._D is None:
-            F = np.einsum("n,ij->nij", self.p, self.elastic_tensor[:, 1, :, 1])
-            F += self.elastic_tensor[:, 1, :, 0]
-            F = np.einsum("nik,nk->ni", F, self.Ak)
-            F = np.concatenate((F.T, self.Ak.T), axis=0)
-            F = np.concatenate((np.real(F), -np.imag(F)), axis=-1)
-            self._D = np.linalg.solve(
-                F, np.concatenate((np.zeros(3), self.burgers_vector))
-            )
-            self._D = self._D[:3] + 1j * self._D[3:]
-        return self._D
+        F = np.einsum("n,ij->nij", self.p, self.elastic_tensor[:, 1, :, 1])
+        F += self.elastic_tensor[:, 1, :, 0]
+        F = np.einsum("nik,nk->ni", F, self.Ak)
+        F = np.concatenate((F.T, self.Ak.T), axis=0)
+        F = np.concatenate((np.real(F), -np.imag(F)), axis=-1)
+        D = np.linalg.solve(F, np.concatenate((np.zeros(3), self.burgers_vector)))
+        return D[:3] + 1j * D[3:]
 
     @property
     def dzdx(self):
