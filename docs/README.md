@@ -1,3 +1,9 @@
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyiron/elaston/HEAD)
+[![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/4aaeaca43ca54789ae5b328e17e1d937)](https://app.codacy.com/gh/pyiron/elaston/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![Coverage Status](https://coveralls.io/repos/github/pyiron/elaston/badge.svg?branch=main)](https://coveralls.io/github/pyiron/elaston?branch=main)
+[![Documentation Status](https://readthedocs.org/projects/elaston/badge/?version=latest)](https://elaston.readthedocs.io/en/latest/?badge=latest)
+
 # Elaston
 
 Elaston is a simple and lightweight module for linear elasticity calculations.
