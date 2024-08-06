@@ -87,9 +87,11 @@ class LinearElasticity:
     """
     Linear elastic field class based on the 3x3x3x3 elastic tensor C_ijkl:
 
-    sigma_ij = C_ijkl*epsilon_kl
+    .. math:
+        \\sigma_{ij} = C_{ijkl} * \\epsilon_{kl}
 
-    where sigma_ij is the ij-component of stress and epsilon_kl is the kl-component of strain.
+    where :math:\\sigma_{ij} is the ij-component of stress and
+    :math:\\epsilon_{kl} is the kl-component of strain.
 
     Examples I: Get bulk modulus from the elastic tensor:
 
@@ -256,7 +258,7 @@ class LinearElasticity:
         Returns:
             (float): Bulk modulus
         """
-        return 3 * (1 - 2 * self.poissons_ratio.mean()) / self.youngs_modulus.mean()
+        return self.youngs_modulus.mean() / (3 * (1 - 2 * self.poissons_ratio.mean()))
 
     @property
     def poissons_ratio(self):
