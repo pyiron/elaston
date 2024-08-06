@@ -21,7 +21,7 @@ def normalize(x):
 
 
 def orthonormalize(vectors):
-    x = normalize(vectors)
+    x = normalize(np.asarray(vectors))
     x[1] = x[1] - np.einsum("i,i,j->j", x[0], x[1], x[0])
     x[2] = np.cross(x[0], x[1])
     if np.isclose(np.linalg.det(x), 0):
