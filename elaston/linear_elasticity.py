@@ -52,17 +52,15 @@ disappears:
 
 With this in mind, we can calculate the dipole tensor of Ni in Al with the following lines:
 
-```python
-from pyiron_atomistics import Project
-pr = Project('dipole_tensor')
-job = pr.create.job.Lammps('dipole')
-n_repeat = 3
-job.structure = pr.create.structure.bulk('Al', cubic=True).repeat(n_repeat)
-job.structure[0] = 'Ni'
-job.calc_minimize()
-job.run()
-dipole_tensor = -job.structure.get_volume()*job['output/generic/pressures'][-1]
-```
+>>> from pyiron_atomistics import Project
+>>> pr = Project('dipole_tensor')
+>>> job = pr.create.job.Lammps('dipole')
+>>> n_repeat = 3
+>>> job.structure = pr.create.structure.bulk('Al', cubic=True).repeat(n_repeat)
+>>> job.structure[0] = 'Ni'
+>>> job.calc_minimize()
+>>> job.run()
+>>> dipole_tensor = -job.structure.get_volume()*job['output/generic/pressures'][-1]
 
 Instead of working with atomistic calculations, the dipole tensor can be calculated by the
 lambda tensor [1], which is defined as:

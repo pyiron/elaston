@@ -63,7 +63,7 @@ class Green:
             r ((n,3)-array): Positions for which to calculate the Green's function
             derivative (int): The order of the derivative. Ignored if `fourier=True`
             fourier (bool): If `True`,  the Green's function of the reciprocal space is returned.
-            check_unique (bool): If `True`, pyiron checks whether there are
+            check_unique (bool): If `True`, elaston checks whether there are
                 duplicate values and avoids calculating the Green's function
                 multiple times for the same values
 
@@ -104,20 +104,16 @@ class Isotropic(Green):
         self.shear_modulus = shear_modulus
         self.min_dist = min_distance
         self.optimize = optimize
-        self._B = None
 
-    # Rewrite A using cached_property
     @cached_property
     def A(self):
         """First coefficient of the Green's function. For more, cf. DocString in the class level."""
         return (3 - 4 * self.poissons_ratio) * self.B
 
-    @property
+    @cached_property
     def B(self):
         """Second coefficient of the Green's function. For more, cf. DocString in the class level."""
-        if self._B is None:
-            self._B = 1 / (16 * np.pi * self.shear_modulus * (1 - self.poissons_ratio))
-        return self._B
+        return 1 / (16 * np.pi * self.shear_modulus * (1 - self.poissons_ratio))
 
     def G(self, r):
         """Green's function."""
@@ -274,67 +270,50 @@ class Anisotropic(Green):
             0, np.pi, n_mesh, endpoint=False, retstep=True
         )
         self.optimize = optimize
-        self._initialize()
 
-    def _initialize(self):
-        self._zT = None
-        self._F = None
-        self._T = None
-        self._z = None
-        self._Ms = None
-        self._MF = None
-
-    @property
+    @cached_property
     def z(self):
-        if self._z is None:
-            self._z = np.einsum(
-                "i...x,in->n...x",
-                tools.get_plane(self.T),
-                [np.cos(self.phi_range), np.sin(self.phi_range)],
-            )
-        return self._z
+        """Unit vector in the direction of the azimuthal angle."""
+        return np.einsum(
+            "i...x,in->n...x",
+            tools.get_plane(self.T),
+            [np.cos(self.phi_range), np.sin(self.phi_range)],
+        )
 
-    @property
+    @cached_property
     def Ms(self):
-        if self._Ms is None:
-            self._Ms = np.einsum(
+        """Inverse of the matrix `Ms`."""
+        return np.linalg.inv(
+            np.einsum(
                 "ijkl,...j,...l->...ik", self.C, self.z, self.z, optimize=self.optimize
             )
-            self._Ms = np.linalg.inv(self._Ms)
-        return self._Ms
+        )
 
-    @property
+    @cached_property
     def T(self):
-        if self._T is None:
-            self._T = tools.normalize(self.r)
-        return self._T
+        """Normalized `r`."""
+        return tools.normalize(self.r)
 
-    @property
+    @cached_property
     def zT(self):
-        if self._zT is None:
-            self._zT = np.einsum("...p,...w->...pw", self.z, self.T)
-            self._zT = self._zT + np.einsum("...ij->...ji", self._zT)
-        return self._zT
+        zT = np.einsum("...p,...w->...pw", self.z, self.T)
+        return zT + np.einsum("...ij->...ji", zT)
 
-    @property
+    @cached_property
     def F(self):
-        if self._F is None:
-            self._F = np.einsum(
-                "jpnw,...ij,...nr,...pw->...ir",
-                self.C,
-                self.Ms,
-                self.Ms,
-                self.zT,
-                optimize=self.optimize,
-            )
-        return self._F
+        return np.einsum(
+            "jpnw,...ij,...nr,...pw->...ir",
+            self.C,
+            self.Ms,
+            self.Ms,
+            self.zT,
+            optimize=self.optimize,
+        )
 
-    @property
+    @cached_property
     def MF(self):
-        if self._MF is None:
-            self._MF = np.einsum("...ij,...nr->...ijnr", self.F, self.Ms)
-            self._MF = self._MF + np.einsum("...ijnr->...nrij", self._MF)
-        return self._MF
+        MF = np.einsum("...ij,...nr->...ijnr", self.F, self.Ms)
+        return MF + np.einsum("...ijnr->...nrij", MF)
 
     @property
     def Air(self):
@@ -374,7 +353,6 @@ class Anisotropic(Green):
                 "ijkl,...j,...l->...ik", self.C, self.r, self.r, optimize=self.optimize
             )
             return np.linalg.inv(G)
-        self._initialize()
         if derivative == 0:
             M = np.einsum("n...ij->...ij", self.Ms) * self.dphi / (4 * np.pi**2)
             return np.einsum("...ij,...->...ij", M, 1 / np.linalg.norm(self.r, axis=-1))
