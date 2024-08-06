@@ -63,7 +63,7 @@ class Green:
             r ((n,3)-array): Positions for which to calculate the Green's function
             derivative (int): The order of the derivative. Ignored if `fourier=True`
             fourier (bool): If `True`,  the Green's function of the reciprocal space is returned.
-            check_unique (bool): If `True`, pyiron checks whether there are
+            check_unique (bool): If `True`, elaston checks whether there are
                 duplicate values and avoids calculating the Green's function
                 multiple times for the same values
 
