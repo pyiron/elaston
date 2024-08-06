@@ -180,7 +180,7 @@ class LinearElasticity:
         if not self._is_rotated:
             return np.einsum(
                 "Ii,Jj,Kk,Ll,ijkl->IJKL",
-                * 4 * [self.orientation],
+                *4 * [self.orientation],
                 self._elastic_tensor,
                 optimize=True,
             )
