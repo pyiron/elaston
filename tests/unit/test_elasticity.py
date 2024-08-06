@@ -111,6 +111,12 @@ class TestElasticity(unittest.TestCase):
             medium.get_greens_function([1, 1, 1], isotropic=False)[0, 0],
         )
 
+    def test_point_defect_displacement(self):
+        medium = LinearElasticity([211.0, 130.0, 82.0])
+        x = np.array([[1, 1, 1], [1, 1 + 1e-4, 1]])
+        dx = x[1] - x[0]
+        dy = medium.get_point_defect_displacement(x, np.eye(3))
+        self.assertTrue(np.allclose((dy[1] - dy[0]) / 1e-4, medium.get_point_defect_strain(x, np.eye(3)).mean(axis=0)[1]))
 
 if __name__ == "__main__":
     unittest.main()
