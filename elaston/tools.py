@@ -74,11 +74,5 @@ def coeff_to_voigt(C_in):
 
 def make_isotropic(C_11: float, C_12: float, C_44: float):
     """Make isotropic elastic tensor from C_11, C_12, and C_44."""
-    mat = np.array(
-        [
-            [ 0.6,  0.4,  0.8],
-            [ 0.2,  0.8, -0.4],
-            [ 0.2, -0.2,  0.6]
-        ]
-    )
+    mat = np.array([[0.6, 0.4, 0.8], [0.2, 0.8, -0.4], [0.2, -0.2, 0.6]])
     return mat @ [C_11, C_12, C_44]
