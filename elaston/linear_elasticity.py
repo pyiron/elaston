@@ -144,10 +144,9 @@ class LinearElasticity:
         """
         self.elastic_tensor = elastic_tensor
         self._isotropy_tolerance = 1.0e-4
-        self._orientation = np.eye(3)
-        if orientation is not None:
-            self.orientation = orientation
-        self._eschelby = None
+        if orientation is None:
+            orientation = np.eye(3)
+        self.orientation = orientation
 
     @property
     def orientation(self):
@@ -165,9 +164,7 @@ class LinearElasticity:
 
     @orientation.setter
     def orientation(self, r):
-        orientation = self._orientation.copy()
-        orientation[:2] = r[:2]
-        self._orientation = tools.orthonormalize(orientation)
+        self._orientation = tools.orthonormalize(r)
 
     @property
     def _is_rotated(self):
@@ -183,10 +180,7 @@ class LinearElasticity:
         if not self._is_rotated:
             return np.einsum(
                 "Ii,Jj,Kk,Ll,ijkl->IJKL",
-                self.orientation,
-                self.orientation,
-                self.orientation,
-                self.orientation,
+                *4 * [self.orientation],
                 self._elastic_tensor,
                 optimize=True,
             )
