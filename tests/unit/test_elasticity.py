@@ -127,6 +127,9 @@ class TestElasticity(unittest.TestCase):
         self.assertTrue(
             np.allclose(stress, medium.get_point_defect_stress(x, np.eye(3)))
         )
+        self.assertGreater(
+            medium.get_point_defect_energy(np.random.randn(10, 3)).min(), 0
+        )
 
 
 if __name__ == "__main__":
