@@ -28,8 +28,8 @@ class TestElasticity(unittest.TestCase):
         medium.orientation = np.random.random((3, 3))
         self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
 
-    def test_make_isotropic(self):
-        medium = LinearElasticity(tools.make_isotropic(*np.random.random(3)))
+    def test_voigt_average(self):
+        medium = LinearElasticity(tools.voigt_average(*np.random.random(3)))
         self.assertTrue(medium._is_isotropic)
 
     def test_orientation(self):
