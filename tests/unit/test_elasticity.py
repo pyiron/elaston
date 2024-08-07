@@ -111,7 +111,7 @@ class TestElasticity(unittest.TestCase):
             medium.get_greens_function([1, 1, 1], isotropic=False)[0, 0],
         )
 
-    def test_point_defect_displacement(self):
+    def test_point_defect(self):
         medium = LinearElasticity([211.0, 130.0, 82.0])
         x = np.array([[1, 1, 1], [1, 1 + 1e-4, 1]])
         dy = medium.get_point_defect_displacement(x, np.eye(3))
@@ -120,6 +120,12 @@ class TestElasticity(unittest.TestCase):
                 (dy[1] - dy[0]) / 1e-4,
                 medium.get_point_defect_strain(x, np.eye(3)).mean(axis=0)[1],
             )
+        )
+        x = np.random.randn(3)
+        strain = medium.get_point_defect_strain(x, np.eye(3))
+        stress = np.einsum("ijkl,kl->ij", medium.elastic_tensor, strain)
+        self.assertTrue(
+            np.allclose(stress, medium.get_point_defect_stress(x, np.eye(3)))
         )
 
 
