@@ -101,6 +101,11 @@ class TestElasticity(unittest.TestCase):
         self.assertTrue(
             np.allclose(stress, medium.get_dislocation_stress(x, np.ones(3)))
         )
+        x = np.random.randn(10, 3)
+        self.assertGreater(
+            medium.get_dislocation_energy_density(x, np.ones(3)).min(),
+            0
+        )
 
     def test_elastic_tensor_input(self):
         C = create_random_C()
