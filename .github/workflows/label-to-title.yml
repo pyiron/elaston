@@ -5,7 +5,7 @@ on:
     types: [labeled, unlabeled]
 
 jobs:
-  whatever-you-call-the-job:
+  label-to-title:
     runs-on: ubuntu-latest
     steps:
     - uses: pyiron/actions/label-to-title@label-to-title
