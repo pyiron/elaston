@@ -17,10 +17,28 @@ __date__ = "Aug 21, 2021"
 
 
 def normalize(x):
+    """
+    Normalize a vector or an array of vectors.
+
+    Args:
+        x (numpy.ndarray): A vector or an array of vectors.
+
+    Returns:
+        numpy.ndarray: Normalized vector or array of vectors.
+    """
     return (x.T / np.linalg.norm(x, axis=-1).T).T
 
 
 def orthonormalize(vectors):
+    """
+    Orthonormalize a set of vectors.
+
+    Args:
+        vectors (list): A list of vectors.
+
+    Returns:
+        numpy.ndarray: An orthonormal basis.
+    """
     x = np.eye(3)
     x[:2] = normalize(np.asarray(vectors)[:2])
     x[1] = x[1] - np.einsum("i,i,j->j", x[0], x[1], x[0])
@@ -31,6 +49,15 @@ def orthonormalize(vectors):
 
 
 def get_plane(T):
+    """
+    Get a plane perpendicular to a vector.
+
+    Args:
+        T (numpy.ndarray): A vector.
+
+    Returns:
+        tuple: A pair of vectors that span the plane.
+    """
     x = normalize(np.random.random(T.shape))
     x = normalize(x - np.einsum("...i,...i,...j->...j", x, T, T))
     y = np.cross(T, x)
@@ -38,6 +65,16 @@ def get_plane(T):
 
 
 def index_from_voigt(i, j):
+    """
+    Convert Voigt notation to matrix index.
+
+    Args:
+        i (int): Voigt index.
+        j (int): Voigt index.
+
+    Returns:
+        int: Matrix index.
+    """
     if i == j:
         return i
     else:
@@ -45,6 +82,15 @@ def index_from_voigt(i, j):
 
 
 def C_from_voigt(C_in):
+    """
+    Convert elastic tensor in Voigt notation to matrix notation.
+
+    Args:
+        C_in (numpy.ndarray): Elastic tensor in Voigt notation.
+
+    Returns:
+        numpy.ndarray: Elastic tensor in matrix notation.
+    """
     C = np.zeros((3, 3, 3, 3))
     for i in range(3):
         for j in range(3):
@@ -55,6 +101,15 @@ def C_from_voigt(C_in):
 
 
 def C_to_voigt(C_in):
+    """
+    Convert elastic tensor in matrix notation to Voigt notation.
+
+    Args:
+        C_in (numpy.ndarray): Elastic tensor in matrix notation.
+
+    Returns:
+        numpy.ndarray: Elastic tensor in Voigt notation.
+    """
     C = np.zeros((6, 6))
     for i in range(3):
         for j in range(i + 1):
@@ -65,6 +120,15 @@ def C_to_voigt(C_in):
 
 
 def coeff_to_voigt(C_in):
+    """
+    Convert C_11, C_12, and C_44 to Voigt notation.
+
+    Args:
+        C_in (list): A list of elastic constants C_11, C_12, and C_44.
+
+    Returns:
+        numpy.ndarray: Elastic tensor in Voigt notation.
+    """
     C = np.zeros((6, 6))
     C[:3, :3] = C_in[1]
     C[:3, :3] += np.eye(3) * (C_in[0] - C_in[1])
