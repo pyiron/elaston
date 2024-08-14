@@ -7,5 +7,5 @@ on:
 jobs:
   label-to-title:
     runs-on: ubuntu-latest
-    uses: pyiron/actions/label-to-title@label-to-title
-    secrets: inherit
+    steps:
+    - uses: pyiron/actions/label-to-title@label-to-title
