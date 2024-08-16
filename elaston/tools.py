@@ -3,6 +3,7 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 import numpy as np
+import string
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -76,3 +77,72 @@ def voigt_average(C_11: float, C_12: float, C_44: float):
     """Make isotropic elastic tensor from C_11, C_12, and C_44."""
     mat = np.array([[0.6, 0.4, 0.8], [0.2, 0.8, -0.4], [0.2, -0.2, 0.6]])
     return mat @ [C_11, C_12, C_44]
+
+
+def _get_einsum_str(shape: tuple, inverse: bool = True, axes=None) -> str:
+    """
+    Get the einsum string for the given shape.
+
+    Args:
+        shape (tuple): Shape of the tensor.
+        inverse (bool): Whether to use the inverse einsum string.
+
+    Returns:
+        str: Einsum string.
+
+    """
+    s = [string.ascii_lowercase[i] for i in range(len(shape))]
+    s_rot = ""
+    s_mul = ""
+    for ii, ss in enumerate(s):
+        if ii in axes:
+            if inverse:
+                s_rot += ss.upper() + ss + ","
+            else:
+                s_rot += ss + ss.upper() + ","
+            s_mul += ss.upper()
+        else:
+            s_mul += ss
+    return s_rot + s_mul + "->" + "".join(s)
+
+
+def crystal_to_box(tensor, orientation, axes=None):
+    """
+    Translate a tensor given in the crystal coordinate system to the box
+    coordinate system. Crystal coordinates are (usually) given by [[1, 0, 0],
+    [0, 1, 0], [0, 0, 1]] and box coordinates are given by the lattice
+    vectors, such as [[1, 1, 1], [1, -1, 0], [1, -2, 1]].
+
+    Args:
+        tensor (np.ndarray): Tensor to be rotated.
+        orientation (np.ndarray): Orientation matrix.
+        axes (np.ndarray): Axes to rotate.
+    """
+    return _rotate_tensor(tensor, orientation, inverse=False, axes=axes)
+
+
+def box_to_crystal(tensor, orientation, axes=None):
+    """
+    Translate a tensor given in the box coordinate system to the crystal
+    coordinate system. Crystal coordinates are (usually) given by [[1, 0, 0],
+    [0, 1, 0], [0, 0, 1]] and box coordinates are given by the lattice
+    vectors, such as [[1, 1, 1], [1, -1, 0], [1, -2, 1]].
+
+    Args:
+        tensor (np.ndarray): Tensor to be rotated.
+        orientation (np.ndarray): Orientation matrix.
+        axes (np.ndarray): Axes to rotate.
+    """
+    return _rotate_tensor(tensor, orientation, inverse=True, axes=axes)
+
+
+def _rotate_tensor(tensor, orientation, inverse, axes=None):
+    v = np.atleast_2d(tensor)
+    if axes is None:
+        axes = np.where(np.array(v.shape) == 3)[0]
+    axes = np.atleast_1d(axes)
+    return np.einsum(
+        _get_einsum_str(v.shape, inverse=inverse, axes=axes),
+        *len(axes) * [orthonormalize(orientation)],
+        v,
+    ).reshape(tensor.shape)
