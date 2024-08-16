@@ -135,6 +135,7 @@ def box_to_crystal(tensor, orientation, axes=None):
     """
     return _rotate_tensor(tensor, orientation, inverse=True, axes=axes)
 
+
 def _rotate_tensor(tensor, orientation, inverse, axes=None):
     v = np.atleast_2d(tensor)
     if axes is None:
@@ -143,5 +144,5 @@ def _rotate_tensor(tensor, orientation, inverse, axes=None):
     return np.einsum(
         _get_einsum_str(v.shape, inverse=inverse, axes=axes),
         *len(axes) * [orthonormalize(orientation)],
-        v
+        v,
     ).reshape(tensor.shape)
