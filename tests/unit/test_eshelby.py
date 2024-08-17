@@ -17,7 +17,6 @@ def create_random_HL(b=None):
 
 class TestEschelby(unittest.TestCase):
     def test_p(self):
-        det_lst = []
         hl = create_random_HL()
         self.assertLess(
             np.absolute(np.linalg.det(hl._get_pmat(hl.p)).max()),
