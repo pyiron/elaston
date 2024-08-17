@@ -26,6 +26,13 @@ class Eshelby:
     """
 
     def __init__(self, elastic_tensor, burgers_vector):
+        """
+        Args:
+            elastic_tensor ((3,3,3,3)-array): Elastic tensor
+            burgers_vector ((3,)-array): Burgers vector
+        """
+        assert np.shape(elastic_tensor) == (3, 3, 3, 3)
+        assert np.shape(burgers_vector) == (3,)
         self.elastic_tensor = elastic_tensor
         self.burgers_vector = burgers_vector
         self.fit_range = np.linspace(0, 1, 10)
@@ -81,7 +88,8 @@ class Eshelby:
         Displacement vectors
 
         Args:
-            positions ((n,3)-array): Positions for which the displacements are to be calculated
+            positions ((n,3)-array): Positions for which the displacements are
+                to be calculated
 
         Returns:
             ((n,3)-array): Displacement vectors
@@ -97,7 +105,8 @@ class Eshelby:
         Strain tensors
 
         Args:
-            positions ((n,3)-array): Positions for which the strains are to be calculated
+            positions ((n,3)-array): Positions for which the strains are to be
+                calculated
 
         Returns:
             ((n,3,3)-array): Strain tensors
