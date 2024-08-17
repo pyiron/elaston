@@ -18,6 +18,8 @@ __status__ = "development"
 __date__ = "Aug 21, 2021"
 
 
+# ref https://en.m.wikiversity.org/wiki/Elasticity/Constitutive_relations
+
 def check_is_tensor(**kwargs):
     d = {k: v for k, v in kwargs.items() if v is not None}
     if len(d) < 2:
