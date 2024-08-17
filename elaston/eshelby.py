@@ -31,8 +31,8 @@ class Eshelby:
             elastic_tensor ((3,3,3,3)-array): Elastic tensor
             burgers_vector ((3,)-array): Burgers vector
         """
-        assert elastic_tensor.shape == (3, 3, 3, 3)
-        assert burgers_vector.shape == (3,)
+        assert np.shape(elastic_tensor) == (3, 3, 3, 3)
+        assert np.shape(burgers_vector) == (3,)
         self.elastic_tensor = elastic_tensor
         self.burgers_vector = burgers_vector
         self.fit_range = np.linspace(0, 1, 10)
