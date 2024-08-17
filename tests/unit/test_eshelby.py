@@ -17,7 +17,10 @@ def create_random_HL(b=None):
 
 class TestEschelby(unittest.TestCase):
     def test_p(self):
-        hl = create_random_HL()
+        det_lst = []
+        for _ in range(10000):
+            hl = create_random_HL()
+            det_lst.append(np.absolute(np.linalg.det(hl._get_pmat(hl.p)).max())
         self.assertTrue(
             np.allclose(np.absolute(np.linalg.det(hl._get_pmat(hl.p))), 0),
             "p-matrix has a full dimension",

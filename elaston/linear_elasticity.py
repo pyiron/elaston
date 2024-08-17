@@ -137,7 +137,7 @@ class LinearElasticity:
 
         Here is a list of elastic constants of a few materials:
 
-        - Al: [70.4, 26.0, 26.0]
+        - Al: [110.5, 64.8, 30.9]
         - Cu: [170.0, 121.0, 75.0]
         - Fe: [211.0, 130.0, 82.0]
         - Mo: [442.0, 142.0, 162.0]
