@@ -4,6 +4,10 @@
 
 import numpy as np
 import string
+from pint import Quantity
+from functools import wraps
+from inspect import getfullargspec
+
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -212,3 +216,29 @@ def _rotate_tensor(tensor, orientation, inverse, axes=None):
         *len(axes) * [orthonormalize(orientation)],
         v,
     ).reshape(tensor.shape)
+
+
+def unit_wrapper(**units):
+    def decorator(func):
+        argspec = getfullargspec(func)
+        argint = [argspec.args.index(key) for key in units.keys()]
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for key in kwargs.keys():
+                if isinstance(kwargs[key], Quantity):
+                    if key in units:
+                        kwargs[key] = kwargs[key].to(units[key]).magnitude
+                    else:
+                        kwargs[key] = kwargs[key].magnitude
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+#        def wrapper(*args, **kwargs):
+#            try:
+#                value = args[argument_index]
+#            except IndexError:
+#                value = kwargs[argument_name]
+#            # do something with value
+#            return f(*args, **kwargs)
