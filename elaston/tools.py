@@ -41,7 +41,7 @@ def orthonormalize(vectors):
         numpy.ndarray: An orthonormal basis.
     """
     if np.shape(vectors) == (3, 3) and np.linalg.det(vectors) <= 0:
-        raise ValueError("Vectors not independent or not right-handed"):
+        raise ValueError("Vectors not independent or not right-handed")
     x = np.eye(3)
     x[:2] = normalize(np.asarray(vectors)[:2])
     x[1] = x[1] - np.einsum("i,i,j->j", x[0], x[1], x[0])
