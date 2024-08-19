@@ -45,7 +45,7 @@ def orthonormalize(vectors):
         numpy.ndarray: An orthonormal basis.
     """
     if np.shape(vectors) == (3, 3) and np.linalg.det(vectors) <= 0:
-        raise ValueError("Vectors not independent or not right-handed"):
+        raise ValueError("Vectors not independent or not right-handed")
     x = np.eye(3)
     x[:2] = normalize(np.asarray(vectors)[:2])
     x[1] = x[1] - np.einsum("i,i,j->j", x[0], x[1], x[0])
@@ -218,27 +218,34 @@ def _rotate_tensor(tensor, orientation, inverse, axes=None):
     ).reshape(tensor.shape)
 
 
-def unit_wrapper(**units):
+def unit_wrapper(output_unit=None, **units):
     def decorator(func):
         argspec = getfullargspec(func)
-        argint = [argspec.args.index(key) for key in units.keys()]
+        argint = {argspec.args.index(k): v for k, v in units.items()}
+
         @wraps(func)
         def wrapper(*args, **kwargs):
+            convert_output = False
+            for ii, value in enumerate(args):
+                if isinstance(value, Quantity):
+                    convert_output = True
+                    if ii in argint:
+                        args[ii] = value.to(argint[ii]).magnitude
+                    else:
+                        args[ii] = value.magnitude
             for key in kwargs.keys():
                 if isinstance(kwargs[key], Quantity):
+                    convert_output = True
                     if key in units:
                         kwargs[key] = kwargs[key].to(units[key]).magnitude
                     else:
                         kwargs[key] = kwargs[key].magnitude
-            return func(*args, **kwargs)
+            result = func(*args, **kwargs)
+            if output_unit is not None and convert_output:
+                return result * eval(output_unit)
+            else:
+                return result
+
         return wrapper
+
     return decorator
-
-
-#        def wrapper(*args, **kwargs):
-#            try:
-#                value = args[argument_index]
-#            except IndexError:
-#                value = kwargs[argument_name]
-#            # do something with value
-#            return f(*args, **kwargs)
