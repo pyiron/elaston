@@ -25,8 +25,9 @@ class TestElasticity(unittest.TestCase):
     def test_frame(self):
         medium = LinearElasticity(np.random.random((6, 6)))
         self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
-        medium.orientation = np.random.random((3, 3))
+        medium.orientation = 0.1 * np.random.randn(3, 3) + np.eye(3)
         self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
+        self.assertRaises(ValueError, setattr, medium, "orientation", -np.eye(3))
 
     def test_voigt_average(self):
         medium = LinearElasticity(tools.voigt_average(*np.random.random(3)))
