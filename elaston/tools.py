@@ -19,9 +19,6 @@ __status__ = "development"
 __date__ = "Aug 21, 2021"
 
 
-ureg = UnitRegistry()
-
-
 def normalize(x):
     """
     Normalize a vector or an array of vectors.
@@ -219,34 +216,23 @@ def _rotate_tensor(tensor, orientation, inverse, axes=None):
     ).reshape(tensor.shape)
 
 
-def my_wrapper(arg1, arg2):
+def _is_plain(inputs, outputs, args, kwargs):
+    if inputs is None and outputs is None:
+        return True
+    if any([isinstance(arg, Quantity) for arg in args]):
+        return False
+    if any([isinstance(val, Quantity) for val in kwargs.values()]):
+        return False
+    return True
+
+
+def units(outputs=None, inputs=None):
     def decorator(func):
         def wrapper(*args, **kwargs):
-            # Your logic to modify the output value
-            output = func(*args, **kwargs)
-            # Modify the output value using arg1 and arg2 (example modification)
-            modified_output = output * arg1 + arg2  # Example modification
-            return modified_output
-
-        return wrapper
-
-    return decorator
-
-
-def units(*ureg_args):
-    def decorator(func):
-        @ureg.wraps(*ureg_args, strict=False)
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
-
-        def final_wrapper(*args, **kwargs):
-            if any([isinstance(arg, Quantity) for arg in args]) or any(
-                [isinstance(arg, Quantity) for arg in kwargs.values()]
-            ):
-                return wrapper(*args, **kwargs)
-            else:
+            if _is_plain(inputs, outputs, args, kwargs):
                 return func(*args, **kwargs)
-
-        return final_wrapper
-
+            for _ in range(times):
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
     return decorator

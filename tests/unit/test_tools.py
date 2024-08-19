@@ -6,7 +6,7 @@ from pint import UnitRegistry
 
 @tools.units("GPa", ("angstrom", "angstrom", "GPa"))
 def get_stress(b, x, C):
-    return b / x * C
+    return np.round(b / x * C, decimals=8)
 
 
 class TestTools(unittest.TestCase):
@@ -27,6 +27,17 @@ class TestTools(unittest.TestCase):
     def test_orthonormalize(self):
         with self.assertRaises(ValueError):
             tools.orthonormalize([[1, 1, 1], [1, -1, 0], [1, -2, 1]])
+
+    def test_units(self):
+        self.assertEqual(get_stress(1, 1, 1), 1)
+        self.assertEqual(
+            get_stress(
+                1 * tools.ureg.angstrom,
+                1 * tools.ureg.angstrom,
+                1 * tools.ureg.GPa
+            ),
+            1 * tools.ureg.GPa
+        )
 
 if __name__ == "__main__":
     unittest.main()
