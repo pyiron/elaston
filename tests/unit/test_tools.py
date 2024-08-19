@@ -34,6 +34,9 @@ class TestTools(unittest.TestCase):
         self.assertEqual(
             get_stress(1 * ureg.angstrom, 1 * ureg.angstrom, 1 * ureg.GPa), 1
         )
+        self.assertEqual(
+            get_stress(1 * ureg.nanometer, 1 * ureg.angstrom, 1 * ureg.GPa), 10
+        )
 
 if __name__ == "__main__":
     unittest.main()
