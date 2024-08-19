@@ -4,7 +4,7 @@
 
 import numpy as np
 import string
-from pint import UnitRegistry
+from pint import UnitRegistry, Quantity
 
 
 __author__ = "Sam Waseda"
@@ -217,3 +217,36 @@ def _rotate_tensor(tensor, orientation, inverse, axes=None):
         *len(axes) * [orthonormalize(orientation)],
         v,
     ).reshape(tensor.shape)
+
+
+def my_wrapper(arg1, arg2):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            # Your logic to modify the output value
+            output = func(*args, **kwargs)
+            # Modify the output value using arg1 and arg2 (example modification)
+            modified_output = output * arg1 + arg2  # Example modification
+            return modified_output
+
+        return wrapper
+
+    return decorator
+
+
+def units(*ureg_args):
+    def decorator(func):
+        @ureg.wraps(*ureg_args, strict=False)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        def final_wrapper(*args, **kwargs):
+            if any([isinstance(arg, Quantity) for arg in args]) or any(
+                [isinstance(arg, Quantity) for arg in kwargs.values()]
+            ):
+                return wrapper(*args, **kwargs)
+            else:
+                return func(*args, **kwargs)
+
+        return final_wrapper
+
+    return decorator
