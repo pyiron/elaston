@@ -2,6 +2,7 @@
 # Copyright (c) Max-Planck-Institut für Eisenforschung GmbH - Computational Materials Design (CM) Department
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
+import re
 from pint import Quantity
 from inspect import getfullargspec
 
@@ -38,13 +39,68 @@ def _get_input(kwargs, inputs):
     return kwargs_tmp
 
 
-def units(outputs=None, inputs=None):
+def replace_vars(expression, variables):
+    return re.sub(
+        r"\b[a-zA-Z_]\w*\b",
+        lambda match: (
+            f'kwargs["{match.group(0)}"].u'
+            if match.group(0) in variables
+            else match.group(0)
+        ),
+        expression,
+    )
+
+
+def _convert_to_tuple(value):
+    if isinstance(value, str):
+        return value
+    if isinstance(value, (list, tuple)):
+        value = tuple(value)
+    elif isinstance(value, dict):
+        value = tuple(value.values())
+    if len(value) == 1:
+        return value[0]
+    return value
+
+
+def _get_output_units(outputs, kwargs):
+    out = _convert_to_tuple(outputs)
+    try:
+        if isinstance(out, str):
+            return eval(replace_vars(out, kwargs))
+        if isinstance(out, (list, tuple)):
+            return tuple([eval(replace_vars(o, kwargs)) for o in out])
+    except AttributeError:
+        raise SyntaxError(
+            f"Invalid syntax: {out} for the given variables {kwargs} (probably"
+            " partly missing units)"
+        )
+
+
+def units(outputs=None, inputs=None, replace_output=True):
     def decorator(func):
         def wrapper(*args, **kwargs):
             if _is_plain(inputs, outputs, args, kwargs):
                 return func(*args, **kwargs)
+            # This step unifies args and kwargs
             kwargs.update(zip(getfullargspec(func).args, args))
+            if replace_output and outputs is not None and inputs is not None:
+                output_units = _get_output_units(outputs, kwargs)
+            elif outputs is not None:
+                output_units = _convert_to_tuple(outputs)
             result = func(**_get_input(kwargs, inputs))
+            if outputs is not None:
+                if isinstance(outputs, str):
+                    return (result * output_units).to_compact()
+                else:
+                    return tuple(
+                        [
+                            (res * out).to_compact()
+                            for res, out in zip(result, output_units)
+                        ]
+                    )
             return result
+
         return wrapper
+
     return decorator

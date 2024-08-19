@@ -4,7 +4,9 @@ from elaston import tools
 from pint import UnitRegistry
 
 
-@tools.units(inputs={"b": "angstrom", "x": "angstrom", "C": "GPa"})
+@tools.units(
+    outputs="b / x * C", inputs={"b": "angstrom", "x": "angstrom", "C": "GPa"}
+)
 def get_stress(b, x, C):
     return np.round(b / x * C, decimals=8)
 
@@ -32,11 +34,15 @@ class TestTools(unittest.TestCase):
         self.assertEqual(get_stress(1, 1, 1), 1)
         ureg = UnitRegistry()
         self.assertEqual(
-            get_stress(1 * ureg.angstrom, 1 * ureg.angstrom, 1 * ureg.GPa), 1
+            get_stress(1 * ureg.angstrom, 1 * ureg.angstrom, 1 * ureg.GPa).magnitude,
+            1
         )
         self.assertEqual(
-            get_stress(1 * ureg.nanometer, 1 * ureg.angstrom, 1 * ureg.GPa), 10
+            get_stress(1 * ureg.nanometer, 1 * ureg.angstrom, 1 * ureg.GPa).magnitude,
+            10
         )
+        with self.assertRaises(SyntaxError):
+            get_stress(1 * ureg.nanometer, 1 * ureg.angstrom, 1)
 
 if __name__ == "__main__":
     unittest.main()
