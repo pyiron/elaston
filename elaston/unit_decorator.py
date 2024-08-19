@@ -32,7 +32,7 @@ def _get_input(kwargs, inputs):
     kwargs_tmp = kwargs.copy()
     for key, val in kwargs_tmp.items():
         if isinstance(val, Quantity):
-            if key in inputs:
+            if inputs is not None and key in inputs:
                 kwargs_tmp[key] = val.to(inputs[key]).magnitude
             else:
                 kwargs_tmp[key] = val.magnitude
@@ -78,25 +78,28 @@ def _get_output_units(outputs, kwargs):
 
 
 def units(outputs=None, inputs=None, replace_output=True):
+    if inputs is not None and outputs is not None:
+        raise ValueError(
+            "You can only specify either inputs or outputs, not both."
+        )
     def decorator(func):
         def wrapper(*args, **kwargs):
             if _is_plain(inputs, outputs, args, kwargs):
                 return func(*args, **kwargs)
             # This step unifies args and kwargs
             kwargs.update(zip(getfullargspec(func).args, args))
-            if replace_output and outputs is not None and inputs is not None:
+            if replace_output and outputs is not None:
                 output_units = _get_output_units(outputs, kwargs)
             elif outputs is not None:
                 output_units = _convert_to_tuple(outputs)
             result = func(**_get_input(kwargs, inputs))
             if outputs is not None:
                 if isinstance(outputs, str):
-                    return (result * output_units).to_compact()
+                    return result * output_units
                 else:
                     return tuple(
                         [
-                            (res * out).to_compact()
-                            for res, out in zip(result, output_units)
+                            res * out for res, out in zip(result, output_units)
                         ]
                     )
             return result
