@@ -4,9 +4,7 @@
 
 import numpy as np
 import string
-from pint import Quantity
-from functools import wraps
-from inspect import getfullargspec
+from pint import UnitRegistry
 
 
 __author__ = "Sam Waseda"
@@ -19,6 +17,9 @@ __maintainer__ = "Sam Waseda"
 __email__ = "waseda@mpie.de"
 __status__ = "development"
 __date__ = "Aug 21, 2021"
+
+
+ureg = UnitRegistry()
 
 
 def normalize(x):
@@ -216,36 +217,3 @@ def _rotate_tensor(tensor, orientation, inverse, axes=None):
         *len(axes) * [orthonormalize(orientation)],
         v,
     ).reshape(tensor.shape)
-
-
-def unit_wrapper(output_unit=None, **units):
-    def decorator(func):
-        argspec = getfullargspec(func)
-        argint = {argspec.args.index(k): v for k, v in units.items()}
-
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            convert_output = False
-            for ii, value in enumerate(args):
-                if isinstance(value, Quantity):
-                    convert_output = True
-                    if ii in argint:
-                        args[ii] = value.to(argint[ii]).magnitude
-                    else:
-                        args[ii] = value.magnitude
-            for key in kwargs.keys():
-                if isinstance(kwargs[key], Quantity):
-                    convert_output = True
-                    if key in units:
-                        kwargs[key] = kwargs[key].to(units[key]).magnitude
-                    else:
-                        kwargs[key] = kwargs[key].magnitude
-            result = func(*args, **kwargs)
-            if output_unit is not None and convert_output:
-                return result * eval(output_unit)
-            else:
-                return result
-
-        return wrapper
-
-    return decorator

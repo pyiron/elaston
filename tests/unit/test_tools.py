@@ -1,6 +1,12 @@
 import numpy as np
 import unittest
 from elaston import tools
+from pint import UnitRegistry
+
+
+@tools.unit_wrapper("b.u / b.u * C.u", b="angstrom", x="angstrom", C="GPa")
+def get_stress(b, x, C):
+    return b / x * C
 
 
 class TestTools(unittest.TestCase):
