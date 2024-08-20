@@ -21,6 +21,11 @@ def get_multiple_outputs(a, b):
     return a + b, a * b
 
 
+@units()
+def no_units(a):
+    return a
+
+
 class TestTools(unittest.TestCase):
     def test_units(self):
         self.assertEqual(get_stress_absolute(1, 1, 1), 1)
@@ -56,6 +61,10 @@ class TestTools(unittest.TestCase):
             get_multiple_outputs(1 * ureg.angstrom, 1 * ureg.angstrom),
             (2 * ureg.angstrom, 1 * ureg.angstrom ** 2)
         )
+        with self.assertRaises(ValueError):
+            units(outputs=lambda x: x.u, inputs={"x": "GPa"})
+        self.assertEqual(no_units(1), 1)
+        self.assertEqual(no_units(1 * ureg.angstrom), 1)
 
 
 if __name__ == "__main__":

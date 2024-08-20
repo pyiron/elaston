@@ -2,7 +2,6 @@
 # Copyright (c) Max-Planck-Institut für Eisenforschung GmbH - Computational Materials Design (CM) Department
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
-import re
 from pint import Quantity
 from inspect import getfullargspec
 
@@ -19,11 +18,7 @@ __date__ = "Aug 21, 2021"
 
 
 def _is_plain(inputs, outputs, args, kwargs):
-    if inputs is None and outputs is None:
-        return True
-    if any([isinstance(arg, Quantity) for arg in args]):
-        return False
-    if any([isinstance(val, Quantity) for val in kwargs.values()]):
+    if any([isinstance(arg, Quantity) for arg in args + tuple(kwargs.values())]):
         return False
     return True
 
@@ -39,28 +34,16 @@ def _get_input(kwargs, inputs):
     return kwargs_tmp
 
 
-def replace_vars(expression, variables):
-    return re.sub(
-        r"\b[a-zA-Z_]\w*\b",
-        lambda match: (
-            f'kwargs["{match.group(0)}"].u'
-            if match.group(0) in variables
-            else match.group(0)
-        ),
-        expression,
-    )
-
-
 def _get_output_units(outputs, kwargs):
     try:
         if callable(outputs):
             return outputs(**kwargs)
         if isinstance(outputs, (list, tuple)):
             return tuple([output(**kwargs) for output in outputs])
-    except AttributeError:
+    except AttributeError as e:
         raise SyntaxError(
-            f"Invalid syntax: {outputs} for the given variables {kwargs} (probably"
-            " partly missing units)"
+            "This function return an output with a relative unit. Either you"
+            f" define all the units or none of them: {e}"
         )
 
 
