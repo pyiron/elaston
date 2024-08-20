@@ -51,50 +51,36 @@ def replace_vars(expression, variables):
     )
 
 
-def _convert_to_tuple(value):
-    if isinstance(value, str):
-        return value
-    if isinstance(value, (list, tuple)):
-        value = tuple(value)
-    elif isinstance(value, dict):
-        value = tuple(value.values())
-    if len(value) == 1:
-        return value[0]
-    return value
-
-
 def _get_output_units(outputs, kwargs):
-    out = _convert_to_tuple(outputs)
     try:
-        if isinstance(out, str):
-            return eval(replace_vars(out, kwargs))
-        if isinstance(out, (list, tuple)):
-            return tuple([eval(replace_vars(o, kwargs)) for o in out])
+        if callable(outputs):
+            return outputs(**kwargs)
+        if isinstance(outputs, (list, tuple)):
+            return tuple([output(**kwargs) for output in outputs])
     except AttributeError:
         raise SyntaxError(
-            f"Invalid syntax: {out} for the given variables {kwargs} (probably"
+            f"Invalid syntax: {outputs} for the given variables {kwargs} (probably"
             " partly missing units)"
         )
 
 
-def units(outputs=None, inputs=None, replace_output=True):
+def units(outputs=None, inputs=None):
     if inputs is not None and outputs is not None:
         raise ValueError(
             "You can only specify either inputs or outputs, not both."
         )
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             if _is_plain(inputs, outputs, args, kwargs):
                 return func(*args, **kwargs)
             # This step unifies args and kwargs
             kwargs.update(zip(getfullargspec(func).args, args))
-            if replace_output and outputs is not None:
+            if outputs is not None:
                 output_units = _get_output_units(outputs, kwargs)
-            elif outputs is not None:
-                output_units = _convert_to_tuple(outputs)
             result = func(**_get_input(kwargs, inputs))
             if outputs is not None:
-                if isinstance(outputs, str):
+                if callable(outputs):
                     return result * output_units
                 else:
                     return tuple(
