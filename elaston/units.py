@@ -4,6 +4,7 @@
 
 from pint import Quantity, Unit
 from inspect import getfullargspec
+import warnings
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -83,10 +84,12 @@ def _get_output_units(outputs, kwargs, ureg):
         if isinstance(outputs, (list, tuple)):
             return tuple([f(output) for output in outputs])
     except AttributeError as e:
-        raise SyntaxError(
+        warnings.warn(
             "This function return an output with a relative unit. Either you"
-            f" define all the units or none of them: {e}"
+            f" define all the units or none of them: {e}",
+            SyntaxWarning,
         )
+        return None
 
 
 def _check_inputs_and_outputs(inp, out):
@@ -137,7 +140,7 @@ def units(outputs=None, inputs=None):
             if outputs is not None:
                 output_units = _get_output_units(outputs, kwargs, ureg)
             result = func(**_pint_to_value(kwargs, inputs))
-            if outputs is not None:
+            if outputs is not None and output_units is not None:
                 if isinstance(output_units, Unit):
                     return result * output_units
                 else:
