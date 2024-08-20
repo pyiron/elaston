@@ -38,6 +38,7 @@ def _get_input(kwargs, inputs):
 def _get_output_units(outputs, kwargs, ureg):
     def f(out, kwargs=kwargs, ureg=ureg):
         return out(**kwargs) if callable(out) else getattr(ureg, out)
+
     try:
         if callable(outputs) or isinstance(outputs, str):
             return f(outputs)
@@ -54,7 +55,9 @@ def _check_inputs_and_outputs(inp, out):
     assert inp is None or isinstance(inp, dict)
     assert out is None or callable(out) or isinstance(out, (list, tuple, str))
     if inp is not None:
-        if callable(out) or (isinstance(out, (list, tuple)) and any(map(callable, out))):
+        if callable(out) or (
+            isinstance(out, (list, tuple)) and any(map(callable, out))
+        ):
             raise ValueError(
                 "You cannot use relative output units when inpput units are defined"
             )
