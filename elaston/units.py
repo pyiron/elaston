@@ -73,6 +73,7 @@ def _get_output_units(outputs, kwargs, ureg):
     -------
     pint.Unit, tuple
     """
+
     def f(out, kwargs=kwargs, ureg=ureg):
         return out(**kwargs) if callable(out) else getattr(ureg, out)
 
