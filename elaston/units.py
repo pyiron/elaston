@@ -17,10 +17,11 @@ __status__ = "development"
 __date__ = "Aug 21, 2021"
 
 
-def _is_plain(inputs, outputs, args, kwargs):
-    if any([isinstance(arg, Quantity) for arg in args + tuple(kwargs.values())]):
-        return False
-    return True
+def _get_ureg(args, kwargs):
+    for arg in args + tuple(kwargs.values()):
+        if isinstance(arg, Quantity):
+            return arg._REGISTRY
+    return None
 
 
 def _get_input(kwargs, inputs):
@@ -34,12 +35,14 @@ def _get_input(kwargs, inputs):
     return kwargs_tmp
 
 
-def _get_output_units(outputs, kwargs):
+def _get_output_units(outputs, kwargs, ureg):
+    def f(out, kwargs=kwargs, ureg=ureg):
+        return out(**kwargs) if callable(out) else getattr(ureg, out)
     try:
         if callable(outputs):
-            return outputs(**kwargs)
+            return f(outputs)
         if isinstance(outputs, (list, tuple)):
-            return tuple([output(**kwargs) for output in outputs])
+            return tuple([f(output) for output in outputs])
     except AttributeError as e:
         raise SyntaxError(
             "This function return an output with a relative unit. Either you"
@@ -47,21 +50,31 @@ def _get_output_units(outputs, kwargs):
         )
 
 
+def _check_inputs_and_outputs(inputs, outputs):
+    assert inputs is None or isinstance(inputs, dict)
+    assert outputs is None or callable(outputs) or isinstance(outputs, (list, tuple))
+    if inputs is not None:
+        if callable(outputs) or (isinstance(outputs, (list, tuple)) and any(map(callable, outputs))):
+            raise ValueError(
+                "You cannot use relative output units when inpput units are defined"
+            )
+
+
 def units(outputs=None, inputs=None):
-    if inputs is not None and outputs is not None:
-        raise ValueError("You can only specify either inputs or outputs, not both.")
+    _check_inputs_and_outputs(inputs, outputs)
 
     def decorator(func):
         def wrapper(*args, **kwargs):
-            if _is_plain(inputs, outputs, args, kwargs):
+            ureg = _get_ureg(args, kwargs)
+            if ureg is None:
                 return func(*args, **kwargs)
             # This step unifies args and kwargs
             kwargs.update(zip(getfullargspec(func).args, args))
             if outputs is not None:
-                output_units = _get_output_units(outputs, kwargs)
+                output_units = _get_output_units(outputs, kwargs, ureg)
             result = func(**_get_input(kwargs, inputs))
             if outputs is not None:
-                if callable(outputs):
+                if callable(outputs) or isinstance(outputs, Quantity):
                     return result * output_units
                 else:
                     return tuple([res * out for res, out in zip(result, output_units)])
