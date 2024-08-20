@@ -22,5 +22,6 @@ class TestTools(unittest.TestCase):
         with self.assertRaises(ValueError):
             tools.orthonormalize([[1, 1, 1], [1, -1, 0], [1, -2, 1]])
 
+
 if __name__ == "__main__":
     unittest.main()
