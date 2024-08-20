@@ -56,12 +56,14 @@ class TestTools(unittest.TestCase):
             1 * ureg.nanometer / ureg.angstrom * ureg.GPa
         )
         with self.assertRaises(SyntaxError):
+            # All or no units must be specified; otherwise error
             get_stress_relative(1 * ureg.nanometer, 1 * ureg.angstrom, 1)
         self.assertEqual(
             get_multiple_outputs(1 * ureg.angstrom, 1 * ureg.angstrom),
             (2 * ureg.angstrom, 1 * ureg.angstrom ** 2)
         )
         with self.assertRaises(ValueError):
+            # No relative output units and absolute input units at the same time
             units(outputs=lambda x: x.u, inputs={"x": "GPa"})
         self.assertEqual(no_units(1), 1)
         self.assertEqual(no_units(1 * ureg.angstrom), 1)

@@ -18,13 +18,37 @@ __date__ = "Aug 21, 2021"
 
 
 def _get_ureg(args, kwargs):
+    """
+    Get the registry from the arguments.
+
+    Parameters
+    ----------
+    args : tuple
+    kwargs : dict
+
+    Returns
+    -------
+    pint.UnitRegistry
+    """
     for arg in args + tuple(kwargs.values()):
         if isinstance(arg, Quantity):
             return arg._REGISTRY
     return None
 
 
-def _get_input(kwargs, inputs):
+def _pint_to_value(kwargs, inputs):
+    """
+    Convert pint quantities to values.
+
+    Parameters
+    ----------
+    kwargs : dict
+    inputs : dict
+
+    Returns
+    -------
+    dict
+    """
     kwargs_tmp = kwargs.copy()
     for key, val in kwargs_tmp.items():
         if isinstance(val, Quantity):
@@ -36,6 +60,19 @@ def _get_input(kwargs, inputs):
 
 
 def _get_output_units(outputs, kwargs, ureg):
+    """
+    Get the output units.
+
+    Parameters
+    ----------
+    outputs : str, list, tuple, callable
+    kwargs : dict
+    ureg : pint.UnitRegistry
+
+    Returns
+    -------
+    pint.Unit, tuple
+    """
     def f(out, kwargs=kwargs, ureg=ureg):
         return out(**kwargs) if callable(out) else getattr(ureg, out)
 
@@ -52,6 +89,14 @@ def _get_output_units(outputs, kwargs, ureg):
 
 
 def _check_inputs_and_outputs(inp, out):
+    """
+    Check the inputs and outputs.
+
+    Parameters
+    ----------
+    inp : dict
+    out : str, list, tuple, callable
+    """
     assert inp is None or isinstance(inp, dict)
     assert out is None or callable(out) or isinstance(out, (list, tuple, str))
     if inp is not None:
@@ -64,6 +109,21 @@ def _check_inputs_and_outputs(inp, out):
 
 
 def units(outputs=None, inputs=None):
+    """
+    Decorator to handle units in functions.
+
+    Parameters
+    ----------
+    outputs : str, list, tuple, callable, optional
+        Output units. If a string, it should be a valid unit. If a list or
+        tuple, it should contain valid units. If a callable, it should return a
+        valid unit.
+    inputs : dict, optional
+
+    Returns
+    -------
+    callable
+    """
     _check_inputs_and_outputs(inputs, outputs)
 
     def decorator(func):
@@ -75,7 +135,7 @@ def units(outputs=None, inputs=None):
             kwargs.update(zip(getfullargspec(func).args, args))
             if outputs is not None:
                 output_units = _get_output_units(outputs, kwargs, ureg)
-            result = func(**_get_input(kwargs, inputs))
+            result = func(**_pint_to_value(kwargs, inputs))
             if outputs is not None:
                 if isinstance(output_units, Unit):
                     return result * output_units
