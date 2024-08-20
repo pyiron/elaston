@@ -5,7 +5,7 @@ from pint import UnitRegistry
 
 
 @units(
-    inputs={"b": "angstrom", "x": "angstrom", "C": "GPa"}
+    inputs={"b": "angstrom", "x": "angstrom", "C": "GPa"}, outputs="GPa"
 )
 def get_stress_absolute(b, x, C):
     return np.round(b / x * C, decimals=8)
@@ -35,13 +35,13 @@ class TestTools(unittest.TestCase):
             get_stress_absolute(
                 1 * ureg.angstrom, 1 * ureg.angstrom, 1 * ureg.GPa
             ),
-            1
+            1 * ureg.GPa
         )
         self.assertEqual(
             get_stress_absolute(
                 1 * ureg.nanometer, 1 * ureg.angstrom, 1 * ureg.GPa
             ),
-            10
+            10 * ureg.GPa
         )
         self.assertEqual(
             get_stress_relative(

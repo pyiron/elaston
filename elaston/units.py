@@ -2,7 +2,7 @@
 # Copyright (c) Max-Planck-Institut für Eisenforschung GmbH - Computational Materials Design (CM) Department
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
-from pint import Quantity
+from pint import Quantity, Unit
 from inspect import getfullargspec
 
 __author__ = "Sam Waseda"
@@ -39,7 +39,7 @@ def _get_output_units(outputs, kwargs, ureg):
     def f(out, kwargs=kwargs, ureg=ureg):
         return out(**kwargs) if callable(out) else getattr(ureg, out)
     try:
-        if callable(outputs):
+        if callable(outputs) or isinstance(outputs, str):
             return f(outputs)
         if isinstance(outputs, (list, tuple)):
             return tuple([f(output) for output in outputs])
@@ -50,11 +50,11 @@ def _get_output_units(outputs, kwargs, ureg):
         )
 
 
-def _check_inputs_and_outputs(inputs, outputs):
-    assert inputs is None or isinstance(inputs, dict)
-    assert outputs is None or callable(outputs) or isinstance(outputs, (list, tuple))
-    if inputs is not None:
-        if callable(outputs) or (isinstance(outputs, (list, tuple)) and any(map(callable, outputs))):
+def _check_inputs_and_outputs(inp, out):
+    assert inp is None or isinstance(inp, dict)
+    assert out is None or callable(out) or isinstance(out, (list, tuple, str))
+    if inp is not None:
+        if callable(out) or (isinstance(out, (list, tuple)) and any(map(callable, out))):
             raise ValueError(
                 "You cannot use relative output units when inpput units are defined"
             )
@@ -74,7 +74,7 @@ def units(outputs=None, inputs=None):
                 output_units = _get_output_units(outputs, kwargs, ureg)
             result = func(**_get_input(kwargs, inputs))
             if outputs is not None:
-                if callable(outputs) or isinstance(outputs, Quantity):
+                if isinstance(output_units, Unit):
                     return result * output_units
                 else:
                     return tuple([res * out for res, out in zip(result, output_units)])
