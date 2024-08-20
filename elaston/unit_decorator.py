@@ -66,9 +66,7 @@ def _get_output_units(outputs, kwargs):
 
 def units(outputs=None, inputs=None):
     if inputs is not None and outputs is not None:
-        raise ValueError(
-            "You can only specify either inputs or outputs, not both."
-        )
+        raise ValueError("You can only specify either inputs or outputs, not both.")
 
     def decorator(func):
         def wrapper(*args, **kwargs):
@@ -83,11 +81,7 @@ def units(outputs=None, inputs=None):
                 if callable(outputs):
                     return result * output_units
                 else:
-                    return tuple(
-                        [
-                            res * out for res, out in zip(result, output_units)
-                        ]
-                    )
+                    return tuple([res * out for res, out in zip(result, output_units)])
             return result
 
         return wrapper
