@@ -122,3 +122,152 @@ class Eshelby:
         )
         strain = strain + np.einsum("...ij->...ji", strain)
         return strain / 4 / np.pi
+
+
+def get_dislocation_displacement(
+    elastic_tensor: np.ndarray,
+    positions: np.ndarray,
+    burgers_vector: np.ndarray,
+):
+    """
+    Displacement field around a dislocation according to anisotropic elasticity theory
+    described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
+
+    Args:
+        positions ((n,2) or (n,3)-array): Position around a dislocation. The third axis
+            coincides with the dislocation line.
+        burgers_vector ((3,)-array): Burgers vector
+
+    Returns:
+        ((n, 3)-array): Displacement field (z-axis coincides with the dislocation line)
+    """
+    return Eshelby(elastic_tensor, burgers_vector).get_displacement(positions)
+
+def get_dislocation_strain(
+    elastic_tensor: np.ndarray,
+    positions: np.ndarray,
+    burgers_vector: np.ndarray,
+):
+    """
+    Strain field around a dislocation according to anisotropic elasticity theory
+    described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
+
+    Args:
+        positions ((n,2) or (n,3)-array): Position around a dislocation. The third axis
+            coincides with the dislocation line.
+        burgers_vector ((3,)-array): Burgers vector
+
+    Returns:
+        ((n, 3, 3)-array): Strain field (z-axis coincides with the dislocation line)
+    """
+    return Eshelby(elastic_tensor, burgers_vector).get_strain(positions)
+
+def get_dislocation_stress(
+    elastic_tensor: np.ndarray,
+    positions: np.ndarray,
+    burgers_vector: np.ndarray,
+):
+    """
+    Stress field around a dislocation according to anisotropic elasticity theory
+    described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
+
+    Args:
+        positions ((n,2) or (n,3)-array): Position around a dislocation. The third axis
+            coincides with the dislocation line.
+        burgers_vector ((3,)-array): Burgers vector
+
+    Returns:
+        ((n, 3, 3)-array): Stress field (z-axis coincides with the dislocation line)
+    """
+    strain = get_dislocation_strain(elastic_tensor, positions, burgers_vector)
+    return np.einsum("ijkl,...kl->...ij", elastic_tensor, strain)
+
+def get_dislocation_energy_density(
+    elastic_tensor: np.ndarray,
+    positions: np.ndarray,
+    burgers_vector: np.ndarray,
+):
+    """
+    Energy density field around a dislocation (product of stress and strain, cf. corresponding
+    methods)
+
+    Args:
+        positions ((n,2) or (n,3)-array): Position around a dislocation. The third axis
+            coincides with the dislocation line.
+        burgers_vector ((3,)-array): Burgers vector
+
+    Returns:
+        ((n,)-array): Energy density field
+    """
+    strain = get_dislocation_strain(elastic_tensor, positions, burgers_vector)
+    return np.einsum("ijkl,...kl,...ij->...", elastic_tensor, strain, strain)
+
+def get_dislocation_energy(
+        elastic_tensor: np.ndarray,
+    burgers_vector: np.ndarray,
+    r_min: float,
+    r_max: float,
+    mesh: int = 100,
+):
+    """
+    Energy per unit length along the dislocation line.
+
+    Args:
+        burgers_vector ((3,)-array): Burgers vector
+        r_min (float): Minimum distance from the dislocation core
+        r_max (float): Maximum distance from the dislocation core
+        mesh (int): Number of grid points for the numerical integration along the angle
+
+    Returns:
+        (float): Energy of dislocation per unit length
+
+    The energy is defined by the product of the stress and strain (i.e. energy density),
+    which is integrated over the plane vertical to the dislocation line. The energy density
+    :math:`w` according to the linear elasticity is given by:
+
+    .. math:
+        w(r, \\theta) = A(\\theta)/r^2
+
+    Therefore, the energy per unit length :math:`U` is given by:
+
+    .. math:
+        U = \\log(r_max/r_min)\\int A(\\theta)\\mathrm d\\theta
+
+    This implies :math:`r_min` cannot be 0 as well as :math:`r_max` cannot be infinity. This
+    is the consequence of the fact that the linear elasticity cannot describe the core
+    structure properly, and a real medium is not infinitely large. While :math:`r_max` can
+    be defined based on the real dislocation density, the choice of :math:`r_min` should be
+    done carefully.
+    """
+    if r_min <= 0:
+        raise ValueError("r_min must be a positive float")
+    theta_range = np.linspace(0, 2 * np.pi, 100, endpoint=False)
+    r = np.stack((np.cos(theta_range), np.sin(theta_range)), axis=-1) * r_min
+    strain = get_dislocation_strain(elastic_tensor, r, burgers_vector=burgers_vector)
+    return (
+        np.einsum("ijkl,nkl,nij->", elastic_tensor, strain, strain)
+        / np.diff(theta_range)[0]
+        * r_min**2
+        * np.log(r_max / r_min)
+    )
+
+def get_dislocation_force(
+    stress: np.ndarray,
+    glide_plane: np.ndarray,
+    burgers_vector: np.ndarray,
+):
+    """
+    Force per unit length along the dislocation line.
+
+    Args:
+        stress ((n, 3, 3)-array): External stress field at the dislocation line
+        glide_plane ((3,)-array): Glide plane
+        burgers_vector ((3,)-array): Burgers vector
+
+    Returns:
+        ((3,)-array): Force per unit length acting on the dislocation.
+    """
+    g = np.asarray(glide_plane) / np.linalg.norm(glide_plane)
+    return np.einsum(
+        "i,...ij,j,k->...k", g, stress, burgers_vector, np.cross(g, [0, 0, 1])
+    )
