@@ -5,8 +5,6 @@
 import numpy as np
 import string
 
-from elaston.unit_decorator import units
-
 
 __author__ = "Sam Waseda"
 __copyright__ = (
