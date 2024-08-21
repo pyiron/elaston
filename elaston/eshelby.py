@@ -5,6 +5,8 @@
 import numpy as np
 from functools import cached_property
 
+from elaston.units import units
+
 __author__ = "Sam Waseda"
 __copyright__ = (
     "Copyright 2021, Max-Planck-Institut für Eisenforschung GmbH "
@@ -124,6 +126,9 @@ class Eshelby:
         return strain / 4 / np.pi
 
 
+@units(
+    outputs=lambda burgers_vector: burgers_vector.u
+)
 def get_dislocation_displacement(
     elastic_tensor: np.ndarray,
     positions: np.ndarray,
@@ -134,6 +139,7 @@ def get_dislocation_displacement(
     described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
 
     Args:
+        elastic_tensor ((3,3,3,3)-array): Elastic tensor
         positions ((n,2) or (n,3)-array): Position around a dislocation. The third axis
             coincides with the dislocation line.
         burgers_vector ((3,)-array): Burgers vector
@@ -143,6 +149,10 @@ def get_dislocation_displacement(
     """
     return Eshelby(elastic_tensor, burgers_vector).get_displacement(positions)
 
+
+@units(
+    outputs=lambda burgers_vector, positions: burgers_vector.u / positions.u
+)
 def get_dislocation_strain(
     elastic_tensor: np.ndarray,
     positions: np.ndarray,
@@ -153,6 +163,7 @@ def get_dislocation_strain(
     described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
 
     Args:
+        elastic_tensor ((3,3,3,3)-array): Elastic tensor
         positions ((n,2) or (n,3)-array): Position around a dislocation. The third axis
             coincides with the dislocation line.
         burgers_vector ((3,)-array): Burgers vector
@@ -162,6 +173,12 @@ def get_dislocation_strain(
     """
     return Eshelby(elastic_tensor, burgers_vector).get_strain(positions)
 
+
+@units(
+    outputs=lambda elastic_tensor, burgers_vector, positions: elastic_tensor.u
+    * burgers_vector.u
+    / positions.u
+)
 def get_dislocation_stress(
     elastic_tensor: np.ndarray,
     positions: np.ndarray,
@@ -172,6 +189,7 @@ def get_dislocation_stress(
     described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
 
     Args:
+        elastic_tensor ((3,3,3,3)-array): Elastic tensor
         positions ((n,2) or (n,3)-array): Position around a dislocation. The third axis
             coincides with the dislocation line.
         burgers_vector ((3,)-array): Burgers vector
@@ -182,6 +200,12 @@ def get_dislocation_stress(
     strain = get_dislocation_strain(elastic_tensor, positions, burgers_vector)
     return np.einsum("ijkl,...kl->...ij", elastic_tensor, strain)
 
+
+@units(
+    outputs=lambda elastic_tensor, burgers_vector, positions: elastic_tensor.u
+    * burgers_vector.u**2
+    / positions.u**2
+)
 def get_dislocation_energy_density(
     elastic_tensor: np.ndarray,
     positions: np.ndarray,
@@ -192,6 +216,7 @@ def get_dislocation_energy_density(
     methods)
 
     Args:
+        elastic_tensor ((3,3,3,3)-array): Elastic tensor
         positions ((n,2) or (n,3)-array): Position around a dislocation. The third axis
             coincides with the dislocation line.
         burgers_vector ((3,)-array): Burgers vector
@@ -202,8 +227,9 @@ def get_dislocation_energy_density(
     strain = get_dislocation_strain(elastic_tensor, positions, burgers_vector)
     return np.einsum("ijkl,...kl,...ij->...", elastic_tensor, strain, strain)
 
+
 def get_dislocation_energy(
-        elastic_tensor: np.ndarray,
+    elastic_tensor: np.ndarray,
     burgers_vector: np.ndarray,
     r_min: float,
     r_max: float,
@@ -213,6 +239,7 @@ def get_dislocation_energy(
     Energy per unit length along the dislocation line.
 
     Args:
+        elastic_tensor ((3,3,3,3)-array): Elastic tensor
         burgers_vector ((3,)-array): Burgers vector
         r_min (float): Minimum distance from the dislocation core
         r_max (float): Maximum distance from the dislocation core
@@ -250,6 +277,7 @@ def get_dislocation_energy(
         * r_min**2
         * np.log(r_max / r_min)
     )
+
 
 def get_dislocation_force(
     stress: np.ndarray,
