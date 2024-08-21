@@ -126,9 +126,7 @@ class Eshelby:
         return strain / 4 / np.pi
 
 
-@units(
-    outputs=lambda burgers_vector: burgers_vector.u
-)
+@units(outputs=lambda burgers_vector: burgers_vector.u)
 def get_dislocation_displacement(
     elastic_tensor: np.ndarray,
     positions: np.ndarray,
@@ -150,9 +148,7 @@ def get_dislocation_displacement(
     return Eshelby(elastic_tensor, burgers_vector).get_displacement(positions)
 
 
-@units(
-    outputs=lambda burgers_vector, positions: burgers_vector.u / positions.u
-)
+@units(outputs=lambda burgers_vector, positions: burgers_vector.u / positions.u)
 def get_dislocation_strain(
     elastic_tensor: np.ndarray,
     positions: np.ndarray,
@@ -231,7 +227,8 @@ def get_dislocation_energy_density(
 @units(
     outputs=lambda elastic_tensor, burgers_vector, positions, r_min: elastic_tensor.u
     * burgers_vector.u**2
-    / positions.u**2 * r_min.u**2
+    / positions.u**2
+    * r_min.u**2
 )
 def get_dislocation_energy(
     elastic_tensor: np.ndarray,
@@ -284,9 +281,7 @@ def get_dislocation_energy(
     )
 
 
-@units(
-    outputs=lambda stress, burgers_vector: stress.u * burgers_vector.u
-)
+@units(outputs=lambda stress, burgers_vector: stress.u * burgers_vector.u)
 def get_dislocation_force(
     stress: np.ndarray,
     glide_plane: np.ndarray,

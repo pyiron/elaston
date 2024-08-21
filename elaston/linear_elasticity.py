@@ -620,6 +620,4 @@ class LinearElasticity:
         Returns:
             ((3,)-array): Force per unit length acting on the dislocation.
         """
-        return eshelby.get_dislocation_force(
-            stress, glide_plane, burgers_vector
-        )
+        return eshelby.get_dislocation_force(stress, glide_plane, burgers_vector)
