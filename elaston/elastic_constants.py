@@ -71,7 +71,7 @@ def get_elastic_tensor_from_tensor(
         C_12 = C_11 - 2 * C_44
     elif C_11 is not None and C_12 is not None and C_44 is None:
         C_44 = (C_11 - C_12) / 2
-    else:
+    elif C_11 is None or C_12 is None or C_44 is None:
         raise ValueError("Out of C_11, C_12, and C_44 at least two must be given")
     if C_13 is None:
         C_13 = C_12
