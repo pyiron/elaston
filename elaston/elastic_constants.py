@@ -20,6 +20,7 @@ __date__ = "Aug 21, 2021"
 
 # ref https://en.m.wikiversity.org/wiki/Elasticity/Constitutive_relations
 
+
 def get_C_11_indices():
     return [0, 1, 2], [0, 1, 2]
 
@@ -71,9 +72,7 @@ def get_elastic_tensor_from_tensor(
     elif C_11 is not None and C_12 is not None and C_44 is None:
         C_44 = (C_11 - C_12) / 2
     else:
-        raise ValueError(
-            "Out of C_11, C_12, and C_44 at least two must be given"
-        )
+        raise ValueError("Out of C_11, C_12, and C_44 at least two must be given")
     if C_13 is None:
         C_13 = C_12
     if C_22 is None:
@@ -118,7 +117,7 @@ def get_elastic_tensor_from_properties(
         nu = E / (2 * mu) - 1
     elif E is not None and nu is not None and mu is None:
         mu = E / (2 * (1 + nu))
-    else:
+    elif E is None or nu is None or mu is None:
         raise ValueError(
             "Out of Young's modulus, Poisson's ratio, and shear modulus"
             " at least two must be given"
@@ -128,9 +127,9 @@ def get_elastic_tensor_from_properties(
             [1 / E, -nu / E, -nu / E, 0, 0, 0],
             [-nu / E, 1 / E, -nu / E, 0, 0, 0],
             [-nu / E, -nu / E, 1 / E, 0, 0, 0],
-            [0, 0, 0, 1 / (2 * mu), 0, 0],
-            [0, 0, 0, 0, 1 / (2 * mu), 0],
-            [0, 0, 0, 0, 0, 1 / (2 * mu)],
+            [0, 0, 0, 1 / mu, 0, 0],
+            [0, 0, 0, 0, 1 / mu, 0],
+            [0, 0, 0, 0, 0, 1 / mu],
         ]
     )
 
@@ -148,7 +147,46 @@ def get_voigt_average(C):
     C_11 = np.mean(C[get_C_11_indices()])
     C_12 = np.mean(C[get_C_12_indices()])
     C_44 = np.mean(C[get_C_44_indices()])
-    return tools.voigt_average([C_11, C_12, C_44])
+    return dict(
+        zip(
+            ["C_11", "C_12", "C_44"],
+            tools.voigt_average(C_11, C_12, C_44)
+        )
+    )
+
+
+def is_cubic(C):
+    """
+    Check if the material is cubic
+
+    Args:
+        C (np.ndarray): Elastic constants
+
+    Returns:
+        bool: True if the material is cubic
+    """
+    return all(
+        [
+            np.isclose(np.ptp(C[ind]), 0)
+            for ind in [get_C_11_indices(), get_C_12_indices(), get_C_44_indices()]
+        ]
+    )
+
+
+def get_zener_ratio(C):
+    """
+    Get the Zener anisotropy ratio
+
+    Args:
+        C (np.ndarray): Elastic constants
+
+    Returns:
+        float: Zener anisotropy ratio
+    """
+    C_11 = np.mean(C[get_C_11_indices()])
+    C_12 = np.mean(C[get_C_12_indices()])
+    C_44 = np.mean(C[get_C_44_indices()])
+    return 2 * C_44 / (C_11 - C_12)
 
 
 class ElasticConstants:
@@ -203,3 +241,11 @@ class ElasticConstants:
 
     def get_voigt_average(self):
         return get_voigt_average(self.elastic_tensor)
+
+    def is_cubic(self):
+        return is_cubic(self.elastic_tensor)
+
+    def get_zener_ratio(self):
+        if not self.is_cubic():
+            raise ValueError("The material must be cubic")
+        return get_zener_ratio(self.elastic_tensor)
