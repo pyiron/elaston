@@ -33,14 +33,22 @@ def get_C_12_indices():
 
 
 def check_is_tensor(**kwargs):
+    """
+    Check if the elastic constants are given as a tensor or as Young's modulus,
+    Poisson's ratio, and/or shear modulus
+
+    Args:
+        **kwargs: elastic constants or Young's modulus, Poisson's ratio,
+            and/or shear modulus
+    """
     d = {k: v for k, v in kwargs.items() if v is not None}
     if len(d) < 2:
         raise ValueError("At least two of the elastic constants must be given")
     if any([k.startswith("C_") for k in d.keys()]):
         if any([not k.startswith("C_") for k in d.keys()]):
             raise ValueError(
-                "Either elastic constants or Young's modulus and Poisson's ratio"
-                " must be given but not both"
+                "Either elastic constants or Young's modulus, Poisson's ratio"
+                " and/or shear modulus must be given but not both"
             )
         return True
     return False
