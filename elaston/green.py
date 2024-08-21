@@ -59,7 +59,6 @@ class Green(ABC):
                 `fourier=True`, (n, 3)-array is returned. For each derivative
                 increment, a 3d-axis is added.
         """
-        pass
 
     def get_greens_function(self, r, derivative=0, fourier=False, check_unique=False):
         """
