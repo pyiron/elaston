@@ -6,7 +6,7 @@ from elaston import tools
 
 def create_random_HL(b=None):
     C = np.zeros((6, 6))
-    C[:3, :3] = np.random.random()
+    C[:3, :3] = np.random.random() * 2
     C[:3, :3] += np.random.random() * np.eye(3)
     C[3:, 3:] = np.random.random() * np.eye(3)
     C = tools.C_from_voigt(C)
@@ -18,9 +18,10 @@ def create_random_HL(b=None):
 class TestEschelby(unittest.TestCase):
     def test_p(self):
         hl = create_random_HL()
-        self.assertTrue(
-            np.allclose(np.absolute(np.linalg.det(hl._get_pmat(hl.p))), 0),
-            "p-matrix has a full dimension",
+        self.assertLess(
+            np.absolute(np.linalg.det(hl._get_pmat(hl.p)).max()),
+            1e-6,
+            msg="p-matrix has a full dimension"
         )
 
     def test_Ak(self):

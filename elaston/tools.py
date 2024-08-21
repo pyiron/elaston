@@ -5,6 +5,7 @@
 import numpy as np
 import string
 
+
 __author__ = "Sam Waseda"
 __copyright__ = (
     "Copyright 2021, Max-Planck-Institut für Eisenforschung GmbH "
@@ -40,6 +41,8 @@ def orthonormalize(vectors):
     Returns:
         numpy.ndarray: An orthonormal basis.
     """
+    if np.shape(vectors) == (3, 3) and np.linalg.det(vectors) <= 0:
+        raise ValueError("Vectors not independent or not right-handed")
     x = np.eye(3)
     x[:2] = normalize(np.asarray(vectors)[:2])
     x[1] = x[1] - np.einsum("i,i,j->j", x[0], x[1], x[0])
