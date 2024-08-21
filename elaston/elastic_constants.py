@@ -183,10 +183,25 @@ def get_zener_ratio(C):
     Returns:
         float: Zener anisotropy ratio
     """
+    if not is_cubic(C):
+        raise ValueError("The material must be cubic")
     C_11 = np.mean(C[get_C_11_indices()])
     C_12 = np.mean(C[get_C_12_indices()])
     C_44 = np.mean(C[get_C_44_indices()])
     return 2 * C_44 / (C_11 - C_12)
+
+
+def get_unique_elastic_constants(C):
+    indices = np.unique(np.round(C, decimals=8), return_index=True)[1]
+    C = C.flatten()[np.argsort(indices)]
+    i, j = np.unravel_index(np.sort(indices), (6, 6))
+    i += 1
+    j += 1
+    return {
+        f"C_{ii}{jj}": CC
+        for ii, jj, CC in zip(i, j, C.flatten())
+        if not np.isclose(CC, 0)
+    }
 
 
 class ElasticConstants:
@@ -240,12 +255,13 @@ class ElasticConstants:
         return self._elastic_tensor
 
     def get_voigt_average(self):
-        return get_voigt_average(self.elastic_tensor)
+        return ElasticConstants(**get_voigt_average(self.elastic_tensor))
 
     def is_cubic(self):
         return is_cubic(self.elastic_tensor)
 
+    def is_isotropic(self):
+        return np.isclose(get_zener_ratio(self.elastic_tensor), 1)
+
     def get_zener_ratio(self):
-        if not self.is_cubic():
-            raise ValueError("The material must be cubic")
         return get_zener_ratio(self.elastic_tensor)
