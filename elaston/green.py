@@ -3,8 +3,10 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 import numpy as np
-from elaston import tools
 from functools import cached_property
+from abc import ABC, abstractmethod
+
+from elaston import tools
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -18,58 +20,62 @@ __status__ = "development"
 __date__ = "Aug 21, 2021"
 
 
-class Green:
+class Green(ABC):
     """
-    Green's function according to the linear elasticity theory. According to the equilibrium
-    condition, we have:
+    Green's function according to the linear elasticity theory. According to
+    the equilibrium condition, we have:
 
     .. math::
         \\frac{\\partial \\sigma_{ij}}{\\partial r_j} + f_i = 0
 
-    where :math:`\\sigma_{ij}` is stress tensor and :math:`f_i` is force. From this, we obtain the
-    differential equations:
+    where :math:`\\sigma_{ij}` is stress tensor and :math:`f_i` is force. From
+    this, we obtain the differential equations:
 
     .. math::
         C_{ijkl}\\frac{\\partial^2 u_k}{\\partial r_j\\partial r_l} + f_i = 0
 
-    with the elastic tensor :math:`C_{ijkl}` and the displacement field :math:`u_k`. This defines
-    the Green's function:
+    with the elastic tensor :math:`C_{ijkl}` and the displacement field
+    :math:`u_k`. This defines the Green's function:
 
     .. math::
         C_{ijkl}\\frac{\\partial^2 G_{km}}{\\partial r_j\\partial r_l} + \\delta_{im}\\delta(\\vec r) = 0
 
-    The Fourier transform of this equation can be analytically solved for the isotropic elasticity
-    theory. For the anisotropic case, the integration along the azimuthal angle is required.
+    The Fourier transform of this equation can be analytically solved for the
+    isotropic elasticity theory. For the anisotropic case, the integration
+    along the azimuthal angle is required.
     """
 
+    @abstractmethod
     def _get_greens_function(self, r, derivative=0, fourier=False):
         """
         Args:
             r ((n,3)-array): Positions for which to calculate the Green's function
             derivative (int): The order of the derivative. Ignored if `fourier=True`
-            fourier (bool): If `True`,  the Green's function of the reciprocal space is returned.
+            fourier (bool): If `True`,  the Green's function of the reciprocal
+                space is returned.
 
         Returns:
-            (numpy.array): Green's function values. If `derivative=0` or `fourier=True`,
-                (n, 3)-array is returned. For each derivative increment, a 3d-axis is added.
+            (numpy.array): Green's function values. If `derivative=0` or
+                `fourier=True`, (n, 3)-array is returned. For each derivative
+                increment, a 3d-axis is added.
         """
-        raise NotImplementedError(
-            "get_greens_function must be defined in the child class"
-        )
+        pass
 
     def get_greens_function(self, r, derivative=0, fourier=False, check_unique=False):
         """
         Args:
             r ((n,3)-array): Positions for which to calculate the Green's function
             derivative (int): The order of the derivative. Ignored if `fourier=True`
-            fourier (bool): If `True`,  the Green's function of the reciprocal space is returned.
+            fourier (bool): If `True`,  the Green's function of the reciprocal
+                space is returned.
             check_unique (bool): If `True`, elaston checks whether there are
                 duplicate values and avoids calculating the Green's function
                 multiple times for the same values
 
         Returns:
-            (numpy.array): Green's function values. If `derivative=0` or `fourier=True`,
-                (n, 3)-array is returned. For each derivative increment, a 3d-axis is added.
+            (numpy.array): Green's function values. If `derivative=0` or
+                `fourier=True`, (n, 3)-array is returned. For each derivative
+                increment, a 3d-axis is added.
         """
         x = np.array(r)
         if check_unique:
@@ -82,8 +88,8 @@ class Green:
 
 class Isotropic(Green):
     """
-    This class calculates the Green's function according to the isotropic elasticity theory. For
-    anisotropic calculations, cf. `Anisotropic`.
+    This class calculates the Green's function according to the isotropic
+    elasticity theory. For anisotropic calculations, cf. `Anisotropic`.
 
     Green's function `G` is given by:
 
@@ -96,8 +102,8 @@ class Isotropic(Green):
         Args:
             poissons_ratio (float): Poissons ratio
             shear_modulus (float): Shear modulus
-            min_distance (float): Minimum distance from the origin to calculate in order to avoid
-                numerical instability for the Green's function
+            min_distance (float): Minimum distance from the origin to calculate
+                in order to avoid numerical instability for the Green's function
             optimize (bool): cf. `optimize` in `numpy.einsum`
         """
         self.poissons_ratio = poissons_ratio
@@ -107,12 +113,18 @@ class Isotropic(Green):
 
     @cached_property
     def A(self):
-        """First coefficient of the Green's function. For more, cf. DocString in the class level."""
+        """
+        First coefficient of the Green's function. For more, cf. DocString in
+        the class level.
+        """
         return (3 - 4 * self.poissons_ratio) * self.B
 
     @cached_property
     def B(self):
-        """Second coefficient of the Green's function. For more, cf. DocString in the class level."""
+        """
+        Second coefficient of the Green's function. For more, cf. DocString in
+        the class level.
+        """
         return 1 / (16 * np.pi * self.shear_modulus * (1 - self.poissons_ratio))
 
     def G(self, r):
@@ -245,17 +257,18 @@ class Isotropic(Green):
 
 class Anisotropic(Green):
     """
-    This class calculates the Green's functions (and their derivatives) for the anisotropic
-    elasticity theory based on Barnett's approach. All notations follow Barnett's paper.
+    This class calculates the Green's functions (and their derivatives) for the
+    anisotropic elasticity theory based on Barnett's approach. All notations
+    follow Barnett's paper.
 
     [Link](https://doi.org/10.1002/pssb.2220490238)
 
     Notes:
 
-    - In some cases this class can become extremely RAM-intensive. If possible do not keep
-      the results in a variable.
-    - If the medium is isotropic, use Isotropic instead, which has analytical solutions and is
-      therefore much faster.
+    - In some cases this class can become extremely RAM-intensive. If possible
+      do not keep the results in a variable.
+    - If the medium is isotropic, use Isotropic instead, which has analytical
+      solutions and is therefore much faster.
     """
 
     def __init__(self, elastic_tensor, n_mesh=100, optimize=True):
