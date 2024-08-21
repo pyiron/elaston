@@ -228,6 +228,11 @@ def get_dislocation_energy_density(
     return np.einsum("ijkl,...kl,...ij->...", elastic_tensor, strain, strain)
 
 
+@units(
+    outputs=lambda elastic_tensor, burgers_vector, positions, r_min: elastic_tensor.u
+    * burgers_vector.u**2
+    / positions.u**2 * r_min.u**2
+)
 def get_dislocation_energy(
     elastic_tensor: np.ndarray,
     burgers_vector: np.ndarray,
@@ -279,6 +284,9 @@ def get_dislocation_energy(
     )
 
 
+@units(
+    outputs=lambda stress, burgers_vector: stress.u * burgers_vector.u
+)
 def get_dislocation_force(
     stress: np.ndarray,
     glide_plane: np.ndarray,
