@@ -187,14 +187,11 @@ def get_zener_ratio(C):
 
 
 def get_unique_elastic_constants(C):
-    indices = np.unique(np.round(C, decimals=8), return_index=True)[1]
-    C = C.flatten()[np.argsort(indices)]
-    i, j = np.unravel_index(np.sort(indices), (6, 6))
-    i += 1
-    j += 1
+    indices = np.sort(np.unique(np.round(C, decimals=8), return_index=True)[1])
+    i, j = np.unravel_index(indices, (6, 6))
     return {
-        f"C_{ii}{jj}": CC
-        for ii, jj, CC in zip(i, j, C.flatten())
+        f"C_{ii + 1}{jj + 1}": CC
+        for ii, jj, CC in zip(i, j, C.flatten()[indices])
         if not np.isclose(CC, 0)
     }
 
@@ -260,3 +257,6 @@ class ElasticConstants:
 
     def get_zener_ratio(self):
         return get_zener_ratio(self.elastic_tensor)
+
+    def get_unique_elastic_constants(self):
+        return get_unique_elastic_constants(self.elastic_tensor)

@@ -55,6 +55,11 @@ class TestConstants(unittest.TestCase):
                 ElasticConstants(C_12=C_12, C_44=C_44).elastic_tensor
             )
         )
+        self.assertRaises(
+            ValueError, ElasticConstants, youngs_modulus=E, C_12=C_12, C_11=C_11
+        )
+        self.assertRaises(ValueError, ElasticConstants)
+        self.assertRaises(ValueError, ElasticConstants, C_11=C_11)
 
     def test_is_cubic(self):
         ec = ElasticConstants(**data["Fe"])
@@ -79,6 +84,13 @@ class TestConstants(unittest.TestCase):
         self.assertFalse(ec.is_isotropic())
         ec_ave = ec.get_voigt_average()
         self.assertTrue(ec_ave.is_isotropic())
+
+    def test_unique_constants(self):
+        ec = ElasticConstants(C_11=211.0, C_12=145.0, C_44=82.0)
+        self.assertEqual(
+            ec.get_unique_elastic_constants(),
+            {"C_11": 211.0, "C_12": 145.0, "C_44": 82.0}
+        )
 
 
 if __name__ == "__main__":
