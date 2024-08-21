@@ -20,6 +20,18 @@ __date__ = "Aug 21, 2021"
 
 # ref https://en.m.wikiversity.org/wiki/Elasticity/Constitutive_relations
 
+def get_C_11_indices():
+    return [0, 1, 2], [0, 1, 2]
+
+
+def get_C_44_indices():
+    return [3, 4, 5], [3, 4, 5]
+
+
+def get_C_12_indices():
+    return [0, 0, 1, 1, 2, 2], [1, 2, 0, 2, 0, 1]
+
+
 def check_is_tensor(**kwargs):
     d = {k: v for k, v in kwargs.items() if v is not None}
     if len(d) < 2:
@@ -155,7 +167,7 @@ class ElasticConstants:
         return self._elastic_tensor
 
     def get_voigt_average(self):
-        C_11 = np.mean(self.elastic_tensor.diagonal()[:3])
-        C_12 = np.mean(self.elastic_tensor.diagonal()[3:])
-        C_44 = np.sum(self.elastic_tensor() * (1 - np.eye(6))) / 6
+        C_11 = np.mean(self.elastic_tensor[get_C_11_indices()])
+        C_12 = np.mean(self.elastic_tensor[get_C_12_indices()])
+        C_44 = np.mean(self.elastic_tensor[get_C_44_indices()])
         return tools.voigt_average([C_11, C_12, C_44])
