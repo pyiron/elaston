@@ -101,6 +101,17 @@ def get_elastic_tensor_from_properties(
     nu: Optional[float] = None,
     mu: Optional[float] = None,
 ):
+    """
+    Get the elastic tensor from Young's modulus, Poisson's ratio, and/or shear modulus
+
+    Args:
+        E (float): Young's modulus
+        nu (float): Poisson's ratio
+        mu (float): shear modulus
+
+    Returns:
+        np.ndarray: Elastic tensor
+    """
     if E is None and nu is not None and mu is not None:
         E = 2 * mu * (1 + nu)
     elif E is not None and nu is None and mu is not None:
@@ -122,6 +133,22 @@ def get_elastic_tensor_from_properties(
             [0, 0, 0, 0, 0, 1 / (2 * mu)],
         ]
     )
+
+
+def get_voigt_average(C):
+    """
+    Get the Voigt average of the elastic constants
+
+    Args:
+        C (np.ndarray): Elastic constants
+
+    Returns:
+        float: Voigt average
+    """
+    C_11 = np.mean(C[get_C_11_indices()])
+    C_12 = np.mean(C[get_C_12_indices()])
+    C_44 = np.mean(C[get_C_44_indices()])
+    return tools.voigt_average([C_11, C_12, C_44])
 
 
 class ElasticConstants:
@@ -175,7 +202,4 @@ class ElasticConstants:
         return self._elastic_tensor
 
     def get_voigt_average(self):
-        C_11 = np.mean(self.elastic_tensor[get_C_11_indices()])
-        C_12 = np.mean(self.elastic_tensor[get_C_12_indices()])
-        C_44 = np.mean(self.elastic_tensor[get_C_44_indices()])
-        return tools.voigt_average([C_11, C_12, C_44])
+        return get_voigt_average(self.elastic_tensor)
