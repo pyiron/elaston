@@ -147,12 +147,7 @@ def get_voigt_average(C):
     C_11 = np.mean(C[get_C_11_indices()])
     C_12 = np.mean(C[get_C_12_indices()])
     C_44 = np.mean(C[get_C_44_indices()])
-    return dict(
-        zip(
-            ["C_11", "C_12", "C_44"],
-            tools.voigt_average(C_11, C_12, C_44)
-        )
-    )
+    return dict(zip(["C_11", "C_12", "C_44"], tools.voigt_average(C_11, C_12, C_44)))
 
 
 def is_cubic(C):

@@ -16,7 +16,7 @@ data = {
         "youngs_modulus": 130.0,
         "poissons_ratio": 0.28,
         "shear_modulus": 51.0,
-    }
+    },
 }
 
 
@@ -44,6 +44,7 @@ class TestConstants(unittest.TestCase):
         self.assertFalse(ec.is_isotropic())
         ec_ave = ec.get_voigt_average()
         self.assertTrue(ec_ave.is_isotropic())
+
 
 if __name__ == "__main__":
     unittest.main()
