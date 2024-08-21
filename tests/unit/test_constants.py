@@ -1,5 +1,6 @@
 import unittest
 from elaston.elastic_constants import ElasticConstants
+import numpy as np
 
 data = {
     "Fe": {
@@ -21,6 +22,40 @@ data = {
 
 
 class TestConstants(unittest.TestCase):
+    def test_consistency(self):
+        E = 211
+        nu = 0.29
+        G = E / (2 * (1 + nu))
+        ec = ElasticConstants(youngs_modulus=E, poissons_ratio=nu)
+        self.assertTrue(
+            np.allclose(
+                ec.elastic_tensor,
+                ElasticConstants(youngs_modulus=E, shear_modulus=G).elastic_tensor
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                ec.elastic_tensor,
+                ElasticConstants(poissons_ratio=nu, shear_modulus=G).elastic_tensor
+            )
+        )
+        C_11 = 211.0
+        C_12 = 145.0
+        C_44 = (C_11 - C_12) / 2
+        ec = ElasticConstants(C_11=C_11, C_12=C_12)
+        self.assertTrue(
+            np.allclose(
+                ec.elastic_tensor,
+                ElasticConstants(C_11=C_11, C_44=C_44).elastic_tensor
+            )
+        )
+        self.assertTrue(
+            np.allclose(
+                ec.elastic_tensor,
+                ElasticConstants(C_12=C_12, C_44=C_44).elastic_tensor
+            )
+        )
+
     def test_is_cubic(self):
         ec = ElasticConstants(**data["Fe"])
         self.assertTrue(ec.is_cubic())
