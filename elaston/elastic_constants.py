@@ -237,7 +237,6 @@ def get_elastic_moduli(C):
     }
 
 
-
 class ElasticConstants:
     def __init__(
         self,
