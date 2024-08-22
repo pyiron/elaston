@@ -60,6 +60,11 @@ class TestConstants(unittest.TestCase):
         )
         self.assertRaises(ValueError, ElasticConstants)
         self.assertRaises(ValueError, ElasticConstants, C_11=C_11)
+        self.assertRaises(ValueError, ElasticConstants, C_tensor=np.arange(6))
+        ec = ElasticConstants(C_tensor=np.eye(6))
+        self.assertEqual(ec.elastic_tensor.tolist(), np.eye(6).tolist())
+        ec = ElasticConstants(C_tensor=np.eye(9).reshape(3, 3, 3, 3))
+        self.assertEqual(ec.elastic_tensor.tolist(), np.eye(6).tolist())
 
     def test_is_cubic(self):
         ec = ElasticConstants(**data["Fe"])

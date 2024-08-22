@@ -43,7 +43,7 @@ def check_is_tensor(**kwargs):
             and/or shear modulus
     """
     d = {k: v for k, v in kwargs.items() if v is not None}
-    if len(d) < 2:
+    if len(d) < 2 and "C_tensor" not in d.keys():
         raise ValueError("At least two of the elastic constants must be given")
     if any([k.startswith("C_") for k in d.keys()]):
         if any([not k.startswith("C_") for k in d.keys()]):
@@ -56,6 +56,7 @@ def check_is_tensor(**kwargs):
 
 
 def get_elastic_tensor_from_tensor(
+    C_tensor: Optional[np.ndarray] = None,
     C_11: Optional[float] = None,
     C_12: Optional[float] = None,
     C_13: Optional[float] = None,
@@ -65,6 +66,15 @@ def get_elastic_tensor_from_tensor(
     C_55: Optional[float] = None,
     C_66: Optional[float] = None,
 ):
+    if C_tensor is not None:
+        if np.shape(C_tensor) == (6, 6):
+            return np.asarray(C_tensor)
+        elif np.shape(C_tensor) == (3, 3, 3, 3):
+            return tools.C_to_voigt(C_tensor)
+        else:
+            raise ValueError(
+                f"Invalid shape of the elastic tensor: {np.shape(C_tensor)}"
+            )
     if C_11 is None and C_12 is not None and C_44 is not None:
         C_11 = C_12 + 2 * C_44
     elif C_11 is not None and C_12 is None and C_44 is not None:
@@ -95,7 +105,7 @@ def get_elastic_tensor_from_tensor(
     )
 
 
-def get_elastic_tensor_from_properties(
+def get_elastic_tensor_from_moduli(
     E: Optional[float] = None,
     nu: Optional[float] = None,
     mu: Optional[float] = None,
@@ -142,12 +152,31 @@ def get_voigt_average(C):
         C (np.ndarray): Elastic constants
 
     Returns:
-        float: Voigt average
+        dict: Voigt average
     """
     C_11 = np.mean(C[get_C_11_indices()])
     C_12 = np.mean(C[get_C_12_indices()])
     C_44 = np.mean(C[get_C_44_indices()])
     return dict(zip(["C_11", "C_12", "C_44"], tools.voigt_average(C_11, C_12, C_44)))
+
+
+def get_reuss_average(C):
+    """
+    Get the Reuss average of the elastic constants
+
+    Args:
+        C (np.ndarray): Elastic constants
+
+    Returns:
+        dict: Reuss average
+    """
+    S = np.linalg.inv(C)
+    S_11 = np.mean(C[get_C_11_indices()])
+    S_12 = np.mean(C[get_C_12_indices()])
+    S_44 = np.mean(C[get_C_44_indices()])
+    S = get_elastic_tensor_from_tensor(C_11=S_11, C_12=S_12, C_44=S_44)
+    C = np.linalg.inv(S)
+    return dict(zip(["C_11", "C_12", "C_44"], C[[0, 0, 3], [0, 1, 3]]))
 
 
 def is_cubic(C):
@@ -199,6 +228,7 @@ def get_unique_elastic_constants(C):
 class ElasticConstants:
     def __init__(
         self,
+        C_tensor=None,
         C_11=None,
         C_12=None,
         C_13=None,
@@ -212,6 +242,7 @@ class ElasticConstants:
         shear_modulus=None,
     ):
         is_tensor = check_is_tensor(
+            C_tensor=C_tensor,
             C_11=C_11,
             C_12=C_12,
             C_13=C_13,
@@ -226,6 +257,7 @@ class ElasticConstants:
         )
         if is_tensor:
             self._elastic_tensor = get_elastic_tensor_from_tensor(
+                C_tensor=C_tensor,
                 C_11=C_11,
                 C_12=C_12,
                 C_13=C_13,
@@ -236,7 +268,7 @@ class ElasticConstants:
                 C_66=C_66,
             )
         else:
-            self._elastic_tensor = get_elastic_tensor_from_properties(
+            self._elastic_tensor = get_elastic_tensor_from_moduli(
                 E=youngs_modulus,
                 nu=poissons_ratio,
                 mu=shear_modulus,
