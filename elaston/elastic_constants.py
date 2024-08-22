@@ -160,25 +160,6 @@ def get_voigt_average(C):
     return dict(zip(["C_11", "C_12", "C_44"], tools.voigt_average(C_11, C_12, C_44)))
 
 
-def get_reuss_average(C):
-    """
-    Get the Reuss average of the elastic constants
-
-    Args:
-        C (np.ndarray): Elastic constants
-
-    Returns:
-        dict: Reuss average
-    """
-    S = np.linalg.inv(C)
-    S_11 = np.mean(C[get_C_11_indices()])
-    S_12 = np.mean(C[get_C_12_indices()])
-    S_44 = np.mean(C[get_C_44_indices()])
-    S = get_elastic_tensor_from_tensor(C_11=S_11, C_12=S_12, C_44=S_44)
-    C = np.linalg.inv(S)
-    return dict(zip(["C_11", "C_12", "C_44"], C[[0, 0, 3], [0, 1, 3]]))
-
-
 def is_cubic(C):
     """
     Check if the material is cubic
