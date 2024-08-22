@@ -18,7 +18,7 @@ data = {
         "poissons_ratio": 0.28,
         "shear_modulus": 51.0,
     },
-    "Ni": {
+    "Ni": {  # from materialsproject
         "C_11": 249.0,
         "C_12": 136.0,
         "C_44": 127.0,
@@ -35,13 +35,13 @@ class TestConstants(unittest.TestCase):
         self.assertTrue(
             np.allclose(
                 ec.elastic_tensor,
-                ElasticConstants(youngs_modulus=E, shear_modulus=G).elastic_tensor
+                ElasticConstants(youngs_modulus=E, shear_modulus=G).elastic_tensor,
             )
         )
         self.assertTrue(
             np.allclose(
                 ec.elastic_tensor,
-                ElasticConstants(poissons_ratio=nu, shear_modulus=G).elastic_tensor
+                ElasticConstants(poissons_ratio=nu, shear_modulus=G).elastic_tensor,
             )
         )
         C_11 = 211.0
@@ -50,14 +50,12 @@ class TestConstants(unittest.TestCase):
         ec = ElasticConstants(C_11=C_11, C_12=C_12)
         self.assertTrue(
             np.allclose(
-                ec.elastic_tensor,
-                ElasticConstants(C_11=C_11, C_44=C_44).elastic_tensor
+                ec.elastic_tensor, ElasticConstants(C_11=C_11, C_44=C_44).elastic_tensor
             )
         )
         self.assertTrue(
             np.allclose(
-                ec.elastic_tensor,
-                ElasticConstants(C_12=C_12, C_44=C_44).elastic_tensor
+                ec.elastic_tensor, ElasticConstants(C_12=C_12, C_44=C_44).elastic_tensor
             )
         )
         self.assertRaises(
@@ -106,7 +104,7 @@ class TestConstants(unittest.TestCase):
         ec = ElasticConstants(C_11=211.0, C_12=145.0, C_44=82.0)
         self.assertEqual(
             ec.get_unique_elastic_constants(),
-            {"C_11": 211.0, "C_12": 145.0, "C_44": 82.0}
+            {"C_11": 211.0, "C_12": 145.0, "C_44": 82.0},
         )
 
     def test_elastic_moduli(self):
