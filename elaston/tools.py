@@ -142,8 +142,7 @@ def coeff_to_voigt(C_in):
 
 def voigt_average(C_11: float, C_12: float, C_44: float):
     """Make isotropic elastic tensor from C_11, C_12, and C_44."""
-    mat = np.array([[0.6, 0.4, 0.8], [0.2, 0.8, -0.4], [0.2, -0.2, 0.6]])
-    return mat @ [C_11, C_12, C_44]
+    return np.array([[3, 2, 4], [1, 4, -2], [1, -1, 3]]) / 5 @ [C_11, C_12, C_44]
 
 
 def _get_einsum_str(shape: tuple, inverse: bool = True, axes=None) -> str:

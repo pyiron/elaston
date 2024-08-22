@@ -160,6 +160,24 @@ def get_voigt_average(C):
     return dict(zip(["C_11", "C_12", "C_44"], tools.voigt_average(C_11, C_12, C_44)))
 
 
+def get_reuss_average(C):
+    """
+    Get the Reuss average of the elastic constants
+
+    Args:
+        C (np.ndarray): Elastic constants
+
+    Returns:
+        dict: Reuss average
+    """
+    S = np.linalg.inv(C)
+    S[3:, 3:] /= 4
+    S = get_voigt_average(S)
+    S = get_elastic_tensor_from_tensor(**S)
+    C = np.linalg.inv(S)
+    return dict(zip(["C_11", "C_12", "C_44"], [C[0, 0], C[0, 1], C[3, 3] / 4]))
+
+
 def is_cubic(C):
     """
     Check if the material is cubic
@@ -203,6 +221,19 @@ def get_unique_elastic_constants(C):
         f"C_{ii + 1}{jj + 1}": CC
         for ii, jj, CC in zip(i, j, C.flatten()[indices])
         if not np.isclose(CC, 0)
+    }
+
+
+def get_elastic_moduli(C):
+    C_11 = np.mean(C[get_C_11_indices()])
+    C_12 = np.mean(C[get_C_12_indices()])
+    C_44 = np.mean(C[get_C_44_indices()])
+    return {
+        "youngs_modulus": (C_11 - C_12) * (C_11 + 2 * C_12) / (C_11 + C_12),
+        "poissons_ratio": C_12 / (C_11 + C_12),
+        "shear_modulus": C_44,
+        "lamé_first_parameter": (C_12 + C_44) / 2,
+        "bulk_modulus": (C_11 + 2 * C_12) / 3,
     }
 
 
@@ -262,14 +293,26 @@ class ElasticConstants:
     def get_voigt_average(self):
         return ElasticConstants(**get_voigt_average(self.elastic_tensor))
 
+    def get_reuss_average(self):
+        return ElasticConstants(**get_reuss_average(self.elastic_tensor))
+
     def is_cubic(self):
         return is_cubic(self.elastic_tensor)
 
     def is_isotropic(self):
-        return np.isclose(get_zener_ratio(self.elastic_tensor), 1)
+        return self.is_cubic and np.isclose(self.get_zener_ratio(), 1)
 
     def get_zener_ratio(self):
         return get_zener_ratio(self.elastic_tensor)
 
     def get_unique_elastic_constants(self):
         return get_unique_elastic_constants(self.elastic_tensor)
+
+    def get_elastic_moduli(self):
+        if not self.is_isotropic():
+            raise ValueError(
+                "The material must be isotropic. Re-instantiate with isotropic"
+                " elastic constants or run an averaging method"
+                " (get_voigt_average, get_reuss_average) first"
+            )
+        return get_elastic_moduli(self.elastic_tensor)
