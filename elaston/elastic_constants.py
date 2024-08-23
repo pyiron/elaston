@@ -183,7 +183,7 @@ def is_cubic(C):
     Check if the material is cubic
 
     Args:
-        C (np.ndarray): Elastic constants
+        C (np.ndarray): Elastic constants in Voigt notation
 
     Returns:
         bool: True if the material is cubic
@@ -201,7 +201,7 @@ def get_zener_ratio(C):
     Get the Zener anisotropy ratio
 
     Args:
-        C (np.ndarray): Elastic constants
+        C (np.ndarray): Elastic constants in Voigt notation
 
     Returns:
         float: Zener anisotropy ratio
@@ -235,6 +235,74 @@ def get_elastic_moduli(C):
         "lamé_first_parameter": (C_12 + C_44) / 2,
         "bulk_modulus": (C_11 + 2 * C_12) / 3,
     }
+
+
+def initialize_elastic_tensor(
+    C_tensor=None,
+    C_11=None,
+    C_12=None,
+    C_13=None,
+    C_22=None,
+    C_33=None,
+    C_44=None,
+    C_55=None,
+    C_66=None,
+    youngs_modulus=None,
+    poissons_ratio=None,
+    shear_modulus=None,
+):
+    """
+    Initialize the elastic tensor
+
+    Args:
+        C_tensor (np.ndarray): Elastic tensor
+        C_11 (float): Elastic constant
+        C_12 (float): Elastic constant
+        C_13 (float): Elastic constant
+        C_22 (float): Elastic constant
+        C_33 (float): Elastic constant
+        C_44 (float): Elastic constant
+        C_55 (float): Elastic constant
+        C_66 (float): Elastic constant
+        youngs_modulus (float): Young's modulus
+        poissons_ratio (float): Poisson's ratio
+        shear_modulus (float): Shear modulus
+
+    Returns:
+        np.ndarray: Elastic tensor
+    """
+    is_tensor = check_is_tensor(
+        C_tensor=C_tensor,
+        C_11=C_11,
+        C_12=C_12,
+        C_13=C_13,
+        C_22=C_22,
+        C_33=C_33,
+        C_44=C_44,
+        C_55=C_55,
+        C_66=C_66,
+        youngs_modulus=youngs_modulus,
+        poissons_ratio=poissons_ratio,
+        shear_modulus=shear_modulus,
+    )
+    if is_tensor:
+        return get_elastic_tensor_from_tensor(
+            C_tensor=C_tensor,
+            C_11=C_11,
+            C_12=C_12,
+            C_13=C_13,
+            C_22=C_22,
+            C_33=C_33,
+            C_44=C_44,
+            C_55=C_55,
+            C_66=C_66,
+        )
+    else:
+        return get_elastic_tensor_from_moduli(
+            E=youngs_modulus,
+            nu=poissons_ratio,
+            mu=shear_modulus,
+        )
 
 
 class ElasticConstants:
