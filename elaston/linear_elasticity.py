@@ -131,9 +131,11 @@ class LinearElasticity:
     ):
         """
         Args:
-            elastic_tensor ((3,3,3,3)-, (6,6)- or (3,)-array): Elastic tensor (in C_ijkl notation,
-                Voigt notation or a 3-component array containing [C_11, C_12, C_44]).
-            orientation ((3,3)-array): Rotation matrix that defines the orientation of the system.
+            elastic_tensor ((3,3,3,3)-, (6,6)- or (3,)-array): Elastic tensor
+                (in C_ijkl notation, Voigt notation or a 3-component array
+                containing [C_11, C_12, C_44]).
+            orientation ((3,3)-array): Rotation matrix that defines the
+                orientation of the system.
 
         Here is a list of elastic constants of a few materials:
 
@@ -153,14 +155,15 @@ class LinearElasticity:
     @property
     def orientation(self):
         """
-        Rotation matrix that defines the orientation of the system. If set, the elastic tensor
-        will be rotated accordingly. For example a box with a dislocation should get:
+        Rotation matrix that defines the orientation of the system. If set,
+        the elastic tensor will be rotated accordingly. For example a box with
+        a dislocation should get:
 
         >>> medium.orientation = np.array([[1, 1, 1], [1, 0, -1], [1, -2, 1]])
 
-        If a non-orthogonal orientation is set, the second vector is orthogonalized with the Gram
-        Schmidt process. It is not necessary to specify the third axis as it is automatically
-        calculated.
+        If a non-orthogonal orientation is set, the second vector is
+        orthogonalized with the Gram Schmidt process. It is not necessary to
+        specify the third axis as it is automatically calculated.
         """
         return self._orientation
 
@@ -175,9 +178,9 @@ class LinearElasticity:
     @property
     def elastic_tensor(self):
         """
-        Elastic tensor. Regardless of whether it was given in the Voigt notation or in the
-        full form, always the full tensor (i.e. (3,3,3,3)-array) is returned. For Voigt
-        notation, use `elastic_tensor_voigt`
+        Elastic tensor. Regardless of whether it was given in the Voigt
+        notation or in the full form, always the full tensor (i.e.
+        (3,3,3,3)-array) is returned. For Voigt notation, use `elastic_tensor_voigt`
         """
         if not self._is_rotated:
             return np.einsum(
@@ -192,7 +195,9 @@ class LinearElasticity:
     def elastic_tensor(self, C):
         C = np.asarray(C)
         if C.shape != (6, 6) and C.shape != (3, 3, 3, 3) and C.shape != (3,):
-            raise ValueError("Elastic tensor must be a (6,6), (3,3,3,3) or (3,)  array")
+            raise ValueError(
+                "Elastic tensor must be a (6,6), (3,3,3,3) or (3,)  array"
+            )
         if C.shape == (3,):
             C = tools.coeff_to_voigt(C)
         if C.shape == (6, 6):
@@ -215,9 +220,9 @@ class LinearElasticity:
     @property
     def zener_ratio(self):
         """
-        Zener ratio or the anisotropy index. If 1, the medium is isotropic. If isotropic, the
-        analytical form of the Green's function is used for the calculation of strain and
-        displacement fields.
+        Zener ratio or the anisotropy index. If 1, the medium is isotropic. If
+        isotropic, the analytical form of the Green's function is used for the
+        calculation of strain and displacement fields.
         """
         return (
             2
@@ -304,14 +309,18 @@ class LinearElasticity:
         C_ijkl d^2u_k/dx_jdx_l = 0
 
         Args:
-            positions ((n,3)-array): Positions in real space or reciprocal space (if fourier=True).
-            derivative (int): 0th, 1st or 2nd derivative of the Green's function. Ignored if
-                `fourier=True`.
-            fourier (bool): If `True`,  the Green's function of the reciprocal space is returned.
-            n_mesh (int): Number of mesh points in the radial integration in case if anisotropic
-                Green's function (ignored if isotropic=True or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic elasticity. If the medium
-                is isotropic, it will automatically be set to isotropic=True
+            positions ((n,3)-array): Positions in real space or reciprocal
+                space (if fourier=True).
+            derivative (int): 0th, 1st or 2nd derivative of the Green's
+                function. Ignored if `fourier=True`.
+            fourier (bool): If `True`,  the Green's function of the reciprocal
+                space is returned.
+            n_mesh (int): Number of mesh points in the radial integration in
+                case if anisotropic Green's function (ignored if isotropic=True
+                or fourier=True)
+            isotropic (bool): Whether to use the isotropic or anisotropic
+                elasticity. If the medium is isotropic, it will automatically
+                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
             check_unique (bool): Whether to check the unique positions
 
@@ -346,12 +355,15 @@ class LinearElasticity:
         Displacement field around a point defect
 
         Args:
-            positions ((n,3)-array): Positions in real space or reciprocal space (if fourier=True).
+            positions ((n,3)-array): Positions in real space or reciprocal
+                space (if fourier=True).
             dipole_tensor ((3,3)-array): Dipole tensor
-            n_mesh (int): Number of mesh points in the radial integration in case if anisotropic
-                Green's function (ignored if isotropic=True or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic elasticity. If the medium
-                is isotropic, it will automatically be set to isotropic=True
+            n_mesh (int): Number of mesh points in the radial integration in
+                case if anisotropic Green's function (ignored if isotropic=True
+                or fourier=True)
+            isotropic (bool): Whether to use the isotropic or anisotropic
+                elasticity. If the medium is isotropic, it will automatically
+                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
             check_unique (bool): Whether to check the unique positions
 
@@ -384,12 +396,15 @@ class LinearElasticity:
         Strain field around a point defect using the Green's function method
 
         Args:
-            positions ((n,3)-array): Positions in real space or reciprocal space (if fourier=True).
+            positions ((n,3)-array): Positions in real space or reciprocal
+                space (if fourier=True).
             dipole_tensor ((3,3)-array): Dipole tensor
-            n_mesh (int): Number of mesh points in the radial integration in case if anisotropic
-                Green's function (ignored if isotropic=True or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic elasticity. If the medium
-                is isotropic, it will automatically be set to isotropic=True
+            n_mesh (int): Number of mesh points in the radial integration in
+                case if anisotropic Green's function (ignored if isotropic=True
+                or fourier=True)
+            isotropic (bool): Whether to use the isotropic or anisotropic
+                elasticity. If the medium is isotropic, it will automatically
+                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
             check_unique (bool): Whether to check the unique positions
 
@@ -422,12 +437,15 @@ class LinearElasticity:
         Stress field around a point defect using the Green's function method
 
         Args:
-            positions ((n,3)-array): Positions in real space or reciprocal space (if fourier=True).
+            positions ((n,3)-array): Positions in real space or reciprocal
+                space (if fourier=True).
             dipole_tensor ((3,3)-array): Dipole tensor
-            n_mesh (int): Number of mesh points in the radial integration in case if anisotropic
-                Green's function (ignored if isotropic=True or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic elasticity. If the medium
-                is isotropic, it will automatically be set to isotropic=True
+            n_mesh (int): Number of mesh points in the radial integration in
+                case if anisotropic Green's function (ignored if isotropic=True
+                or fourier=True)
+            isotropic (bool): Whether to use the isotropic or anisotropic
+                elasticity. If the medium is isotropic, it will automatically
+                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
 
         Returns:
@@ -456,12 +474,15 @@ class LinearElasticity:
         Energy density field around a point defect using the Green's function method
 
         Args:
-            positions ((n,3)-array): Positions in real space or reciprocal space (if fourier=True).
+            positions ((n,3)-array): Positions in real space or reciprocal
+                space (if fourier=True).
             dipole_tensor ((3,3)-array): Dipole tensor
-            n_mesh (int): Number of mesh points in the radial integration in case if anisotropic
-                Green's function (ignored if isotropic=True or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic elasticity. If the medium
-                is isotropic, it will automatically be set to isotropic=True
+            n_mesh (int): Number of mesh points in the radial integration in
+                case if anisotropic Green's function (ignored if isotropic=True
+                or fourier=True)
+            isotropic (bool): Whether to use the isotropic or anisotropic
+                elasticity. If the medium is isotropic, it will automatically
+                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
 
         Returns:
@@ -484,16 +505,18 @@ class LinearElasticity:
         burgers_vector: np.ndarray,
     ):
         """
-        Displacement field around a dislocation according to anisotropic elasticity theory
-        described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
+        Displacement field around a dislocation according to anisotropic
+        elasticity theory described by
+        [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
 
         Args:
-            positions ((n,2) or (n,3)-array): Position around a dislocation. The third axis
-                coincides with the dislocation line.
+            positions ((n,2) or (n,3)-array): Position around a dislocation.
+                The third axis coincides with the dislocation line.
             burgers_vector ((3,)-array): Burgers vector
 
         Returns:
-            ((n, 3)-array): Displacement field (z-axis coincides with the dislocation line)
+            ((n, 3)-array): Displacement field (z-axis coincides with the
+                dislocation line)
         """
         eshelby = Eshelby(self.elastic_tensor, burgers_vector)
         return eshelby.get_displacement(positions)
@@ -508,8 +531,8 @@ class LinearElasticity:
         described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
 
         Args:
-            positions ((n,2) or (n,3)-array): Position around a dislocation. The third axis
-                coincides with the dislocation line.
+            positions ((n,2) or (n,3)-array): Position around a dislocation.
+                The third axis coincides with the dislocation line.
             burgers_vector ((3,)-array): Burgers vector
 
         Returns:
@@ -528,8 +551,8 @@ class LinearElasticity:
         described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
 
         Args:
-            positions ((n,2) or (n,3)-array): Position around a dislocation. The third axis
-                coincides with the dislocation line.
+            positions ((n,2) or (n,3)-array): Position around a dislocation.
+                The third axis coincides with the dislocation line.
             burgers_vector ((3,)-array): Burgers vector
 
         Returns:
@@ -544,12 +567,12 @@ class LinearElasticity:
         burgers_vector: np.ndarray,
     ):
         """
-        Energy density field around a dislocation (product of stress and strain, cf. corresponding
-        methods)
+        Energy density field around a dislocation (product of stress and
+        strain, cf. corresponding methods)
 
         Args:
-            positions ((n,2) or (n,3)-array): Position around a dislocation. The third axis
-                coincides with the dislocation line.
+            positions ((n,2) or (n,3)-array): Position around a dislocation.
+                The third axis coincides with the dislocation line.
             burgers_vector ((3,)-array): Burgers vector
 
         Returns:
@@ -572,14 +595,16 @@ class LinearElasticity:
             burgers_vector ((3,)-array): Burgers vector
             r_min (float): Minimum distance from the dislocation core
             r_max (float): Maximum distance from the dislocation core
-            mesh (int): Number of grid points for the numerical integration along the angle
+            mesh (int): Number of grid points for the numerical integration
+                along the angle
 
         Returns:
             (float): Energy of dislocation per unit length
 
-        The energy is defined by the product of the stress and strain (i.e. energy density),
-        which is integrated over the plane vertical to the dislocation line. The energy density
-        :math:`w` according to the linear elasticity is given by:
+        The energy is defined by the product of the stress and strain (i.e.
+        energy density), which is integrated over the plane vertical to the
+        dislocation line. The energy density :math:`w` according to the linear
+        elasticity is given by:
 
         .. math:
             w(r, \\theta) = A(\\theta)/r^2
@@ -589,11 +614,12 @@ class LinearElasticity:
         .. math:
             U = \\log(r_max/r_min)\\int A(\\theta)\\mathrm d\\theta
 
-        This implies :math:`r_min` cannot be 0 as well as :math:`r_max` cannot be infinity. This
-        is the consequence of the fact that the linear elasticity cannot describe the core
-        structure properly, and a real medium is not infinitely large. While :math:`r_max` can
-        be defined based on the real dislocation density, the choice of :math:`r_min` should be
-        done carefully.
+        This implies :math:`r_min` cannot be 0 as well as :math:`r_max` cannot
+        be infinity. This is the consequence of the fact that the linear
+        elasticity cannot describe the core structure properly, and a real
+        medium is not infinitely large. While :math:`r_max` can be defined
+        based on the real dislocation density, the choice of :math:`r_min`
+        should be done carefully.
         """
         if r_min <= 0:
             raise ValueError("r_min must be a positive float")
