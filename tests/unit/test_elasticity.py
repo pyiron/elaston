@@ -39,7 +39,7 @@ class TestElasticity(unittest.TestCase):
         sigma = np.einsum("iI,jJ,IJ->ij", medium.orientation, medium.orientation, sigma)
         sigma_calc = np.einsum(
             "ijkl,kK,lL,KL->ij",
-            medium.elastic_tensor,
+            medium.get_elastic_tensor(),
             medium.orientation,
             medium.orientation,
             epsilon,
@@ -90,7 +90,7 @@ class TestElasticity(unittest.TestCase):
         self.assertTrue(np.allclose(eps, medium.get_dislocation_strain(x, np.ones(3)).mean(axis=0)))
         x = np.random.randn(3) + [10, 1, 1]
         strain = medium.get_dislocation_strain(x, np.ones(3))
-        stress = np.einsum("ijkl,kl->ij", medium.elastic_tensor, strain)
+        stress = np.einsum("ijkl,kl->ij", medium.get_elastic_tensor(), strain)
         self.assertTrue(
             np.allclose(stress, medium.get_dislocation_stress(x, np.ones(3)))
         )
@@ -103,7 +103,7 @@ class TestElasticity(unittest.TestCase):
     def test_elastic_tensor_input(self):
         C = create_random_C()
         medium = LinearElasticity([C[0, 0, 0, 0], C[0, 0, 1, 1], C[0, 1, 0, 1]])
-        self.assertTrue(np.allclose(C, medium.elastic_tensor))
+        self.assertTrue(np.allclose(C, medium.get_elastic_tensor()))
         medium.isotropy_tolerance = 1e-6
         self.assertEqual(medium.isotropy_tolerance, 1e-6)
         self.assertRaises(ValueError, LinearElasticity, np.random.random((3, 3)))
@@ -120,7 +120,7 @@ class TestElasticity(unittest.TestCase):
         )
         x = np.random.randn(3)
         strain = medium.get_point_defect_strain(x, np.eye(3))
-        stress = np.einsum("ijkl,kl->ij", medium.elastic_tensor, strain)
+        stress = np.einsum("ijkl,kl->ij", medium.get_elastic_tensor(), strain)
         self.assertTrue(
             np.allclose(stress, medium.get_point_defect_stress(x, np.eye(3)))
         )
