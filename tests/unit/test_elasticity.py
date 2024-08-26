@@ -24,7 +24,7 @@ def create_random_C(isotropic=False):
 class TestElasticity(unittest.TestCase):
     def test_frame(self):
         medium = LinearElasticity(np.random.random((6, 6)))
-        self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
+        self.assertIsNone(medium.orientation)
         medium.orientation = 0.1 * np.random.randn(3, 3) + np.eye(3)
         self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
         self.assertRaises(ValueError, setattr, medium, "orientation", -np.eye(3))
@@ -48,7 +48,7 @@ class TestElasticity(unittest.TestCase):
 
     def test_elastic_constants(self):
         medium = LinearElasticity(np.eye(6))
-        self.assertRaises(ValueError, medium.get_elastic_constants)
+        self.assertRaises(ValueError, medium.get_elastic_moduli)
 
     def test_isotropic(self):
         medium = LinearElasticity(create_random_C(isotropic=True))
@@ -81,7 +81,7 @@ class TestElasticity(unittest.TestCase):
         self.assertAlmostEqual(force[2], 0)
 
     def test_dislocation_stress(self):
-        medium = LinearElasticity([211.0, 130.0, 82.0])
+        medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)
         dx = 1e-7
         x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(3)
         y = medium.get_dislocation_displacement(x, np.ones(3))
@@ -102,14 +102,16 @@ class TestElasticity(unittest.TestCase):
 
     def test_elastic_tensor_input(self):
         C = create_random_C()
-        medium = LinearElasticity([C[0, 0, 0, 0], C[0, 0, 1, 1], C[0, 1, 0, 1]])
+        medium = LinearElasticity(
+            C_11=C[0, 0, 0, 0], C_12=C[0, 0, 1, 1], C_44=C[0, 1, 0, 1]
+        )
         self.assertTrue(np.allclose(C, medium.get_elastic_tensor()))
         medium.isotropy_tolerance = 1e-6
         self.assertEqual(medium.isotropy_tolerance, 1e-6)
         self.assertRaises(ValueError, LinearElasticity, np.random.random((3, 3)))
 
     def test_point_defect(self):
-        medium = LinearElasticity(C_11= 211.0, C_12=130.0, C_44=82.0)
+        medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)
         dx = 1e-7
         x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(3)
         y = medium.get_point_defect_displacement(x, np.eye(3))
