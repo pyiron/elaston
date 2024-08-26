@@ -229,7 +229,6 @@ class LinearElasticity:
 
     def is_isotropic(self):
         return self.is_cubic() and np.isclose(self.get_zener_ratio(), 1)
-        )
 
     def get_elastic_moduli(self):
         if not self.is_isotropic():
