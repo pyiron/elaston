@@ -622,3 +622,13 @@ class LinearElasticity:
         return np.einsum(
             "i,...ij,j,k->...k", g, stress, burgers_vector, np.cross(g, [0, 0, 1])
         )
+
+    def get_voigt_average(self):
+        return LinearElasticity(
+            **elastic_constants.get_voigt_average(self.get_elastic_tensor(vogt=True))
+        )
+
+    def get_reuss_average(self):
+        return LinearElasticity(
+            **elastic_constants.get_reuss_average(self.get_elastic_tensor(vogt=True))
+        )
