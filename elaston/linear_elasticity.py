@@ -584,10 +584,10 @@ class LinearElasticity:
 
     def get_voigt_average(self):
         return LinearElasticity(
-            **elastic_constants.get_voigt_average(self.get_elastic_tensor(vogt=True))
+            **elastic_constants.get_voigt_average(self.get_elastic_tensor(voigt=True))
         )
 
     def get_reuss_average(self):
         return LinearElasticity(
-            **elastic_constants.get_reuss_average(self.get_elastic_tensor(vogt=True))
+            **elastic_constants.get_reuss_average(self.get_elastic_tensor(voigt=True))
         )

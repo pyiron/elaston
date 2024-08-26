@@ -53,6 +53,13 @@ class TestElasticity(unittest.TestCase):
     def test_isotropic(self):
         medium = LinearElasticity(create_random_C(isotropic=True))
         self.assertTrue(medium.is_isotropic())
+        medium = LinearElasticity(create_random_C(isotropic=False))
+        self.assertFalse(medium.is_isotropic())
+        medium = medium.get_voigt_average()
+        self.assertTrue(medium.is_isotropic())
+        medium = LinearElasticity(create_random_C(isotropic=False))
+        medium = medium.get_reuss_average()
+        self.assertTrue(medium.is_isotropic())
 
     def test_dislocation_energy(self):
         elastic_tensor = create_random_C()
