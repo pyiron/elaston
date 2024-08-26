@@ -201,7 +201,7 @@ class LinearElasticity:
     def get_elastic_tensor(self, voigt=False, rotate=True):
         C = self._elastic_tensor.copy()
         if self.orientation is not None and rotate:
-            return tools.crystal_to_box(C, self._elastic_tensor)
+            return tools.crystal_to_box(C, self.orientation)
         if voigt:
             C = tools.C_to_voigt(C)
         return C
