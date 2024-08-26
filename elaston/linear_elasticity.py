@@ -262,16 +262,13 @@ class LinearElasticity:
             n_mesh (int): Number of mesh points in the radial integration in
                 case if anisotropic Green's function (ignored if isotropic=True
                 or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic
-                elasticity. If the medium is isotropic, it will automatically
-                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
             check_unique (bool): Whether to check the unique positions
 
         Returns:
             ((n,3,3)-array): Green's function values for the given positions
         """
-        if isotropic and self.is_isotropic():
+        if self.is_isotropic():
             param = self.get_elastic_moduli()
             C = Isotropic(
                 param["poissons_ratio"], param["shear_modulus"], optimize=optimize
@@ -296,7 +293,6 @@ class LinearElasticity:
         positions: np.ndarray,
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
-        isotropic: bool = False,
         optimize: bool = True,
         check_unique: bool = False,
     ):
@@ -310,9 +306,6 @@ class LinearElasticity:
             n_mesh (int): Number of mesh points in the radial integration in
                 case if anisotropic Green's function (ignored if isotropic=True
                 or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic
-                elasticity. If the medium is isotropic, it will automatically
-                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
             check_unique (bool): Whether to check the unique positions
 
@@ -324,7 +317,6 @@ class LinearElasticity:
             derivative=1,
             fourier=False,
             n_mesh=n_mesh,
-            isotropic=isotropic,
             optimize=optimize,
             check_unique=check_unique,
         )
@@ -337,7 +329,6 @@ class LinearElasticity:
         positions: np.ndarray,
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
-        isotropic: bool = False,
         optimize: bool = True,
         check_unique: bool = False,
     ):
@@ -351,9 +342,6 @@ class LinearElasticity:
             n_mesh (int): Number of mesh points in the radial integration in
                 case if anisotropic Green's function (ignored if isotropic=True
                 or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic
-                elasticity. If the medium is isotropic, it will automatically
-                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
             check_unique (bool): Whether to check the unique positions
 
@@ -365,7 +353,6 @@ class LinearElasticity:
             derivative=2,
             fourier=False,
             n_mesh=n_mesh,
-            isotropic=isotropic,
             optimize=optimize,
             check_unique=check_unique,
         )
@@ -379,7 +366,6 @@ class LinearElasticity:
         positions: np.ndarray,
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
-        isotropic: bool = False,
         optimize: bool = True,
     ):
         """
@@ -392,9 +378,6 @@ class LinearElasticity:
             n_mesh (int): Number of mesh points in the radial integration in
                 case if anisotropic Green's function (ignored if isotropic=True
                 or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic
-                elasticity. If the medium is isotropic, it will automatically
-                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
 
         Returns:
@@ -404,7 +387,6 @@ class LinearElasticity:
             positions=positions,
             dipole_tensor=dipole_tensor,
             n_mesh=n_mesh,
-            isotropic=isotropic,
             optimize=optimize,
         )
         return np.einsum(
@@ -420,7 +402,6 @@ class LinearElasticity:
         positions: np.ndarray,
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
-        isotropic: bool = False,
         optimize: bool = True,
     ):
         """
@@ -433,9 +414,6 @@ class LinearElasticity:
             n_mesh (int): Number of mesh points in the radial integration in
                 case if anisotropic Green's function (ignored if isotropic=True
                 or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic
-                elasticity. If the medium is isotropic, it will automatically
-                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
 
         Returns:
@@ -445,7 +423,6 @@ class LinearElasticity:
             positions=positions,
             dipole_tensor=dipole_tensor,
             n_mesh=n_mesh,
-            isotropic=isotropic,
             optimize=optimize,
         )
         return np.einsum(
