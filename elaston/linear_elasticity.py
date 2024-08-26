@@ -162,7 +162,20 @@ class LinearElasticity:
         """
         self._orientation = None
         self._elastic_tensor = tools.C_from_voigt(
-            elastic_constants.initialize_elastic_tensor(elastic_tensor)
+            elastic_constants.initialize_elastic_tensor(
+                C_tensor=C_tensor,
+                C_11=C_11,
+                C_12=C_12,
+                C_13=C_13,
+                C_22=C_22,
+                C_33=C_33,
+                C_44=C_44,
+                C_55=C_55,
+                C_66=C_66,
+                youngs_modulus=youngs_modulus,
+                poissons_ratio=poissons_ratio,
+                shear_modulus=shear_modulus,
+            )
         )
         if orientation is not None:
             self.orientation = orientation
@@ -186,22 +199,18 @@ class LinearElasticity:
     def orientation(self, r):
         self._orientation = tools.orthonormalize(r)
 
-    def get_elastic_tensor(self, voigt=False, orientation=None):
+    def get_elastic_tensor(self, voigt=False, rotate=True):
         C = self._elastic_tensor.copy()
-        if orientation is not None:
-            orientation = tools.orthonormalize(orientation)
-        elif self.orientation is not None:
-            orientation = self.orientation
-        if orientation is not None:
-            C = tools.crystal_to_box(C, orientation)
+        if self.orientation is not None and if rotate:
+            return tools.crystal_to_box(C, self._elastic_tensor)
         if voigt:
             C = tools.C_to_voigt(C)
         return C
 
-    def get_compliance_matrix(self, orientation=None):
+    def get_compliance_matrix(self, rotate=True):
         """Compliance matrix in Voigt notation."""
         return np.linalg.inv(
-            self.get_elastic_tensor(voigt=True, orientation=orientation)
+            self.get_elastic_tensor(voigt=True, rotate=rotate)
         )
 
     def get_zener_ratio(self):
@@ -211,11 +220,13 @@ class LinearElasticity:
         calculation of strain and displacement fields.
         """
         return elastic_constants.get_zener_ratio(
-            tools.C_to_voigt(self._elastic_tensor)
+            self.get_elastic_tensor(voigt=True, rotate=False)
         )
 
     def is_isotropic(self):
-        return elastic_constants.is_isotropic(self.get_elastic_tensor(voigt=True))
+        return elastic_constants.is_isotropic(
+            self.get_elastic_tensor(voigt=True, rotate=False)
+        )
 
     def get_elastic_moduli(self):
         if not self.is_isotropic():
@@ -225,13 +236,12 @@ class LinearElasticity:
                 " (get_voigt_average, get_reuss_average) first"
             )
         return elastic_tensor.get_elastic_moduli(
-            tools.C_to_voigt(self._elastic_tensor)
+            self.get_elastic_tensor(voigt=True, rotate=False)
         )
 
     def get_greens_function(
         self,
         positions: np.ndarray,
-        orientation: Optional[np.ndarray] = None,
         derivative: int = 0,
         fourier: bool = False,
         n_mesh: int = 100,
@@ -269,7 +279,7 @@ class LinearElasticity:
             )
         else:
             C = Anisotropic(
-                self.get_elastic_tensor(orientation=orientation),
+                self.get_elastic_tensor(),
                 n_mesh=n_mesh,
                 optimize=optimize
             )
@@ -285,7 +295,6 @@ class LinearElasticity:
     def get_point_defect_displacement(
         self,
         positions: np.ndarray,
-        orientation: Optional[np.ndarray] = None,
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
         isotropic: bool = False,
@@ -313,7 +322,6 @@ class LinearElasticity:
         """
         g_tmp = self.get_greens_function(
             positions,
-            orientation=orientation,
             derivative=1,
             fourier=False,
             n_mesh=n_mesh,
@@ -328,7 +336,6 @@ class LinearElasticity:
     def get_point_defect_strain(
         self,
         positions: np.ndarray,
-        orientation: Optional[np.ndarray] = None,
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
         isotropic: bool = False,
@@ -356,7 +363,6 @@ class LinearElasticity:
         """
         g_tmp = self.get_greens_function(
             positions,
-            orientation=orientation,
             derivative=2,
             fourier=False,
             n_mesh=n_mesh,
@@ -372,7 +378,6 @@ class LinearElasticity:
     def get_point_defect_stress(
         self,
         positions: np.ndarray,
-        orientation: Optional[np.ndarray] = None,
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
         isotropic: bool = False,
@@ -398,7 +403,6 @@ class LinearElasticity:
         """
         strain = self.get_point_defect_strain(
             positions=positions,
-            orientation=orientation,
             dipole_tensor=dipole_tensor,
             n_mesh=n_mesh,
             isotropic=isotropic,
@@ -406,7 +410,7 @@ class LinearElasticity:
         )
         return np.einsum(
             "ijkl,...kl->...ij",
-            self.get_elastic_tensor(orientation=orientation),
+            self.get_elastic_tensor(),
             strain
         )
 
@@ -415,7 +419,6 @@ class LinearElasticity:
     def get_point_defect_energy_density(
         self,
         positions: np.ndarray,
-        orientation: Optional[np.ndarray] = None,
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
         isotropic: bool = False,
@@ -441,7 +444,6 @@ class LinearElasticity:
         """
         strain = self.get_point_defect_strain(
             positions=positions,
-            orientation=orientation,
             dipole_tensor=dipole_tensor,
             n_mesh=n_mesh,
             isotropic=isotropic,
@@ -449,7 +451,7 @@ class LinearElasticity:
         )
         return np.einsum(
             "ijkl,...kl,...ij->...",
-            self.get_elastic_tensor(orientation=orientation),
+            self.get_elastic_tensor(),
             strain,
             strain
         )
@@ -459,7 +461,6 @@ class LinearElasticity:
     def get_dislocation_displacement(
         self,
         positions: np.ndarray,
-        orientation: Optional[np.ndarray] = None,
         burgers_vector: np.ndarray,
     ):
         """
@@ -477,14 +478,13 @@ class LinearElasticity:
                 dislocation line)
         """
         eshelby = Eshelby(
-            self.get_elastic_tensor(orientation=orientation), burgers_vector
+            self.get_elastic_tensor(), burgers_vector
         )
         return eshelby.get_displacement(positions)
 
     def get_dislocation_strain(
         self,
         positions: np.ndarray,
-        orientation: Optional[np.ndarray] = None,
         burgers_vector: np.ndarray,
     ):
         """
@@ -500,14 +500,13 @@ class LinearElasticity:
             ((n, 3, 3)-array): Strain field (z-axis coincides with the dislocation line)
         """
         eshelby = Eshelby(
-            self.get_elastic_tensor(orientation=orientation), burgers_vector
+            self.get_elastic_tensor(), burgers_vector
         )
         return eshelby.get_strain(positions)
 
     def get_dislocation_stress(
         self,
         positions: np.ndarray,
-        orientation: Optional[np.ndarray] = None,
         burgers_vector: np.ndarray,
     ):
         """
@@ -523,16 +522,15 @@ class LinearElasticity:
             ((n, 3, 3)-array): Stress field (z-axis coincides with the dislocation line)
         """
         strain = self.get_dislocation_strain(
-            positions, orientation=orientation, burgers_vector=burgers_vector
+            positions, burgers_vector=burgers_vector
         )
         return np.einsum(
-            "ijkl,...kl->...ij", self.get_elastic_tensor(orientation), strain
+            "ijkl,...kl->...ij", self.get_elastic_tensor(), strain
         )
 
     def get_dislocation_energy_density(
         self,
         positions: np.ndarray,
-        orientation: Optional[np.ndarray] = None,
         burgers_vector: np.ndarray,
     ):
         """
@@ -547,10 +545,10 @@ class LinearElasticity:
         Returns:
             ((n,)-array): Energy density field
         """
-        strain = self.get_dislocation_strain(positions, orientation, burgers_vector)
+        strain = self.get_dislocation_strain(positions, burgers_vector)
         return np.einsum(
             "ijkl,...kl,...ij->...",
-            self.get_elastic_tensor(orientation),
+            self.get_elastic_tensor(),
             strain,
             strain
         )
@@ -558,7 +556,6 @@ class LinearElasticity:
     def get_dislocation_energy(
         self,
         burgers_vector: np.ndarray,
-        orientation: Optional[np.ndarray] = None,
         r_min: float,
         r_max: float,
         mesh: int = 100,
@@ -602,7 +599,7 @@ class LinearElasticity:
         r = np.stack((np.cos(theta_range), np.sin(theta_range)), axis=-1) * r_min
         strain = self.get_dislocation_strain(r, burgers_vector=burgers_vector)
         return np.einsum(
-            "ijkl,nkl,nij->", self.get_elastic_tensor(orientation), strain, strain
+            "ijkl,nkl,nij->", self.get_elastic_tensor(), strain, strain
         ) / np.diff(theta_range)[0] * r_min**2 * np.log(r_max / r_min)
 
     @staticmethod
