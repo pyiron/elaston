@@ -87,7 +87,9 @@ class TestElasticity(unittest.TestCase):
         y = medium.get_dislocation_displacement(x, np.ones(3))
         eps = (y[1:] - y[0]) / dx
         eps = 0.5 * (eps + eps.T)
-        self.assertTrue(np.allclose(eps, medium.get_dislocation_strain(x, np.ones(3)).mean(axis=0)))
+        self.assertTrue(
+            np.allclose(eps, medium.get_dislocation_strain(x, np.ones(3)).mean(axis=0))
+        )
         x = np.random.randn(3) + [10, 1, 1]
         strain = medium.get_dislocation_strain(x, np.ones(3))
         stress = np.einsum("ijkl,kl->ij", medium.get_elastic_tensor(), strain)
@@ -96,8 +98,7 @@ class TestElasticity(unittest.TestCase):
         )
         x = np.random.randn(10, 3)
         self.assertGreater(
-            medium.get_dislocation_energy_density(x, np.ones(3)).min(),
-            0
+            medium.get_dislocation_energy_density(x, np.ones(3)).min(), 0
         )
 
     def test_elastic_tensor_input(self):
@@ -128,8 +129,7 @@ class TestElasticity(unittest.TestCase):
         )
         x = np.random.randn(10, 3)
         self.assertGreater(
-            medium.get_point_defect_energy_density(x, np.eye(3)).min(),
-            0
+            medium.get_point_defect_energy_density(x, np.eye(3)).min(), 0
         )
 
 

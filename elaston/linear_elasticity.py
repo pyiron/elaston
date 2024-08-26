@@ -208,9 +208,7 @@ class LinearElasticity:
 
     def get_compliance_matrix(self, rotate=True):
         """Compliance matrix in Voigt notation."""
-        return np.linalg.inv(
-            self.get_elastic_tensor(voigt=True, rotate=rotate)
-        )
+        return np.linalg.inv(self.get_elastic_tensor(voigt=True, rotate=rotate))
 
     def get_zener_ratio(self):
         """
@@ -277,11 +275,7 @@ class LinearElasticity:
                 param["poissons_ratio"], param["shear_modulus"], optimize=optimize
             )
         else:
-            C = Anisotropic(
-                self.get_elastic_tensor(),
-                n_mesh=n_mesh,
-                optimize=optimize
-            )
+            C = Anisotropic(self.get_elastic_tensor(), n_mesh=n_mesh, optimize=optimize)
         return C.get_greens_function(
             r=positions,
             derivative=derivative,
@@ -392,11 +386,7 @@ class LinearElasticity:
             n_mesh=n_mesh,
             optimize=optimize,
         )
-        return np.einsum(
-            "ijkl,...kl->...ij",
-            self.get_elastic_tensor(),
-            strain
-        )
+        return np.einsum("ijkl,...kl->...ij", self.get_elastic_tensor(), strain)
 
     get_point_defect_stress.__doc__ += point_defect_explanation
 
@@ -429,10 +419,7 @@ class LinearElasticity:
             optimize=optimize,
         )
         return np.einsum(
-            "ijkl,...kl,...ij->...",
-            self.get_elastic_tensor(),
-            strain,
-            strain
+            "ijkl,...kl,...ij->...", self.get_elastic_tensor(), strain, strain
         )
 
     get_point_defect_energy_density.__doc__ += point_defect_explanation
@@ -456,9 +443,7 @@ class LinearElasticity:
             ((n, 3)-array): Displacement field (z-axis coincides with the
                 dislocation line)
         """
-        eshelby = Eshelby(
-            self.get_elastic_tensor(), burgers_vector
-        )
+        eshelby = Eshelby(self.get_elastic_tensor(), burgers_vector)
         return eshelby.get_displacement(positions)
 
     def get_dislocation_strain(
@@ -478,9 +463,7 @@ class LinearElasticity:
         Returns:
             ((n, 3, 3)-array): Strain field (z-axis coincides with the dislocation line)
         """
-        eshelby = Eshelby(
-            self.get_elastic_tensor(), burgers_vector
-        )
+        eshelby = Eshelby(self.get_elastic_tensor(), burgers_vector)
         return eshelby.get_strain(positions)
 
     def get_dislocation_stress(
@@ -500,12 +483,8 @@ class LinearElasticity:
         Returns:
             ((n, 3, 3)-array): Stress field (z-axis coincides with the dislocation line)
         """
-        strain = self.get_dislocation_strain(
-            positions, burgers_vector=burgers_vector
-        )
-        return np.einsum(
-            "ijkl,...kl->...ij", self.get_elastic_tensor(), strain
-        )
+        strain = self.get_dislocation_strain(positions, burgers_vector=burgers_vector)
+        return np.einsum("ijkl,...kl->...ij", self.get_elastic_tensor(), strain)
 
     def get_dislocation_energy_density(
         self,
@@ -526,10 +505,7 @@ class LinearElasticity:
         """
         strain = self.get_dislocation_strain(positions, burgers_vector)
         return np.einsum(
-            "ijkl,...kl,...ij->...",
-            self.get_elastic_tensor(),
-            strain,
-            strain
+            "ijkl,...kl,...ij->...", self.get_elastic_tensor(), strain, strain
         )
 
     def get_dislocation_energy(
@@ -577,9 +553,12 @@ class LinearElasticity:
         theta_range = np.linspace(0, 2 * np.pi, 100, endpoint=False)
         r = np.stack((np.cos(theta_range), np.sin(theta_range)), axis=-1) * r_min
         strain = self.get_dislocation_strain(r, burgers_vector=burgers_vector)
-        return np.einsum(
-            "ijkl,nkl,nij->", self.get_elastic_tensor(), strain, strain
-        ) / np.diff(theta_range)[0] * r_min**2 * np.log(r_max / r_min)
+        return (
+            np.einsum("ijkl,nkl,nij->", self.get_elastic_tensor(), strain, strain)
+            / np.diff(theta_range)[0]
+            * r_min**2
+            * np.log(r_max / r_min)
+        )
 
     @staticmethod
     def get_dislocation_force(
