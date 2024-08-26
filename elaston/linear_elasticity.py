@@ -3,7 +3,6 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 import numpy as np
-from typing import Optional
 from elaston.green import Anisotropic, Isotropic, Green
 from elaston.eshelby import Eshelby
 from elaston import tools
@@ -201,7 +200,7 @@ class LinearElasticity:
 
     def get_elastic_tensor(self, voigt=False, rotate=True):
         C = self._elastic_tensor.copy()
-        if self.orientation is not None and if rotate:
+        if self.orientation is not None and rotate:
             return tools.crystal_to_box(C, self._elastic_tensor)
         if voigt:
             C = tools.C_to_voigt(C)
@@ -235,7 +234,7 @@ class LinearElasticity:
                 " elastic constants or run an averaging method"
                 " (get_voigt_average, get_reuss_average) first"
             )
-        return elastic_tensor.get_elastic_moduli(
+        return elastic_constants.get_elastic_moduli(
             self.get_elastic_tensor(voigt=True, rotate=False)
         )
 
@@ -272,7 +271,7 @@ class LinearElasticity:
         Returns:
             ((n,3,3)-array): Green's function values for the given positions
         """
-        if isotropic and self.is_isotropic():
+        if self.is_isotropic():
             param = self.get_elastic_moduli()
             C = Isotropic(
                 param["poissons_ratio"], param["shear_modulus"], optimize=optimize
