@@ -29,10 +29,6 @@ class TestElasticity(unittest.TestCase):
         self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
         self.assertRaises(ValueError, setattr, medium, "orientation", -np.eye(3))
 
-    def test_voigt_average(self):
-        medium = LinearElasticity(tools.voigt_average(*np.random.random(3)))
-        self.assertTrue(medium._is_isotropic)
-
     def test_orientation(self):
         elastic_tensor = create_random_C()
         epsilon = np.random.random((3, 3))
@@ -50,17 +46,13 @@ class TestElasticity(unittest.TestCase):
         )
         self.assertTrue(np.allclose(sigma - sigma_calc, 0))
 
-    def test_youngs_modulus(self):
+    def test_elastic_constants(self):
         medium = LinearElasticity(np.eye(6))
-        self.assertTrue(np.allclose(medium.youngs_modulus, 1))
-
-    def test_poissons_ratio(self):
-        medium = LinearElasticity(np.eye(6))
-        self.assertTrue(np.allclose(medium.poissons_ratio, 0))
+        self.assertRaises(ValueError, medium.get_elastic_constants)
 
     def test_isotropic(self):
         medium = LinearElasticity(create_random_C(isotropic=True))
-        self.assertTrue(medium._is_isotropic)
+        self.assertTrue(medium.is_isotropic())
 
     def test_dislocation_energy(self):
         elastic_tensor = create_random_C()
@@ -116,19 +108,8 @@ class TestElasticity(unittest.TestCase):
         self.assertEqual(medium.isotropy_tolerance, 1e-6)
         self.assertRaises(ValueError, LinearElasticity, np.random.random((3, 3)))
 
-    def test_bulk_modulus(self):
-        medium = LinearElasticity(create_random_C())
-        self.assertGreater(medium.bulk_modulus, 0)
-
-    def test_greens_function(self):
-        medium = LinearElasticity(create_random_C(isotropic=True))
-        self.assertAlmostEqual(
-            medium.get_greens_function([1, 1, 1], isotropic=True)[0, 0],
-            medium.get_greens_function([1, 1, 1], isotropic=False)[0, 0],
-        )
-
     def test_point_defect(self):
-        medium = LinearElasticity([211.0, 130.0, 82.0])
+        medium = LinearElasticity(C_11= 211.0, C_12=130.0, C_44=82.0)
         dx = 1e-7
         x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(3)
         y = medium.get_point_defect_displacement(x, np.eye(3))
