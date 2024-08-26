@@ -271,7 +271,7 @@ class LinearElasticity:
         Returns:
             ((n,3,3)-array): Green's function values for the given positions
         """
-        if self.is_isotropic():
+        if isotropic and self.is_isotropic():
             param = self.get_elastic_moduli()
             C = Isotropic(
                 param["poissons_ratio"], param["shear_modulus"], optimize=optimize
