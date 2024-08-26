@@ -97,8 +97,7 @@ class TestConstants(unittest.TestCase):
         ec = ElasticConstants(C_11=211.0, C_12=145.0, C_44=82.0)
         self.assertFalse(ec.is_isotropic())
         ec_ave = ec.get_reuss_average()
-        print(ec_ave.get_zener_ratio())
-        # self.assertTrue(ec_ave.is_isotropic())
+        self.assertTrue(ec_ave.is_isotropic())
 
     def test_unique_constants(self):
         ec = ElasticConstants(C_11=211.0, C_12=145.0, C_44=82.0)
