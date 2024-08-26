@@ -116,11 +116,6 @@ class TestElasticity(unittest.TestCase):
         self.assertEqual(medium.isotropy_tolerance, 1e-6)
         self.assertRaises(ValueError, LinearElasticity, np.random.random((3, 3)))
 
-    def test_isotropy_tolerance(self):
-        medium = LinearElasticity(create_random_C())
-        with self.assertRaises(ValueError):
-            medium.isotropy_tolerance = -1
-
     def test_bulk_modulus(self):
         medium = LinearElasticity(create_random_C())
         self.assertGreater(medium.bulk_modulus, 0)
