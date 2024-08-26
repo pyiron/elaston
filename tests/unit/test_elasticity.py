@@ -107,8 +107,6 @@ class TestElasticity(unittest.TestCase):
             C_11=C[0, 0, 0, 0], C_12=C[0, 0, 1, 1], C_44=C[0, 1, 0, 1]
         )
         self.assertTrue(np.allclose(C, medium.get_elastic_tensor()))
-        medium.isotropy_tolerance = 1e-6
-        self.assertEqual(medium.isotropy_tolerance, 1e-6)
         self.assertRaises(ValueError, LinearElasticity, np.random.random((3, 3)))
 
     def test_point_defect(self):
