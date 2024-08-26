@@ -141,6 +141,7 @@ class LinearElasticity:
         youngs_modulus=None,
         poissons_ratio=None,
         shear_modulus=None,
+        orientation=None,
     ):
         """
         Args:
@@ -159,9 +160,12 @@ class LinearElasticity:
         - Ni: [248.0, 140.0, 76.0]
         - W: [630.0, 161.0, 160.0]
         """
+        self._orientation = None
         self._elastic_tensor = tools.C_from_voigt(
             elastic_constants.initialize_elastic_tensor(elastic_tensor)
         )
+        if orientation is not None:
+            self.orientation = orientation
 
     @property
     def orientation(self):
@@ -185,8 +189,11 @@ class LinearElasticity:
     def get_elastic_tensor(self, voigt=False, orientation=None):
         C = self._elastic_tensor.copy()
         if orientation is not None:
-            mat = tools.orthonormalize(orientation)
-            C = tools.crystal_to_box(C, mat)
+            orientation = tools.orthonormalize(orientation)
+        elif self.orientation is not None:
+            orientation = self.orientation
+        if orientation is not None:
+            C = tools.crystal_to_box(C, orientation)
         if voigt:
             C = tools.C_to_voigt(C)
         return C
@@ -204,7 +211,7 @@ class LinearElasticity:
         calculation of strain and displacement fields.
         """
         return elastic_constants.get_zener_ratio(
-            self.get_elastic_tensor(voigt=True)
+            tools.C_to_voigt(self._elastic_tensor)
         )
 
     def is_isotropic(self):
@@ -217,7 +224,9 @@ class LinearElasticity:
                 " elastic constants or run an averaging method"
                 " (get_voigt_average, get_reuss_average) first"
             )
-        return elastic_tensor.get_elastic_moduli(self.get_elastic_tensor(voigt=True))
+        return elastic_tensor.get_elastic_moduli(
+            tools.C_to_voigt(self._elastic_tensor)
+        )
 
     def get_greens_function(
         self,
