@@ -24,43 +24,78 @@ def create_random_C(isotropic=False):
 class TestElasticity(unittest.TestCase):
     def test_frame(self):
         medium = LinearElasticity(np.random.random((6, 6)))
-        self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
+        self.assertIsNone(medium.orientation)
         medium.orientation = 0.1 * np.random.randn(3, 3) + np.eye(3)
         self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
         self.assertRaises(ValueError, setattr, medium, "orientation", -np.eye(3))
-
-    def test_voigt_average(self):
-        medium = LinearElasticity(tools.voigt_average(*np.random.random(3)))
-        self.assertTrue(medium._is_isotropic)
 
     def test_orientation(self):
         elastic_tensor = create_random_C()
         epsilon = np.random.random((3, 3))
         epsilon += epsilon.T
         sigma = np.einsum("ijkl,kl->ij", elastic_tensor, epsilon)
-        medium = LinearElasticity(elastic_tensor)
+        medium = LinearElasticity(
+            elastic_tensor, orientation=np.array([[1, 1, 1], [1, 0, -1]])
+        )
+        orientation = medium.orientation
+        self.assertAlmostEqual(np.linalg.det(orientation), 1)
         medium.orientation = np.array([[1, 1, 1], [1, 0, -1]])
+        self.assertTrue(np.allclose(orientation, medium.orientation))
         sigma = np.einsum("iI,jJ,IJ->ij", medium.orientation, medium.orientation, sigma)
         sigma_calc = np.einsum(
             "ijkl,kK,lL,KL->ij",
-            medium.elastic_tensor,
+            medium.get_elastic_tensor(),
             medium.orientation,
             medium.orientation,
             epsilon,
         )
         self.assertTrue(np.allclose(sigma - sigma_calc, 0))
 
-    def test_youngs_modulus(self):
+    def test_elastic_constants(self):
         medium = LinearElasticity(np.eye(6))
-        self.assertTrue(np.allclose(medium.youngs_modulus, 1))
-
-    def test_poissons_ratio(self):
-        medium = LinearElasticity(np.eye(6))
-        self.assertTrue(np.allclose(medium.poissons_ratio, 0))
+        self.assertRaises(ValueError, medium.get_elastic_moduli)
+        medium = LinearElasticity(C_11=211.0, C_12=130.0)
+        param = medium.get_elastic_moduli()
+        for key in [
+            "bulk_modulus",
+            "shear_modulus",
+            "youngs_modulus",
+            "poissons_ratio",
+        ]:
+            self.assertIn(key, param)
 
     def test_isotropic(self):
         medium = LinearElasticity(create_random_C(isotropic=True))
-        self.assertTrue(medium._is_isotropic)
+        self.assertTrue(medium.is_isotropic())
+        medium = LinearElasticity(create_random_C(isotropic=False))
+        self.assertFalse(medium.is_isotropic())
+        medium = medium.get_voigt_average()
+        self.assertTrue(medium.is_isotropic())
+        medium = LinearElasticity(create_random_C(isotropic=False))
+        medium = medium.get_reuss_average()
+        self.assertTrue(medium.is_isotropic())
+
+    def test_compliance_tensor(self):
+        elastic_tensor = create_random_C()
+        medium = LinearElasticity(elastic_tensor)
+        compliance = medium.get_compliance_tensor(voigt=True)
+        self.assertTrue(
+            np.allclose(
+                np.linalg.inv(medium.get_elastic_tensor(voigt=True)), compliance
+            )
+        )
+        E = 0.5 * np.einsum("ik,jl->ijkl", *2 * [np.eye(3)])
+        E += 0.5 * np.einsum("il,jk->ijkl", *2 * [np.eye(3)])
+        self.assertTrue(
+            np.allclose(
+                np.einsum(
+                    "ijkl,klmn->ijmn",
+                    medium.get_compliance_tensor(voigt=False),
+                    medium.get_elastic_tensor(voigt=False),
+                ),
+                E,
+            )
+        )
 
     def test_dislocation_energy(self):
         elastic_tensor = create_random_C()
@@ -89,70 +124,63 @@ class TestElasticity(unittest.TestCase):
         self.assertAlmostEqual(force[2], 0)
 
     def test_dislocation_stress(self):
-        medium = LinearElasticity([211.0, 130.0, 82.0])
+        medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)
         dx = 1e-7
         x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(3)
         y = medium.get_dislocation_displacement(x, np.ones(3))
         eps = (y[1:] - y[0]) / dx
         eps = 0.5 * (eps + eps.T)
-        self.assertTrue(np.allclose(eps, medium.get_dislocation_strain(x, np.ones(3)).mean(axis=0)))
+        self.assertTrue(
+            np.allclose(eps, medium.get_dislocation_strain(x, np.ones(3)).mean(axis=0))
+        )
         x = np.random.randn(3) + [10, 1, 1]
         strain = medium.get_dislocation_strain(x, np.ones(3))
-        stress = np.einsum("ijkl,kl->ij", medium.elastic_tensor, strain)
+        stress = np.einsum("ijkl,kl->ij", medium.get_elastic_tensor(), strain)
         self.assertTrue(
             np.allclose(stress, medium.get_dislocation_stress(x, np.ones(3)))
         )
         x = np.random.randn(10, 3)
         self.assertGreater(
-            medium.get_dislocation_energy_density(x, np.ones(3)).min(),
-            0
+            medium.get_dislocation_energy_density(x, np.ones(3)).min(), 0
         )
 
     def test_elastic_tensor_input(self):
         C = create_random_C()
-        medium = LinearElasticity([C[0, 0, 0, 0], C[0, 0, 1, 1], C[0, 1, 0, 1]])
-        self.assertTrue(np.allclose(C, medium.elastic_tensor))
-        medium.isotropy_tolerance = 1e-6
-        self.assertEqual(medium.isotropy_tolerance, 1e-6)
+        medium = LinearElasticity(
+            C_11=C[0, 0, 0, 0], C_12=C[0, 0, 1, 1], C_44=C[0, 1, 0, 1]
+        )
+        self.assertTrue(np.allclose(C, medium.get_elastic_tensor()))
         self.assertRaises(ValueError, LinearElasticity, np.random.random((3, 3)))
 
-    def test_isotropy_tolerance(self):
-        medium = LinearElasticity(create_random_C())
-        with self.assertRaises(ValueError):
-            medium.isotropy_tolerance = -1
-
-    def test_bulk_modulus(self):
-        medium = LinearElasticity(create_random_C())
-        self.assertGreater(medium.bulk_modulus, 0)
-
-    def test_greens_function(self):
-        medium = LinearElasticity(create_random_C(isotropic=True))
-        self.assertAlmostEqual(
-            medium.get_greens_function([1, 1, 1], isotropic=True)[0, 0],
-            medium.get_greens_function([1, 1, 1], isotropic=False)[0, 0],
-        )
-
     def test_point_defect(self):
-        medium = LinearElasticity([211.0, 130.0, 82.0])
-        dx = 1e-7
-        x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(3)
-        y = medium.get_point_defect_displacement(x, np.eye(3))
-        eps = (y[1:] - y[0]) / dx
-        eps = 0.5 * (eps + eps.T)
-        self.assertTrue(
-            np.allclose(eps, medium.get_point_defect_strain(x, np.eye(3)).mean(axis=0))
-        )
-        x = np.random.randn(3)
-        strain = medium.get_point_defect_strain(x, np.eye(3))
-        stress = np.einsum("ijkl,kl->ij", medium.elastic_tensor, strain)
-        self.assertTrue(
-            np.allclose(stress, medium.get_point_defect_stress(x, np.eye(3)))
-        )
-        x = np.random.randn(10, 3)
-        self.assertGreater(
-            medium.get_point_defect_energy_density(x, np.eye(3)).min(),
-            0
-        )
+        for d in [
+            {"C_11": 211.0, "C_12": 130.0, "C_44": 82.0},
+            {"C_11": 211.0, "C_12": 130.0},
+        ]:
+            medium = LinearElasticity(**d)
+            self.assertEqual(
+                medium.get_point_defect_displacement(np.ones(3), np.eye(3)).shape, (3,)
+            )
+            dx = 1e-7
+            x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(3)
+            y = medium.get_point_defect_displacement(x, np.eye(3))
+            eps = (y[1:] - y[0]) / dx
+            eps = 0.5 * (eps + eps.T)
+            self.assertTrue(
+                np.allclose(
+                    eps, medium.get_point_defect_strain(x, np.eye(3)).mean(axis=0)
+                )
+            )
+            x = np.random.randn(3)
+            strain = medium.get_point_defect_strain(x, np.eye(3))
+            stress = np.einsum("ijkl,kl->ij", medium.get_elastic_tensor(), strain)
+            self.assertTrue(
+                np.allclose(stress, medium.get_point_defect_stress(x, np.eye(3)))
+            )
+            x = np.random.randn(10, 3)
+            self.assertGreater(
+                medium.get_point_defect_energy_density(x, np.eye(3)).min(), 0
+            )
 
 
 if __name__ == "__main__":
