@@ -52,7 +52,10 @@ class TestElasticity(unittest.TestCase):
         medium = LinearElasticity(C_11=211.0, C_12=130.0)
         param = medium.get_elastic_moduli()
         for key in [
-            "bulk_modulus", "shear_modulus", "youngs_modulus", "poissons_ratio"
+            "bulk_modulus",
+            "shear_modulus",
+            "youngs_modulus",
+            "poissons_ratio",
         ]:
             self.assertIn(key, param)
 
@@ -123,25 +126,31 @@ class TestElasticity(unittest.TestCase):
         self.assertRaises(ValueError, LinearElasticity, np.random.random((3, 3)))
 
     def test_point_defect(self):
-        medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)
-        dx = 1e-7
-        x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(3)
-        y = medium.get_point_defect_displacement(x, np.eye(3))
-        eps = (y[1:] - y[0]) / dx
-        eps = 0.5 * (eps + eps.T)
-        self.assertTrue(
-            np.allclose(eps, medium.get_point_defect_strain(x, np.eye(3)).mean(axis=0))
-        )
-        x = np.random.randn(3)
-        strain = medium.get_point_defect_strain(x, np.eye(3))
-        stress = np.einsum("ijkl,kl->ij", medium.get_elastic_tensor(), strain)
-        self.assertTrue(
-            np.allclose(stress, medium.get_point_defect_stress(x, np.eye(3)))
-        )
-        x = np.random.randn(10, 3)
-        self.assertGreater(
-            medium.get_point_defect_energy_density(x, np.eye(3)).min(), 0
-        )
+        for d in [
+            {"C_11": 211.0, "C_12": 130.0, "C_44": 82.0},
+            {"C_11": 211.0, "C_12": 130.0},
+        ]:
+            medium = LinearElasticity(**d)
+            dx = 1e-7
+            x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(3)
+            y = medium.get_point_defect_displacement(x, np.eye(3))
+            eps = (y[1:] - y[0]) / dx
+            eps = 0.5 * (eps + eps.T)
+            self.assertTrue(
+                np.allclose(
+                    eps, medium.get_point_defect_strain(x, np.eye(3)).mean(axis=0)
+                )
+            )
+            x = np.random.randn(3)
+            strain = medium.get_point_defect_strain(x, np.eye(3))
+            stress = np.einsum("ijkl,kl->ij", medium.get_elastic_tensor(), strain)
+            self.assertTrue(
+                np.allclose(stress, medium.get_point_defect_stress(x, np.eye(3)))
+            )
+            x = np.random.randn(10, 3)
+            self.assertGreater(
+                medium.get_point_defect_energy_density(x, np.eye(3)).min(), 0
+            )
 
 
 if __name__ == "__main__":

@@ -194,6 +194,8 @@ class Isotropic(Green):
 
     def ddG(self, r):
         """Second derivative of the Green's function."""
+        shape = np.shape(r)
+        r = np.atleast_2d(r)
         E = np.eye(3)
         R = np.linalg.norm(r, axis=-1)
         distance_condition = R < self.min_dist
@@ -239,7 +241,7 @@ class Isotropic(Green):
         )
         v = np.einsum("...ijkl,...->...ijkl", v, 1 / R**3)
         v[distance_condition] *= 0
-        return v
+        return v.reshape(shape + (3, 3, 3))
 
     def _get_greens_function(self, r, derivative=0, fourier=False):
         if fourier:
