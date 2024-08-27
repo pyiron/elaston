@@ -34,8 +34,13 @@ class TestElasticity(unittest.TestCase):
         epsilon = np.random.random((3, 3))
         epsilon += epsilon.T
         sigma = np.einsum("ijkl,kl->ij", elastic_tensor, epsilon)
-        medium = LinearElasticity(elastic_tensor)
+        medium = LinearElasticity(
+            elastic_tensor, orientation=np.array([[1, 1, 1], [1, 0, -1]])
+        )
+        orientation = medium.orientation
+        self.assertAlmostEqual(np.linalg.det(orientation), 1)
         medium.orientation = np.array([[1, 1, 1], [1, 0, -1]])
+        self.assertTrue(np.allclose(orientation, medium.orientation))
         sigma = np.einsum("iI,jJ,IJ->ij", medium.orientation, medium.orientation, sigma)
         sigma_calc = np.einsum(
             "ijkl,kK,lL,KL->ij",
@@ -69,6 +74,16 @@ class TestElasticity(unittest.TestCase):
         medium = LinearElasticity(create_random_C(isotropic=False))
         medium = medium.get_reuss_average()
         self.assertTrue(medium.is_isotropic())
+
+    def test_compliance_tensor(self):
+        elastic_tensor = create_random_C()
+        medium = LinearElasticity(elastic_tensor)
+        compliance = medium.get_compliance_tensor()
+        self.assertTrue(
+            np.allclose(
+                np.linalg.inv(medium.get_elastic_tensor(voigt=True)), compliance
+            )
+        )
 
     def test_dislocation_energy(self):
         elastic_tensor = create_random_C()

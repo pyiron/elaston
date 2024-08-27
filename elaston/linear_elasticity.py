@@ -206,7 +206,7 @@ class LinearElasticity:
             C = tools.C_to_voigt(C)
         return C
 
-    def get_compliance_matrix(self, rotate=True):
+    def get_compliance_tensor(self, rotate=True):
         """Compliance matrix in Voigt notation."""
         return np.linalg.inv(self.get_elastic_tensor(voigt=True, rotate=rotate))
 
