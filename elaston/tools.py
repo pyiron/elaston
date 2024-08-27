@@ -85,22 +85,27 @@ def index_from_voigt(i, j):
         return 6 - i - j
 
 
-def C_from_voigt(C_in):
+def C_from_voigt(C_in, inverse=False):
     """
     Convert elastic tensor in Voigt notation to matrix notation.
 
     Args:
         C_in (numpy.ndarray): Elastic tensor in Voigt notation.
+        inverse (bool): Whether to use the inverse Voigt notation.
 
     Returns:
         numpy.ndarray: Elastic tensor in matrix notation.
     """
+    C_v = np.array(C_in)
+    if inverse:
+        C_v[3:] /= 2
+        C_v[:, 3:] /= 2
     C = np.zeros((3, 3, 3, 3))
     for i in range(3):
         for j in range(3):
             for k in range(3):
                 for l in range(3):
-                    C[i, j, k, l] = C_in[index_from_voigt(i, j), index_from_voigt(k, l)]
+                    C[i, j, k, l] = C_v[index_from_voigt(i, j), index_from_voigt(k, l)]
     return C
 
 

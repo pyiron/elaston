@@ -78,10 +78,22 @@ class TestElasticity(unittest.TestCase):
     def test_compliance_tensor(self):
         elastic_tensor = create_random_C()
         medium = LinearElasticity(elastic_tensor)
-        compliance = medium.get_compliance_tensor()
+        compliance = medium.get_compliance_tensor(voigt=True)
         self.assertTrue(
             np.allclose(
                 np.linalg.inv(medium.get_elastic_tensor(voigt=True)), compliance
+            )
+        )
+        E = 0.5 * np.einsum("ik,jl->ijkl", *2 * [np.eye(3)])
+        E += 0.5 * np.einsum("il,jk->ijkl", *2 * [np.eye(3)])
+        self.assertTrue(
+            np.allclose(
+                np.einsum(
+                    "ijkl,klmn->ijmn",
+                    medium.get_compliance_tensor(voigt=False),
+                    medium.get_elastic_tensor(voigt=False),
+                ),
+                E,
             )
         )
 
