@@ -49,6 +49,12 @@ class TestElasticity(unittest.TestCase):
     def test_elastic_constants(self):
         medium = LinearElasticity(np.eye(6))
         self.assertRaises(ValueError, medium.get_elastic_moduli)
+        medium = LinearElasticity(C_11=211.0, C_12=130.0)
+        param = medium.get_elastic_moduli()
+        for key in [
+            "bulk_modulus", "shear_modulus", "youngs_modulus", "poissons_ratio"
+        ]:
+            self.assertIn(key, param)
 
     def test_isotropic(self):
         medium = LinearElasticity(create_random_C(isotropic=True))
