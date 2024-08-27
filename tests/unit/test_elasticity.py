@@ -131,7 +131,9 @@ class TestElasticity(unittest.TestCase):
             {"C_11": 211.0, "C_12": 130.0},
         ]:
             medium = LinearElasticity(**d)
-            self.assertEqual(medium.get_point_defect_displacement(np.ones(3), np.eye(3)).shape, (3,))
+            self.assertEqual(
+                medium.get_point_defect_displacement(np.ones(3), np.eye(3)).shape, (3,)
+            )
             dx = 1e-7
             x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(3)
             y = medium.get_point_defect_displacement(x, np.eye(3))
