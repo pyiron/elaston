@@ -3,10 +3,10 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 import numpy as np
-from typing import Optional
 from elaston.green import Anisotropic, Isotropic, Green
 from elaston.eshelby import Eshelby
 from elaston import tools
+from elaston import elastic_constants
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -127,7 +127,20 @@ class LinearElasticity:
     """
 
     def __init__(
-        self, elastic_tensor: np.ndarray, orientation: Optional[np.ndarray] = None
+        self,
+        C_tensor=None,
+        C_11=None,
+        C_12=None,
+        C_13=None,
+        C_22=None,
+        C_33=None,
+        C_44=None,
+        C_55=None,
+        C_66=None,
+        youngs_modulus=None,
+        poissons_ratio=None,
+        shear_modulus=None,
+        orientation=None,
     ):
         """
         Args:
@@ -146,11 +159,25 @@ class LinearElasticity:
         - Ni: [248.0, 140.0, 76.0]
         - W: [630.0, 161.0, 160.0]
         """
-        self.elastic_tensor = elastic_tensor
-        self._isotropy_tolerance = 1.0e-4
-        if orientation is None:
-            orientation = np.eye(3)
-        self.orientation = orientation
+        self._orientation = None
+        self._elastic_tensor = tools.C_from_voigt(
+            elastic_constants.initialize_elastic_tensor(
+                C_tensor=C_tensor,
+                C_11=C_11,
+                C_12=C_12,
+                C_13=C_13,
+                C_22=C_22,
+                C_33=C_33,
+                C_44=C_44,
+                C_55=C_55,
+                C_66=C_66,
+                youngs_modulus=youngs_modulus,
+                poissons_ratio=poissons_ratio,
+                shear_modulus=shear_modulus,
+            )
+        )
+        if orientation is not None:
+            self.orientation = orientation
 
     @property
     def orientation(self):
@@ -171,125 +198,49 @@ class LinearElasticity:
     def orientation(self, r):
         self._orientation = tools.orthonormalize(r)
 
-    @property
-    def _is_rotated(self):
-        return np.isclose(np.einsum("ii->", self.orientation), 3)
+    def get_elastic_tensor(self, voigt=False, rotate=True):
+        C = self._elastic_tensor.copy()
+        if self.orientation is not None and rotate:
+            return tools.crystal_to_box(C, self.orientation)
+        if voigt:
+            C = tools.C_to_voigt(C)
+        return C
 
-    @property
-    def elastic_tensor(self):
-        """
-        Elastic tensor. Regardless of whether it was given in the Voigt
-        notation or in the full form, always the full tensor (i.e.
-        (3,3,3,3)-array) is returned. For Voigt notation, use `elastic_tensor_voigt`
-        """
-        if not self._is_rotated:
-            return np.einsum(
-                "Ii,Jj,Kk,Ll,ijkl->IJKL",
-                *4 * [self.orientation],
-                self._elastic_tensor,
-                optimize=True,
-            )
-        return self._elastic_tensor
-
-    @elastic_tensor.setter
-    def elastic_tensor(self, C):
-        C = np.asarray(C)
-        if C.shape != (6, 6) and C.shape != (3, 3, 3, 3) and C.shape != (3,):
-            raise ValueError("Elastic tensor must be a (6,6), (3,3,3,3) or (3,)  array")
-        if C.shape == (3,):
-            C = tools.coeff_to_voigt(C)
-        if C.shape == (6, 6):
-            C = tools.C_from_voigt(C)
-        self._elastic_tensor = C
-
-    @property
-    def elastic_tensor_voigt(self):
-        """
-        Voigt notation of the elastic tensor, i.e. (i, j) = i, if i == j and
-        (i, j) = 6-i-j if i!=j.
-        """
-        return tools.C_to_voigt(self.elastic_tensor)
-
-    @property
-    def compliance_matrix(self):
+    def get_compliance_tensor(self, rotate=True, voigt=False):
         """Compliance matrix in Voigt notation."""
-        return np.linalg.inv(self.elastic_tensor_voigt)
+        S = np.linalg.inv(self.get_elastic_tensor(voigt=True, rotate=rotate))
+        if voigt:
+            return S
+        return tools.C_from_voigt(S, inverse=True)
 
-    @property
-    def zener_ratio(self):
+    def get_zener_ratio(self):
         """
         Zener ratio or the anisotropy index. If 1, the medium is isotropic. If
         isotropic, the analytical form of the Green's function is used for the
         calculation of strain and displacement fields.
         """
-        return (
-            2
-            * (1 + self.poissons_ratio.mean())
-            * self.shear_modulus.mean()
-            / self.youngs_modulus.mean()
+        return elastic_constants.get_zener_ratio(
+            self.get_elastic_tensor(voigt=True, rotate=False)
         )
 
-    @property
-    def isotropy_tolerance(self):
-        """
-        Maximum tolerance deviation from 1 for the Zener ratio to determine
-        whether the medium is isotropic or not.
-        """
-        return self._isotropy_tolerance
+    def is_cubic(self):
+        return elastic_constants.is_cubic(
+            self.get_elastic_tensor(voigt=True, rotate=False)
+        )
 
-    @isotropy_tolerance.setter
-    def isotropy_tolerance(self, value):
-        if value < 0:
-            raise ValueError("`isotropy_tolerance` must be a positive float")
-        self._isotropy_tolerance = value
+    def is_isotropic(self):
+        return self.is_cubic() and np.isclose(self.get_zener_ratio(), 1)
 
-    @property
-    def _is_isotropic(self):
-        return np.absolute(self.zener_ratio - 1) < self.isotropy_tolerance
-
-    @property
-    def shear_modulus(self):
-        """
-        Returns:
-            ((3,)-array): yz-, xz-, xy-components of shear modulus
-        """
-        return 1 / self.compliance_matrix[3:, 3:].diagonal()
-
-    @property
-    def bulk_modulus(self):
-        """
-        Returns:
-            (float): Bulk modulus
-        """
-        return self.youngs_modulus.mean() / (3 * (1 - 2 * self.poissons_ratio.mean()))
-
-    @property
-    def poissons_ratio(self):
-        """
-        Returns:
-            ((3,)-array): yz-, xz-, xy-components of Poisson's ratio
-        """
-        nu = -self.compliance_matrix[:3, :3] * self.youngs_modulus
-        return np.array([nu[1, 2], nu[0, 2], nu[0, 1]])
-
-    @property
-    def youngs_modulus(self):
-        """
-        Returns:
-            ((3,)-array): xx-, yy-, zz-components of Young's modulus
-
-
-        Here is a list of Young's modulus of a few materials:
-
-        - Al: 70.4
-        - Cu: 170.0
-        - Fe: 211.0
-        - Mo: 442.0
-        - Ni: 248.0
-        - W: 630.0
-
-        """
-        return 1 / self.compliance_matrix[:3, :3].diagonal()
+    def get_elastic_moduli(self):
+        if not self.is_isotropic():
+            raise ValueError(
+                "The material must be isotropic. Re-instantiate with isotropic"
+                " elastic constants or run an averaging method"
+                " (get_voigt_average, get_reuss_average) first"
+            )
+        return elastic_constants.get_elastic_moduli(
+            self.get_elastic_tensor(voigt=True, rotate=False)
+        )
 
     def get_greens_function(
         self,
@@ -297,7 +248,6 @@ class LinearElasticity:
         derivative: int = 0,
         fourier: bool = False,
         n_mesh: int = 100,
-        isotropic: bool = False,
         optimize: bool = True,
         check_unique: bool = False,
     ):
@@ -316,21 +266,19 @@ class LinearElasticity:
             n_mesh (int): Number of mesh points in the radial integration in
                 case if anisotropic Green's function (ignored if isotropic=True
                 or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic
-                elasticity. If the medium is isotropic, it will automatically
-                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
             check_unique (bool): Whether to check the unique positions
 
         Returns:
             ((n,3,3)-array): Green's function values for the given positions
         """
-        if isotropic or self._is_isotropic:
+        if self.is_isotropic():
+            param = self.get_elastic_moduli()
             C = Isotropic(
-                self.poissons_ratio.mean(), self.shear_modulus.mean(), optimize=optimize
+                param["poissons_ratio"], param["shear_modulus"], optimize=optimize
             )
         else:
-            C = Anisotropic(self.elastic_tensor, n_mesh=n_mesh, optimize=optimize)
+            C = Anisotropic(self.get_elastic_tensor(), n_mesh=n_mesh, optimize=optimize)
         return C.get_greens_function(
             r=positions,
             derivative=derivative,
@@ -345,7 +293,6 @@ class LinearElasticity:
         positions: np.ndarray,
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
-        isotropic: bool = False,
         optimize: bool = True,
         check_unique: bool = False,
     ):
@@ -359,9 +306,6 @@ class LinearElasticity:
             n_mesh (int): Number of mesh points in the radial integration in
                 case if anisotropic Green's function (ignored if isotropic=True
                 or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic
-                elasticity. If the medium is isotropic, it will automatically
-                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
             check_unique (bool): Whether to check the unique positions
 
@@ -373,7 +317,6 @@ class LinearElasticity:
             derivative=1,
             fourier=False,
             n_mesh=n_mesh,
-            isotropic=isotropic,
             optimize=optimize,
             check_unique=check_unique,
         )
@@ -386,7 +329,6 @@ class LinearElasticity:
         positions: np.ndarray,
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
-        isotropic: bool = False,
         optimize: bool = True,
         check_unique: bool = False,
     ):
@@ -400,9 +342,6 @@ class LinearElasticity:
             n_mesh (int): Number of mesh points in the radial integration in
                 case if anisotropic Green's function (ignored if isotropic=True
                 or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic
-                elasticity. If the medium is isotropic, it will automatically
-                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
             check_unique (bool): Whether to check the unique positions
 
@@ -414,7 +353,6 @@ class LinearElasticity:
             derivative=2,
             fourier=False,
             n_mesh=n_mesh,
-            isotropic=isotropic,
             optimize=optimize,
             check_unique=check_unique,
         )
@@ -428,7 +366,6 @@ class LinearElasticity:
         positions: np.ndarray,
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
-        isotropic: bool = False,
         optimize: bool = True,
     ):
         """
@@ -441,9 +378,6 @@ class LinearElasticity:
             n_mesh (int): Number of mesh points in the radial integration in
                 case if anisotropic Green's function (ignored if isotropic=True
                 or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic
-                elasticity. If the medium is isotropic, it will automatically
-                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
 
         Returns:
@@ -453,10 +387,9 @@ class LinearElasticity:
             positions=positions,
             dipole_tensor=dipole_tensor,
             n_mesh=n_mesh,
-            isotropic=isotropic,
             optimize=optimize,
         )
-        return np.einsum("ijkl,...kl->...ij", self.elastic_tensor, strain)
+        return np.einsum("ijkl,...kl->...ij", self.get_elastic_tensor(), strain)
 
     get_point_defect_stress.__doc__ += point_defect_explanation
 
@@ -465,7 +398,6 @@ class LinearElasticity:
         positions: np.ndarray,
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
-        isotropic: bool = False,
         optimize: bool = True,
     ):
         """
@@ -478,9 +410,6 @@ class LinearElasticity:
             n_mesh (int): Number of mesh points in the radial integration in
                 case if anisotropic Green's function (ignored if isotropic=True
                 or fourier=True)
-            isotropic (bool): Whether to use the isotropic or anisotropic
-                elasticity. If the medium is isotropic, it will automatically
-                be set to isotropic=True
             optimize (bool): cf. `optimize` in `numpy.einsum`
 
         Returns:
@@ -490,10 +419,11 @@ class LinearElasticity:
             positions=positions,
             dipole_tensor=dipole_tensor,
             n_mesh=n_mesh,
-            isotropic=isotropic,
             optimize=optimize,
         )
-        return np.einsum("ijkl,...kl,...ij->...", self.elastic_tensor, strain, strain)
+        return np.einsum(
+            "ijkl,...kl,...ij->...", self.get_elastic_tensor(), strain, strain
+        )
 
     get_point_defect_energy_density.__doc__ += point_defect_explanation
 
@@ -516,7 +446,7 @@ class LinearElasticity:
             ((n, 3)-array): Displacement field (z-axis coincides with the
                 dislocation line)
         """
-        eshelby = Eshelby(self.elastic_tensor, burgers_vector)
+        eshelby = Eshelby(self.get_elastic_tensor(), burgers_vector)
         return eshelby.get_displacement(positions)
 
     def get_dislocation_strain(
@@ -536,7 +466,7 @@ class LinearElasticity:
         Returns:
             ((n, 3, 3)-array): Strain field (z-axis coincides with the dislocation line)
         """
-        eshelby = Eshelby(self.elastic_tensor, burgers_vector)
+        eshelby = Eshelby(self.get_elastic_tensor(), burgers_vector)
         return eshelby.get_strain(positions)
 
     def get_dislocation_stress(
@@ -556,8 +486,8 @@ class LinearElasticity:
         Returns:
             ((n, 3, 3)-array): Stress field (z-axis coincides with the dislocation line)
         """
-        strain = self.get_dislocation_strain(positions, burgers_vector)
-        return np.einsum("ijkl,...kl->...ij", self.elastic_tensor, strain)
+        strain = self.get_dislocation_strain(positions, burgers_vector=burgers_vector)
+        return np.einsum("ijkl,...kl->...ij", self.get_elastic_tensor(), strain)
 
     def get_dislocation_energy_density(
         self,
@@ -577,7 +507,9 @@ class LinearElasticity:
             ((n,)-array): Energy density field
         """
         strain = self.get_dislocation_strain(positions, burgers_vector)
-        return np.einsum("ijkl,...kl,...ij->...", self.elastic_tensor, strain, strain)
+        return np.einsum(
+            "ijkl,...kl,...ij->...", self.get_elastic_tensor(), strain, strain
+        )
 
     def get_dislocation_energy(
         self,
@@ -625,7 +557,7 @@ class LinearElasticity:
         r = np.stack((np.cos(theta_range), np.sin(theta_range)), axis=-1) * r_min
         strain = self.get_dislocation_strain(r, burgers_vector=burgers_vector)
         return (
-            np.einsum("ijkl,nkl,nij->", self.elastic_tensor, strain, strain)
+            np.einsum("ijkl,nkl,nij->", self.get_elastic_tensor(), strain, strain)
             / np.diff(theta_range)[0]
             * r_min**2
             * np.log(r_max / r_min)
@@ -651,4 +583,14 @@ class LinearElasticity:
         g = np.asarray(glide_plane) / np.linalg.norm(glide_plane)
         return np.einsum(
             "i,...ij,j,k->...k", g, stress, burgers_vector, np.cross(g, [0, 0, 1])
+        )
+
+    def get_voigt_average(self):
+        return LinearElasticity(
+            **elastic_constants.get_voigt_average(self.get_elastic_tensor(voigt=True))
+        )
+
+    def get_reuss_average(self):
+        return LinearElasticity(
+            **elastic_constants.get_reuss_average(self.get_elastic_tensor(voigt=True))
         )
