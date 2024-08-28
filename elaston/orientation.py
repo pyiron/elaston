@@ -81,6 +81,7 @@ def get_shockley_partials(burgers_vector=(1, -1, 0), glide_plane=(1, 1, 1)):
     Returns:
         (np.ndarray, np.ndarray): Shockley partials.
     """
+    assert np.shape(burgers_vector) == np.shape(glide_plane) == (3,)
     if np.sum(np.isclose(burgers_vector, 0)) != 1:
         raise ValueError(
             f"Burgers vector must have one zero component in fcc: {burgers_vector}."
