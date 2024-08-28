@@ -70,16 +70,16 @@ def get_dislocation_orientation(dislocation_type="screw", crystal="bcc"):
     return result
 
 
-def get_shockley_partials(burgers_vector=[1, -1, 0], glide_plane=[1, 1, 1]):
+def get_shockley_partials(burgers_vector=(1, -1, 0), glide_plane=(1, 1, 1)):
     """
     Get the Shockley partials for a dislocation in fcc materials.
 
     Args:
-        burgers_vector (np.ndarray): Burgers vector.
-        glide_plane (np.ndarray): Glide plane normal.
+        burgers_vector ((3,)-np.ndarray): Burgers vector.
+        glide_plane ((3,)-np.ndarray): Glide plane normal.
 
     Returns:
-        np.ndarray: Shockley partials.
+        (np.ndarray, np.ndarray): Shockley partials.
     """
     if np.sum(np.isclose(burgers_vector, 0)) != 1:
         raise ValueError(
