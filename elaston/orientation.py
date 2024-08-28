@@ -19,6 +19,21 @@ __date__ = "Aug 21, 2021"
 
 
 def get_dislocation_orientation(dislocation_type="screw", crystal="bcc"):
+    """
+    Get the orientation of a dislocation in a crystal.
+
+    Args:
+        dislocation_type (str): Type of dislocation. "screw" or "edge".
+        crystal (str): Crystal structure. "bcc" or "fcc".
+
+    Returns:
+        dict: Dictionary containing the following keys:
+            - glide_plane (np.ndarray): Glide plane normal.
+            - burgers_vector (np.ndarray): Burgers vector.
+            - dislocation_line (np.ndarray): Dislocation line.
+            - orientation (np.ndarray): Dislocation orientation matrix; First
+                row is the glide plane, and the last row is the dislocation line.
+    """
     assert dislocation_type in ["screw", "edge"]
     assert crystal in ["bcc", "fcc"]
     if crystal == "bcc":
