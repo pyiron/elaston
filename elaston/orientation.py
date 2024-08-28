@@ -3,7 +3,7 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 import numpy as np
-import tools
+from elaston import tools
 
 
 __author__ = "Sam Waseda"
