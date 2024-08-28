@@ -48,7 +48,7 @@ def get_dislocation_orientation(dislocation_type="screw", crystal="bcc"):
                 "dislocation_line": [1, 1, -2],
             }
     gp = np.atleast_2d(result["glide_plane"])[0]
-    result["frame"] = np.roll(
+    result["orientation"] = np.roll(
         tools.orthonormalize([result["dislocation_line"], gp]),
         -1,
         axis=0
