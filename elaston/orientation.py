@@ -67,3 +67,20 @@ def get_dislocation_orientation(dislocation_type="screw", crystal="bcc"):
         tools.orthonormalize([result["dislocation_line"], gp]), -1, axis=0
     )
     return result
+
+
+def get_shockley_partials(burgers_vector=[1, -1, 0], glide_plane=[1, 1, 1]):
+    """
+    Get the Shockley partials for a dislocation in fcc materials.
+
+    Args:
+        burgers_vector (np.ndarray): Burgers vector.
+        glide_plane (np.ndarray): Glide plane normal.
+
+    Returns:
+        np.ndarray: Shockley partials.
+    """
+    assert np.sum(np.isclose(burgers_vector, 0)) == 1
+    assert np.isclose(np.dot(burgers_vector, glide_plane), 0)
+    b_1 = np.array(burgers_vector)
+    b_2 = np.roll(b_1, 1)
