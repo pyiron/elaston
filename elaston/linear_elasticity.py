@@ -60,7 +60,7 @@ With this in mind, we can calculate the dipole tensor of Ni in Al with the follo
 >>> job.structure[0] = 'Ni'
 >>> job.calc_minimize()
 >>> job.run()
->>> dipole_tensor = -job.structure.get_volume()*job['output/generic/pressures'][-1]
+>>> dipole_tensor = -job.structure.get_volume() * job['output/generic/pressures'][-1]
 
 Instead of working with atomistic calculations, the dipole tensor can be calculated by the
 lambda tensor [1], which is defined as:
@@ -96,29 +96,31 @@ class LinearElasticity:
     Examples I: Get bulk modulus from the elastic tensor:
 
     >>> medium = LinearElasticity(elastic_tensor)
-    >>> print(medium.bulk_modulus)
+    >>> parameters = medium.get_elastic_moduli()
+    >>> print(parameters['bulk_modulus'])
 
     Example II: Get strain field around a point defect:
 
     >>> import numpy as np
-    >>> medium = LinearElasticity(elastic_tensor)
-    >>> random_positions = np.random.random((10, 3))-0.5
+    >>> medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)  # Fe
+    >>> random_positions = np.random.random((10, 3)) - 0.5
     >>> dipole_tensor = np.eye(3)
     >>> print(medium.get_point_defect_strain(random_positions, dipole_tensor))
 
     Example III: Get stress field around a dislocation:
 
     >>> import numpy as np
-    >>> medium = LinearElasticity(elastic_tensor)
+    >>> medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)
     >>> random_positions = np.random.random((10, 3))-0.5
     >>> burgers_vector = np.array([0, 0, 1])
     >>> print(medium.get_dislocation_stress(random_positions, burgers_vector))
 
     Example IV: Estimate the distance between partial dislocations:
 
-    >>> medium = LinearElasticity(elastic_tensor)
-    >>> partial_one = np.array([-0.5, 0, np.sqrt(3)/2])*lattice_constant
-    >>> partial_two = np.array([0.5, 0, np.sqrt(3)/2])*lattice_constant
+    >>> medium = LinearElasticity(C_11=110.5, C_12=64.8, C_44=30.9)  # Al
+    >>> lattice_constant = 4.05
+    >>> partial_one = np.array([-0.5, 0, np.sqrt(3) / 2]) * lattice_constant
+    >>> partial_two = np.array([0.5, 0, np.sqrt(3) / 2]) * lattice_constant
     >>> distance = 100
     >>> stress_one = medium.get_dislocation_stress([0, distance, 0], partial_one)
     >>> print('Choose `distance` in the way that the value below corresponds to SFE')
