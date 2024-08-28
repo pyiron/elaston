@@ -36,6 +36,7 @@ def get_dislocation_orientation(dislocation_type="screw", crystal="bcc"):
     """
     assert dislocation_type in ["screw", "edge"]
     assert crystal in ["bcc", "fcc"]
+    result = {}
     if crystal == "bcc":
         if dislocation_type == "screw":
             result = {
