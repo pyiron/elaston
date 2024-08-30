@@ -22,6 +22,17 @@ def create_random_C(isotropic=False):
 
 
 class TestElasticity(unittest.TestCase):
+    def test_cubic(self):
+        medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0, C_13=140.0)
+        self.assertFalse(medium.is_isotropic())
+        self.assertFalse(medium.is_cubic())
+        medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)
+        self.assertFalse(medium.is_isotropic())
+        self.assertTrue(medium.is_cubic())
+        medium = LinearElasticity(C_11=211.0, C_12=130.0)
+        self.assertTrue(medium.is_isotropic())
+        self.assertTrue(medium.is_cubic())
+
     def test_frame(self):
         medium = LinearElasticity(np.random.random((6, 6)))
         self.assertIsNone(medium.orientation)
