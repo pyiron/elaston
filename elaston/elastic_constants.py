@@ -183,7 +183,7 @@ def is_cubic(C):
     Check if the material is cubic
 
     Args:
-        C (np.ndarray): Elastic constants in Voigt notation
+        C (np.ndarray): Elastic constants in Voigt notation or full tensor
 
     Returns:
         bool: True if the material is cubic
@@ -203,7 +203,7 @@ def is_isotropic(C):
     Check if the material is isotropic
 
     Args:
-        C (np.ndarray): Elastic constants in Voigt notation
+        C (np.ndarray): Elastic constants in Voigt notation or full tensor
 
     Returns:
         bool: True if the material is isotropic
