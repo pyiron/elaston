@@ -19,7 +19,7 @@ __status__ = "development"
 __date__ = "Aug 21, 2021"
 
 
-class Eshelby:
+class Dislocation:
     """
     Anisotropic elasticity theory for dislocations described by
     [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
@@ -145,7 +145,7 @@ def get_dislocation_displacement(
     Returns:
         ((n, 3)-array): Displacement field (z-axis coincides with the dislocation line)
     """
-    return Eshelby(elastic_tensor, burgers_vector).get_displacement(positions)
+    return Dislocation(elastic_tensor, burgers_vector).get_displacement(positions)
 
 
 @units(outputs=lambda burgers_vector, positions: burgers_vector.u / positions.u)
@@ -167,7 +167,7 @@ def get_dislocation_strain(
     Returns:
         ((n, 3, 3)-array): Strain field (z-axis coincides with the dislocation line)
     """
-    return Eshelby(elastic_tensor, burgers_vector).get_strain(positions)
+    return Dislocation(elastic_tensor, burgers_vector).get_strain(positions)
 
 
 @units(

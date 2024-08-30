@@ -4,7 +4,7 @@
 
 import numpy as np
 from elaston.green import Anisotropic, Isotropic, Green
-from elaston import eshelby
+from elaston import dislocation
 from elaston import tools
 from elaston import elastic_constants
 
@@ -449,7 +449,7 @@ class LinearElasticity:
             ((n, 3)-array): Displacement field (z-axis coincides with the
                 dislocation line)
         """
-        return eshelby.get_dislocation_displacement(
+        return dislocation.get_dislocation_displacement(
             self.get_elastic_tensor(), positions, burgers_vector
         )
 
@@ -470,7 +470,7 @@ class LinearElasticity:
         Returns:
             ((n, 3, 3)-array): Strain field (z-axis coincides with the dislocation line)
         """
-        return eshelby.get_dislocation_strain(
+        return dislocation.get_dislocation_strain(
             self.get_elastic_tensor(), positions, burgers_vector
         )
 
@@ -491,7 +491,7 @@ class LinearElasticity:
         Returns:
             ((n, 3, 3)-array): Stress field (z-axis coincides with the dislocation line)
         """
-        return eshelby.get_dislocation_stress(
+        return dislocation.get_dislocation_stress(
             self.get_elastic_tensor(), positions, burgers_vector
         )
 
@@ -512,7 +512,7 @@ class LinearElasticity:
         Returns:
             ((n,)-array): Energy density field
         """
-        return eshelby.get_dislocation_energy_density(
+        return dislocation.get_dislocation_energy_density(
             self.get_elastic_tensor(), positions, burgers_vector
         )
 
@@ -556,7 +556,7 @@ class LinearElasticity:
         based on the real dislocation density, the choice of :math:`r_min`
         should be done carefully.
         """
-        return eshelby.get_dislocation_energy(
+        return dislocation.get_dislocation_energy(
             self.get_elastic_tensor(), burgers_vector, r_min, r_max, mesh
         )
 
@@ -591,7 +591,7 @@ class LinearElasticity:
 
         Source: https://en.wikipedia.org/wiki/Stacking-fault_energy
         """
-        return eshelby.get_dislocation_force(stress, glide_plane, burgers_vector)
+        return dislocation.get_dislocation_force(stress, glide_plane, burgers_vector)
 
     def get_voigt_average(self):
         """
