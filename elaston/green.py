@@ -440,3 +440,6 @@ def get_greens_function(
         fourier=fourier,
         check_unique=check_unique,
     )
+
+
+get_greens_function.__doc__ += Green.__doc__
