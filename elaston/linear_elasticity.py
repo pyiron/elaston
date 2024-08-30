@@ -60,7 +60,7 @@ With this in mind, we can calculate the dipole tensor of Ni in Al with the follo
 >>> job.structure[0] = 'Ni'
 >>> job.calc_minimize()
 >>> job.run()
->>> dipole_tensor = -job.structure.get_volume()*job['output/generic/pressures'][-1]
+>>> dipole_tensor = -job.structure.get_volume() * job['output/generic/pressures'][-1]
 
 Instead of working with atomistic calculations, the dipole tensor can be calculated by the
 lambda tensor [1], which is defined as:
@@ -96,29 +96,32 @@ class LinearElasticity:
     Examples I: Get bulk modulus from the elastic tensor:
 
     >>> medium = LinearElasticity(elastic_tensor)
-    >>> print(medium.bulk_modulus)
+    >>> parameters = medium.get_elastic_moduli()
+    >>> print(parameters['bulk_modulus'])
 
     Example II: Get strain field around a point defect:
 
     >>> import numpy as np
-    >>> medium = LinearElasticity(elastic_tensor)
-    >>> random_positions = np.random.random((10, 3))-0.5
+    >>> medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)  # Fe
+    >>> random_positions = np.random.random((10, 3)) - 0.5
     >>> dipole_tensor = np.eye(3)
     >>> print(medium.get_point_defect_strain(random_positions, dipole_tensor))
 
     Example III: Get stress field around a dislocation:
 
     >>> import numpy as np
-    >>> medium = LinearElasticity(elastic_tensor)
+    >>> medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)
     >>> random_positions = np.random.random((10, 3))-0.5
-    >>> burgers_vector = np.array([0, 0, 1])
+    >>> # Burgers vector of a screw dislocation in bcc Fe
+    >>> burgers_vector = np.array([0, 0, 2.86 * np.sqrt(3) / 2])
     >>> print(medium.get_dislocation_stress(random_positions, burgers_vector))
 
     Example IV: Estimate the distance between partial dislocations:
 
-    >>> medium = LinearElasticity(elastic_tensor)
-    >>> partial_one = np.array([-0.5, 0, np.sqrt(3)/2])*lattice_constant
-    >>> partial_two = np.array([0.5, 0, np.sqrt(3)/2])*lattice_constant
+    >>> medium = LinearElasticity(C_11=110.5, C_12=64.8, C_44=30.9)  # Al
+    >>> lattice_constant = 4.05
+    >>> partial_one = np.array([-0.5, 0, np.sqrt(3) / 2]) * lattice_constant
+    >>> partial_two = np.array([0.5, 0, np.sqrt(3) / 2]) * lattice_constant
     >>> distance = 100
     >>> stress_one = medium.get_dislocation_stress([0, distance, 0], partial_one)
     >>> print('Choose `distance` in the way that the value below corresponds to SFE')
@@ -564,7 +567,10 @@ class LinearElasticity:
         burgers_vector: np.ndarray,
     ):
         """
-        Force per unit length along the dislocation line.
+        Force per unit length along the dislocation line. This method is
+        useful for estaimting the distance between partial dislocations. At
+        equilibrium, the force acting on the dislocation line corresponds to
+        the stacking fault energy (SFE).
 
         Args:
             stress ((n, 3, 3)-array): External stress field at the dislocation line
@@ -573,15 +579,36 @@ class LinearElasticity:
 
         Returns:
             ((3,)-array): Force per unit length acting on the dislocation.
+
+        Here is a short list of the stacking fault energies of a few materials:
+
+        - Ni: 90 mJ/m^2 = 5.62 meV/Å^2
+        - Ag: 25 mJ/m^2 = 1.56 meV/Å^2
+        - Au: 75 mJ/m^2 = 4.68 meV/Å^2
+        - Cu: 70-78 mJ/m^2 = 4.36-4.87 meV/Å^2
+        - Mg: 125 mJ/m^2 = 7.80 meV/Å^2
+        - Al: 160-250 mJ/m^2 = 10.0-15.6 meV/Å^2
+
+        Source: https://en.wikipedia.org/wiki/Stacking-fault_energy
         """
         return eshelby.get_dislocation_force(stress, glide_plane, burgers_vector)
 
     def get_voigt_average(self):
+        """
+        Voigt average of the elastic tensor. The Voigt average is defined as
+        the arithmetic mean of the elastic tensor. The Voigt average is
+        isotropic and can be used to calculate the elastic moduli of the medium.
+        """
         return LinearElasticity(
             **elastic_constants.get_voigt_average(self.get_elastic_tensor(voigt=True))
         )
 
     def get_reuss_average(self):
+        """
+        Reuss average of the elastic tensor. The Reuss average is obtained from
+        the arithmetic mean of the compliance tensor. The Reuss average is
+        isotropic and can be used to calculate the elastic moduli of the medium.
+        """
         return LinearElasticity(
             **elastic_constants.get_reuss_average(self.get_elastic_tensor(voigt=True))
         )

@@ -1,0 +1,37 @@
+import numpy as np
+import unittest
+from elaston import orientation
+
+
+class TestOrientation(unittest.TestCase):
+    def test_get_dislocation_orientation(self):
+        for t in ["bcc", "fcc"]:
+            orient = orientation.get_dislocation_orientation(
+                dislocation_type="screw", crystal=t
+            )
+            self.assertEqual(orient["dislocation_line"], orient["burgers_vector"])
+            for d in ["screw", "edge"]:
+                orient = orientation.get_dislocation_orientation(
+                    dislocation_type=d, crystal=t
+                )
+                for gp in np.atleast_2d(orient["glide_plane"]):
+                    self.assertAlmostEqual(np.dot(orient["dislocation_line"], gp), 0)
+
+    def test_get_shockley_partials(self):
+        for b in [[1, 1, 0], [1, 0, -1], [0, 1, 1]]:
+            for sign in [1, -1]:
+                b_1, b_2 = orientation.get_shockley_partials(
+                    burgers_vector=sign * np.asarray(b), glide_plane=[1, -1, 1]
+                )
+                self.assertTrue(np.allclose(b_1 + b_2, sign * np.asarray(b)))
+                self.assertAlmostEqual(np.dot(b_1, [1, -1, 1]), 0)
+        self.assertRaises(
+            ValueError, orientation.get_shockley_partials, [1, 1, 0], [1, 1, 1]
+        )
+        self.assertRaises(
+            ValueError, orientation.get_shockley_partials, [1, 1, 1], [1, -1, 0]
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
