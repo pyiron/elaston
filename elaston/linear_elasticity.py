@@ -594,7 +594,7 @@ class LinearElasticity:
         - Cu: 70-78 mJ/m^2 = 4.36-4.87 meV/Å^2
         - Mg: 125 mJ/m^2 = 7.80 meV/Å^2
         - Al: 160-250 mJ/m^2 = 10.0-15.6 meV/Å^2
-        
+
         Source: https://en.wikipedia.org/wiki/Stacking-fault_energy
         """
         g = np.asarray(glide_plane) / np.linalg.norm(glide_plane)
