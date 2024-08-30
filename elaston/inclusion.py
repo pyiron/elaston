@@ -84,7 +84,7 @@ Vol. 1. Elsevier, 2012.
 
 
 def get_greens_function(
-    self,
+    C: np.ndarray,
     positions: np.ndarray,
     derivative: int = 0,
     fourier: bool = False,
@@ -98,7 +98,8 @@ def get_greens_function(
     C_ijkl d^2u_k/dx_jdx_l = 0
 
     Args:
-        positions ((n,3)-array): Positions in real space or reciprocal
+        C ((3, 3, 3, 3)-array): Elastic tensor
+        positions ((n, 3)-array): Positions in real space or reciprocal
             space (if fourier=True).
         derivative (int): 0th, 1st or 2nd derivative of the Green's
             function. Ignored if `fourier=True`.
@@ -111,15 +112,15 @@ def get_greens_function(
         check_unique (bool): Whether to check the unique positions
 
     Returns:
-        ((n,3,3)-array): Green's function values for the given positions
+        ((n, 3, 3)-array): Green's function values for the given positions
     """
-    if self.is_isotropic():
-        param = self.get_elastic_moduli()
+    if elastic_constants.is_isotropic(C):
+        param = elastic_constants.get_elastic_moduli(C)
         C = Isotropic(
             param["poissons_ratio"], param["shear_modulus"], optimize=optimize
         )
     else:
-        C = Anisotropic(self.get_elastic_tensor(), n_mesh=n_mesh, optimize=optimize)
+        C = Anisotropic(C, n_mesh=n_mesh, optimize=optimize)
     return C.get_greens_function(
         r=positions,
         derivative=derivative,
@@ -130,7 +131,7 @@ def get_greens_function(
 get_greens_function.__doc__ += Green.__doc__
 
 def get_point_defect_displacement(
-    self,
+    C: np.ndarray,
     positions: np.ndarray,
     dipole_tensor: np.ndarray,
     n_mesh: int = 100,
@@ -141,6 +142,7 @@ def get_point_defect_displacement(
     Displacement field around a point defect
 
     Args:
+        C ((3,3,3,3)-array): Elastic tensor
         positions ((n,3)-array): Positions in real space or reciprocal
             space (if fourier=True).
         dipole_tensor ((3,3)-array): Dipole tensor
@@ -153,8 +155,9 @@ def get_point_defect_displacement(
     Returns:
         ((n,3)-array): Displacement field
     """
-    g_tmp = self.get_greens_function(
-        positions,
+    g_tmp = get_greens_function(
+        C=C,
+        positions=positions,
         derivative=1,
         fourier=False,
         n_mesh=n_mesh,
@@ -166,7 +169,7 @@ def get_point_defect_displacement(
 get_point_defect_displacement.__doc__ += point_defect_explanation
 
 def get_point_defect_strain(
-    self,
+    C: np.ndarray,
     positions: np.ndarray,
     dipole_tensor: np.ndarray,
     n_mesh: int = 100,
@@ -177,6 +180,7 @@ def get_point_defect_strain(
     Strain field around a point defect using the Green's function method
 
     Args:
+        C ((3,3,3,3)-array): Elastic tensor
         positions ((n,3)-array): Positions in real space or reciprocal
             space (if fourier=True).
         dipole_tensor ((3,3)-array): Dipole tensor
@@ -189,8 +193,9 @@ def get_point_defect_strain(
     Returns:
         ((n,3,3)-array): Strain field
     """
-    g_tmp = self.get_greens_function(
-        positions,
+    g_tmp = get_greens_function(
+        C=C,
+        positions=positions,
         derivative=2,
         fourier=False,
         n_mesh=n_mesh,
@@ -203,7 +208,7 @@ def get_point_defect_strain(
 get_point_defect_strain.__doc__ += point_defect_explanation
 
 def get_point_defect_stress(
-    self,
+    C: np.ndarray,
     positions: np.ndarray,
     dipole_tensor: np.ndarray,
     n_mesh: int = 100,
@@ -213,6 +218,7 @@ def get_point_defect_stress(
     Stress field around a point defect using the Green's function method
 
     Args:
+        C ((3,3,3,3)-array): Elastic tensor
         positions ((n,3)-array): Positions in real space or reciprocal
             space (if fourier=True).
         dipole_tensor ((3,3)-array): Dipole tensor
@@ -224,18 +230,19 @@ def get_point_defect_stress(
     Returns:
         ((n,3,3)-array): Stress field
     """
-    strain = self.get_point_defect_strain(
+    strain = get_point_defect_strain(
+        C=C,
         positions=positions,
         dipole_tensor=dipole_tensor,
         n_mesh=n_mesh,
         optimize=optimize,
     )
-    return np.einsum("ijkl,...kl->...ij", self.get_elastic_tensor(), strain)
+    return np.einsum("ijkl,...kl->...ij", C, strain)
 
 get_point_defect_stress.__doc__ += point_defect_explanation
 
 def get_point_defect_energy_density(
-    self,
+    C: np.ndarray,
     positions: np.ndarray,
     dipole_tensor: np.ndarray,
     n_mesh: int = 100,
@@ -245,6 +252,7 @@ def get_point_defect_energy_density(
     Energy density field around a point defect using the Green's function method
 
     Args:
+        C ((3,3,3,3)-array): Elastic tensor
         positions ((n,3)-array): Positions in real space or reciprocal
             space (if fourier=True).
         dipole_tensor ((3,3)-array): Dipole tensor
@@ -256,15 +264,14 @@ def get_point_defect_energy_density(
     Returns:
         ((n,)-array): Energy density field
     """
-    strain = self.get_point_defect_strain(
+    strain = get_point_defect_strain(
+        C=C,
         positions=positions,
         dipole_tensor=dipole_tensor,
         n_mesh=n_mesh,
         optimize=optimize,
     )
-    return np.einsum(
-        "ijkl,...kl,...ij->...", self.get_elastic_tensor(), strain, strain
-    )
+    return np.einsum("ijkl,...kl,...ij->...", C, strain, strain)
 
 get_point_defect_energy_density.__doc__ += point_defect_explanation
 

@@ -188,12 +188,29 @@ def is_cubic(C):
     Returns:
         bool: True if the material is cubic
     """
+    if np.shape(C) == (3, 3, 3, 3):
+        C = tools.C_to_voigt(C)
     return all(
         [
             np.isclose(np.ptp(C[ind]), 0)
             for ind in [get_C_11_indices(), get_C_12_indices(), get_C_44_indices()]
         ]
     )
+
+
+def is_isotropic(C):
+    """
+    Check if the material is isotropic
+
+    Args:
+        C (np.ndarray): Elastic constants in Voigt notation
+
+    Returns:
+        bool: True if the material is isotropic
+    """
+    if np.shape(C) == (3, 3, 3, 3):
+        C = tools.C_to_voigt(C)
+    return is_cubic(C) and np.isclose(get_zener_ratio(C), 1)
 
 
 def get_zener_ratio(C):
@@ -225,6 +242,8 @@ def get_unique_elastic_constants(C):
 
 
 def get_elastic_moduli(C):
+    if np.shape(C) == (3, 3, 3, 3):
+        C = tools.C_to_voigt(C)
     C_11 = np.mean(C[get_C_11_indices()])
     C_12 = np.mean(C[get_C_12_indices()])
     C_44 = np.mean(C[get_C_44_indices()])
