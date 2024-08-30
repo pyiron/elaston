@@ -121,9 +121,6 @@ def get_point_defect_displacement(
     return -np.einsum("...ijk,...jk->...i", g_tmp, P)
 
 
-get_point_defect_displacement.__doc__ += point_defect_explanation
-
-
 @units(outputs=lambda C, x, P: P.u / C.u / x.u**3)
 def get_point_defect_strain(
     C: np.ndarray,
@@ -163,9 +160,6 @@ def get_point_defect_strain(
     return 0.5 * (v + np.einsum("...ij->...ji", v))
 
 
-get_point_defect_strain.__doc__ += point_defect_explanation
-
-
 @units(outputs=lambda x, P: P.u / x.u**3)
 def get_point_defect_stress(
     C: np.ndarray,
@@ -200,9 +194,6 @@ def get_point_defect_stress(
     return np.einsum("ijkl,...kl->...ij", C, strain)
 
 
-get_point_defect_stress.__doc__ += point_defect_explanation
-
-
 @units(outputs=lambda C, x, P: P.u**2 / C.u / x.u**6)
 def get_point_defect_energy_density(
     C: np.ndarray,
@@ -235,6 +226,3 @@ def get_point_defect_energy_density(
         optimize=optimize,
     )
     return np.einsum("ijkl,...kl,...ij->...", C, strain, strain)
-
-
-get_point_defect_energy_density.__doc__ += point_defect_explanation
