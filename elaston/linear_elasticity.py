@@ -4,7 +4,7 @@
 
 import numpy as np
 from elaston.green import Anisotropic, Isotropic, Green
-from elaston.eshelby import Eshelby
+from elaston import eshelby
 from elaston import tools
 from elaston import elastic_constants
 
@@ -449,8 +449,9 @@ class LinearElasticity:
             ((n, 3)-array): Displacement field (z-axis coincides with the
                 dislocation line)
         """
-        eshelby = Eshelby(self.get_elastic_tensor(), burgers_vector)
-        return eshelby.get_displacement(positions)
+        return eshelby.get_dislocation_displacement(
+            self.get_elastic_tensor(), positions, burgers_vector
+        )
 
     def get_dislocation_strain(
         self,
@@ -469,8 +470,9 @@ class LinearElasticity:
         Returns:
             ((n, 3, 3)-array): Strain field (z-axis coincides with the dislocation line)
         """
-        eshelby = Eshelby(self.get_elastic_tensor(), burgers_vector)
-        return eshelby.get_strain(positions)
+        return eshelby.get_dislocation_strain(
+            self.get_elastic_tensor(), positions, burgers_vector
+        )
 
     def get_dislocation_stress(
         self,
@@ -489,8 +491,9 @@ class LinearElasticity:
         Returns:
             ((n, 3, 3)-array): Stress field (z-axis coincides with the dislocation line)
         """
-        strain = self.get_dislocation_strain(positions, burgers_vector=burgers_vector)
-        return np.einsum("ijkl,...kl->...ij", self.get_elastic_tensor(), strain)
+        return eshelby.get_dislocation_stress(
+            self.get_elastic_tensor(), positions, burgers_vector
+        )
 
     def get_dislocation_energy_density(
         self,
@@ -509,9 +512,8 @@ class LinearElasticity:
         Returns:
             ((n,)-array): Energy density field
         """
-        strain = self.get_dislocation_strain(positions, burgers_vector)
-        return np.einsum(
-            "ijkl,...kl,...ij->...", self.get_elastic_tensor(), strain, strain
+        return eshelby.get_dislocation_energy_density(
+            self.get_elastic_tensor(), positions, burgers_vector
         )
 
     def get_dislocation_energy(
@@ -554,16 +556,8 @@ class LinearElasticity:
         based on the real dislocation density, the choice of :math:`r_min`
         should be done carefully.
         """
-        if r_min <= 0:
-            raise ValueError("r_min must be a positive float")
-        theta_range = np.linspace(0, 2 * np.pi, 100, endpoint=False)
-        r = np.stack((np.cos(theta_range), np.sin(theta_range)), axis=-1) * r_min
-        strain = self.get_dislocation_strain(r, burgers_vector=burgers_vector)
-        return (
-            np.einsum("ijkl,nkl,nij->", self.get_elastic_tensor(), strain, strain)
-            / np.diff(theta_range)[0]
-            * r_min**2
-            * np.log(r_max / r_min)
+        return eshelby.get_dislocation_energy(
+            self.get_elastic_tensor(), burgers_vector, r_min, r_max, mesh
         )
 
     @staticmethod
@@ -597,10 +591,7 @@ class LinearElasticity:
 
         Source: https://en.wikipedia.org/wiki/Stacking-fault_energy
         """
-        g = np.asarray(glide_plane) / np.linalg.norm(glide_plane)
-        return np.einsum(
-            "i,...ij,j,k->...k", g, stress, burgers_vector, np.cross(g, [0, 0, 1])
-        )
+        return eshelby.get_dislocation_force(stress, glide_plane, burgers_vector)
 
     def get_voigt_average(self):
         """
