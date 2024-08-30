@@ -1,6 +1,6 @@
 import numpy as np
 import unittest
-from elaston.eshelby import Eshelby
+from elaston.dislocation import Dislocation
 from elaston import tools
 
 
@@ -12,10 +12,10 @@ def create_random_HL(b=None):
     C = tools.C_from_voigt(C)
     if b is None:
         b = np.random.random(3)
-    return Eshelby(C, b)
+    return Dislocation(C, b)
 
 
-class TestEschelby(unittest.TestCase):
+class TestDislocation(unittest.TestCase):
     def test_p(self):
         hl = create_random_HL()
         self.assertLess(
