@@ -3,7 +3,6 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 import numpy as np
-from elaston.green import get_greens_function as get_greens
 from elaston import dislocation
 from elaston import tools
 from elaston import elastic_constants
@@ -184,48 +183,6 @@ class LinearElasticity:
         return elastic_constants.get_elastic_moduli(
             self.get_elastic_tensor(voigt=True, rotate=False)
         )
-
-    def get_greens_function(
-        self,
-        positions: np.ndarray,
-        derivative: int = 0,
-        fourier: bool = False,
-        n_mesh: int = 100,
-        optimize: bool = True,
-        check_unique: bool = False,
-    ):
-        """
-        Green's function of the equilibrium condition:
-
-        C_ijkl d^2u_k/dx_jdx_l = 0
-
-        Args:
-            positions ((n,3)-array): Positions in real space or reciprocal
-                space (if fourier=True).
-            derivative (int): 0th, 1st or 2nd derivative of the Green's
-                function. Ignored if `fourier=True`.
-            fourier (bool): If `True`,  the Green's function of the reciprocal
-                space is returned.
-            n_mesh (int): Number of mesh points in the radial integration in
-                case if anisotropic Green's function (ignored if isotropic=True
-                or fourier=True)
-            optimize (bool): cf. `optimize` in `numpy.einsum`
-            check_unique (bool): Whether to check the unique positions
-
-        Returns:
-            ((n,3,3)-array): Green's function values for the given positions
-        """
-        return get_greens(
-            C=self.get_elastic_tensor(),
-            positions=positions,
-            derivative=derivative,
-            fourier=fourier,
-            n_mesh=n_mesh,
-            optimize=optimize,
-            check_unique=check_unique,
-        )
-
-    get_greens_function.__doc__ += get_greens.__doc__
 
     def get_point_defect_displacement(
         self,
