@@ -147,9 +147,29 @@ class TestElasticity(unittest.TestCase):
     def test_elastic_tensor_input(self):
         C = create_random_C()
         medium = LinearElasticity(
-            C_11=C[0, 0, 0, 0], C_12=C[0, 0, 1, 1], C_44=C[0, 1, 0, 1]
+            C_11=C[0, 0, 0, 0],
+            C_12=C[0, 0, 1, 1],
+            C_44=C[0, 1, 0, 1],
+            orientation=[[1, 1, 1], [1, 0, -1]],
         )
-        self.assertTrue(np.allclose(C, medium.get_elastic_tensor()))
+        self.assertEqual(
+            medium.get_elastic_tensor(voigt=False, rotate=True).shape, (3, 3, 3, 3)
+        )
+        self.assertEqual(
+            medium.get_elastic_tensor(voigt=True, rotate=True).shape, (6, 6)
+        )
+        self.assertEqual(
+            medium.get_elastic_tensor(voigt=False, rotate=False).shape, (3, 3, 3, 3)
+        )
+        self.assertEqual(
+            medium.get_elastic_tensor(voigt=True, rotate=False).shape, (6, 6)
+        )
+        self.assertTrue(
+            np.allclose(C, medium.get_elastic_tensor(voigt=False, rotate=False))
+        )
+        self.assertFalse(
+            np.allclose(C, medium.get_elastic_tensor(voigt=False, rotate=True))
+        )
         self.assertRaises(ValueError, LinearElasticity, np.random.random((3, 3)))
 
     def test_point_defect(self):
