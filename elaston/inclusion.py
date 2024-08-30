@@ -4,6 +4,7 @@
 
 import numpy as np
 from elaston.green import get_greens_function
+from elaston.units import units
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -82,10 +83,11 @@ Vol. 1. Elsevier, 2012.
 """
 
 
+@units(outputs=lambda C, x, P: P.u / C.u / x.u**2)
 def get_point_defect_displacement(
     C: np.ndarray,
-    positions: np.ndarray,
-    dipole_tensor: np.ndarray,
+    x: np.ndarray,
+    P: np.ndarray,
     n_mesh: int = 100,
     optimize: bool = True,
     check_unique: bool = False,
@@ -95,9 +97,9 @@ def get_point_defect_displacement(
 
     Args:
         C ((3,3,3,3)-array): Elastic tensor
-        positions ((n,3)-array): Positions in real space or reciprocal
+        x ((n,3)-array): Positions in real space or reciprocal
             space (if fourier=True).
-        dipole_tensor ((3,3)-array): Dipole tensor
+        P ((3,3)-array): Dipole tensor
         n_mesh (int): Number of mesh points in the radial integration in
             case if anisotropic Green's function (ignored if isotropic=True
             or fourier=True)
@@ -109,23 +111,24 @@ def get_point_defect_displacement(
     """
     g_tmp = get_greens_function(
         C=C,
-        positions=positions,
+        x=x,
         derivative=1,
         fourier=False,
         n_mesh=n_mesh,
         optimize=optimize,
         check_unique=check_unique,
     )
-    return -np.einsum("...ijk,...jk->...i", g_tmp, dipole_tensor)
+    return -np.einsum("...ijk,...jk->...i", g_tmp, P)
 
 
 get_point_defect_displacement.__doc__ += point_defect_explanation
 
 
+@units(outputs=lambda C, x, P: P.u / C.u / x.u**3)
 def get_point_defect_strain(
     C: np.ndarray,
-    positions: np.ndarray,
-    dipole_tensor: np.ndarray,
+    x: np.ndarray,
+    P: np.ndarray,
     n_mesh: int = 100,
     optimize: bool = True,
     check_unique: bool = False,
@@ -135,9 +138,9 @@ def get_point_defect_strain(
 
     Args:
         C ((3,3,3,3)-array): Elastic tensor
-        positions ((n,3)-array): Positions in real space or reciprocal
+        x ((n,3)-array): Positions in real space or reciprocal
             space (if fourier=True).
-        dipole_tensor ((3,3)-array): Dipole tensor
+        P ((3,3)-array): Dipole tensor
         n_mesh (int): Number of mesh points in the radial integration in
             case if anisotropic Green's function (ignored if isotropic=True
             or fourier=True)
@@ -149,24 +152,25 @@ def get_point_defect_strain(
     """
     g_tmp = get_greens_function(
         C=C,
-        positions=positions,
+        x=x,
         derivative=2,
         fourier=False,
         n_mesh=n_mesh,
         optimize=optimize,
         check_unique=check_unique,
     )
-    v = -np.einsum("...ijkl,...kl->...ij", g_tmp, dipole_tensor)
+    v = -np.einsum("...ijkl,...kl->...ij", g_tmp, P)
     return 0.5 * (v + np.einsum("...ij->...ji", v))
 
 
 get_point_defect_strain.__doc__ += point_defect_explanation
 
 
+@units(outputs=lambda x, P: P.u / x.u**3)
 def get_point_defect_stress(
     C: np.ndarray,
-    positions: np.ndarray,
-    dipole_tensor: np.ndarray,
+    x: np.ndarray,
+    P: np.ndarray,
     n_mesh: int = 100,
     optimize: bool = True,
 ):
@@ -175,9 +179,9 @@ def get_point_defect_stress(
 
     Args:
         C ((3,3,3,3)-array): Elastic tensor
-        positions ((n,3)-array): Positions in real space or reciprocal
+        x ((n,3)-array): Positions in real space or reciprocal
             space (if fourier=True).
-        dipole_tensor ((3,3)-array): Dipole tensor
+        P ((3,3)-array): Dipole tensor
         n_mesh (int): Number of mesh points in the radial integration in
             case if anisotropic Green's function (ignored if isotropic=True
             or fourier=True)
@@ -188,8 +192,8 @@ def get_point_defect_stress(
     """
     strain = get_point_defect_strain(
         C=C,
-        positions=positions,
-        dipole_tensor=dipole_tensor,
+        x=x,
+        P=P,
         n_mesh=n_mesh,
         optimize=optimize,
     )
@@ -199,10 +203,11 @@ def get_point_defect_stress(
 get_point_defect_stress.__doc__ += point_defect_explanation
 
 
+@units(outputs=lambda C, x, P: P.u**2 / C.u / x.u**6)
 def get_point_defect_energy_density(
     C: np.ndarray,
-    positions: np.ndarray,
-    dipole_tensor: np.ndarray,
+    x: np.ndarray,
+    P: np.ndarray,
     n_mesh: int = 100,
     optimize: bool = True,
 ):
@@ -211,9 +216,9 @@ def get_point_defect_energy_density(
 
     Args:
         C ((3,3,3,3)-array): Elastic tensor
-        positions ((n,3)-array): Positions in real space or reciprocal
+        x ((n,3)-array): Positions in real space or reciprocal
             space (if fourier=True).
-        dipole_tensor ((3,3)-array): Dipole tensor
+        P ((3,3)-array): Dipole tensor
         n_mesh (int): Number of mesh points in the radial integration in
             case if anisotropic Green's function (ignored if isotropic=True
             or fourier=True)
@@ -224,8 +229,8 @@ def get_point_defect_energy_density(
     """
     strain = get_point_defect_strain(
         C=C,
-        positions=positions,
-        dipole_tensor=dipole_tensor,
+        x=x,
+        P=P,
         n_mesh=n_mesh,
         optimize=optimize,
     )

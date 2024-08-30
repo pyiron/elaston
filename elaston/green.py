@@ -398,7 +398,7 @@ Isotropic.__doc__ = Green.__doc__ + Isotropic.__doc__
 
 def get_greens_function(
     C: np.ndarray,
-    positions: np.ndarray,
+    x: np.ndarray,
     derivative: int = 0,
     fourier: bool = False,
     n_mesh: int = 100,
@@ -412,7 +412,7 @@ def get_greens_function(
 
     Args:
         C ((3, 3, 3, 3)-array): Elastic tensor
-        positions ((n, 3)-array): Positions in real space or reciprocal
+        x ((n, 3)-array): Positions in real space or reciprocal
             space (if fourier=True).
         derivative (int): 0th, 1st or 2nd derivative of the Green's
             function. Ignored if `fourier=True`.
@@ -435,7 +435,7 @@ def get_greens_function(
     else:
         C = Anisotropic(C, n_mesh=n_mesh, optimize=optimize)
     return C.get_greens_function(
-        r=positions,
+        r=x,
         derivative=derivative,
         fourier=fourier,
         check_unique=check_unique,
