@@ -7,6 +7,7 @@ from elaston.green import Anisotropic, Isotropic, Green
 from elaston import dislocation
 from elaston import tools
 from elaston import elastic_constants
+from elaston import inclusion
 
 __author__ = "Sam Waseda"
 __copyright__ = (

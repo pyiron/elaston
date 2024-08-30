@@ -3,10 +3,7 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 import numpy as np
-from elaston.green import Anisotropic, Isotropic, Green
-from elaston import dislocation
-from elaston import tools
-from elaston import elastic_constants
+from elaston.green import get_greens_function
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -26,31 +23,33 @@ According to the definition of the Green's function (cf. docstring of `get_green
 .. math:
     u_i(r) = \\sum_a G_{ij}(r-a)f_j(a)
 
-where :math:`u_i(r)` is the displacement field of component :math:`i` at position :math:`r` and
-:math:`f_j(a)` is the force component :math:`j` of the atom at position :math:`a`. By taking the
-polynomial development we obtain:
+where :math:`u_i(r)` is the displacement field of component :math:`i` at
+position :math:`r` and :math:`f_j(a)` is the force component :math:`j` of the
+atom at position :math:`a`. By taking the polynomial development we obtain:
 
 .. math:
     u_i(r) \\approx G_{ij}(r)\\sum_a f_j(a)-\\frac{\\partial G_{ij}}{\\partial r_k}(r)\\sum_a a_k f_j(a)
 
-The first term disappears because the sum of the forces is zero. From the second term we define
-the dipole tensor :math:`P_{jk} = a_k f_j(a)`. Following the definition above, we can obtain the
-displacement field, strain field, stress field and energy density field if the dipole tensor and
-the elastic tensor are known.
+The first term disappears because the sum of the forces is zero. From the
+second term we define the dipole tensor :math:`P_{jk} = a_k f_j(a)`. Following
+the definition above, we can obtain the displacement field, strain field,
+stress field and energy density field if the dipole tensor and the elastic
+tensor are known.
 
 The dipole tensor of a point defect is commonly obtained from the following equation:
 
 .. math:
     U = \\frac{V}{2} \\varepsilon_{ij}C_{ijkl}\\varepsilon_{kl}-P_{kl}\\varepsilon_{kl}
 
-where :math:`U` is the potential energy, :math:`V` is the volume and :math:`\\varepsilon` is the
-strain field. At equilibrium, the derivative of the potential energy with respect to the strain
-disappears:
+where :math:`U` is the potential energy, :math:`V` is the volume and
+:math:`\\varepsilon` is the strain field. At equilibrium, the derivative of
+the potential energy with respect to the strain disappears:
 
 .. math:
     P_{ij} = VC_{ijkl}\\varepsilon_{kl} = V\\sigma_{ij}
 
-With this in mind, we can calculate the dipole tensor of Ni in Al with the following lines:
+With this in mind, we can calculate the dipole tensor of Ni in Al with the
+following lines:
 
 >>> from pyiron_atomistics import Project
 >>> pr = Project('dipole_tensor')
@@ -62,8 +61,8 @@ With this in mind, we can calculate the dipole tensor of Ni in Al with the follo
 >>> job.run()
 >>> dipole_tensor = -job.structure.get_volume() * job['output/generic/pressures'][-1]
 
-Instead of working with atomistic calculations, the dipole tensor can be calculated by the
-lambda tensor [1], which is defined as:
+Instead of working with atomistic calculations, the dipole tensor can be
+calculated by the lambda tensor [1], which is defined as:
 
 .. math:
     \\lambda_{ij} = \\frac{1]{V} \\frac{\\partial \\varepsilon_{ij}}{\\partial c}
@@ -82,53 +81,6 @@ Anelastic relaxation in crystalline solids.
 Vol. 1. Elsevier, 2012.
 """
 
-
-def get_greens_function(
-    C: np.ndarray,
-    positions: np.ndarray,
-    derivative: int = 0,
-    fourier: bool = False,
-    n_mesh: int = 100,
-    optimize: bool = True,
-    check_unique: bool = False,
-):
-    """
-    Green's function of the equilibrium condition:
-
-    C_ijkl d^2u_k/dx_jdx_l = 0
-
-    Args:
-        C ((3, 3, 3, 3)-array): Elastic tensor
-        positions ((n, 3)-array): Positions in real space or reciprocal
-            space (if fourier=True).
-        derivative (int): 0th, 1st or 2nd derivative of the Green's
-            function. Ignored if `fourier=True`.
-        fourier (bool): If `True`,  the Green's function of the reciprocal
-            space is returned.
-        n_mesh (int): Number of mesh points in the radial integration in
-            case if anisotropic Green's function (ignored if isotropic=True
-            or fourier=True)
-        optimize (bool): cf. `optimize` in `numpy.einsum`
-        check_unique (bool): Whether to check the unique positions
-
-    Returns:
-        ((n, 3, 3)-array): Green's function values for the given positions
-    """
-    if elastic_constants.is_isotropic(C):
-        param = elastic_constants.get_elastic_moduli(C)
-        C = Isotropic(
-            param["poissons_ratio"], param["shear_modulus"], optimize=optimize
-        )
-    else:
-        C = Anisotropic(C, n_mesh=n_mesh, optimize=optimize)
-    return C.get_greens_function(
-        r=positions,
-        derivative=derivative,
-        fourier=fourier,
-        check_unique=check_unique,
-    )
-
-get_greens_function.__doc__ += Green.__doc__
 
 def get_point_defect_displacement(
     C: np.ndarray,
@@ -166,7 +118,9 @@ def get_point_defect_displacement(
     )
     return -np.einsum("...ijk,...jk->...i", g_tmp, dipole_tensor)
 
+
 get_point_defect_displacement.__doc__ += point_defect_explanation
+
 
 def get_point_defect_strain(
     C: np.ndarray,
@@ -205,7 +159,9 @@ def get_point_defect_strain(
     v = -np.einsum("...ijkl,...kl->...ij", g_tmp, dipole_tensor)
     return 0.5 * (v + np.einsum("...ij->...ji", v))
 
+
 get_point_defect_strain.__doc__ += point_defect_explanation
+
 
 def get_point_defect_stress(
     C: np.ndarray,
@@ -239,7 +195,9 @@ def get_point_defect_stress(
     )
     return np.einsum("ijkl,...kl->...ij", C, strain)
 
+
 get_point_defect_stress.__doc__ += point_defect_explanation
+
 
 def get_point_defect_energy_density(
     C: np.ndarray,
@@ -273,5 +231,5 @@ def get_point_defect_energy_density(
     )
     return np.einsum("ijkl,...kl,...ij->...", C, strain, strain)
 
-get_point_defect_energy_density.__doc__ += point_defect_explanation
 
+get_point_defect_energy_density.__doc__ += point_defect_explanation

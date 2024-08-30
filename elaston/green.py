@@ -6,7 +6,7 @@ import numpy as np
 from functools import cached_property
 from abc import ABC, abstractmethod
 
-from elaston import tools
+from elaston import tools, elastic_constants
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -394,3 +394,49 @@ class Anisotropic(Green):
 
 Anisotropic.__doc__ = Green.__doc__ + Anisotropic.__doc__
 Isotropic.__doc__ = Green.__doc__ + Isotropic.__doc__
+
+
+def get_greens_function(
+    C: np.ndarray,
+    positions: np.ndarray,
+    derivative: int = 0,
+    fourier: bool = False,
+    n_mesh: int = 100,
+    optimize: bool = True,
+    check_unique: bool = False,
+):
+    """
+    Green's function of the equilibrium condition:
+
+    C_ijkl d^2u_k/dx_jdx_l = 0
+
+    Args:
+        C ((3, 3, 3, 3)-array): Elastic tensor
+        positions ((n, 3)-array): Positions in real space or reciprocal
+            space (if fourier=True).
+        derivative (int): 0th, 1st or 2nd derivative of the Green's
+            function. Ignored if `fourier=True`.
+        fourier (bool): If `True`,  the Green's function of the reciprocal
+            space is returned.
+        n_mesh (int): Number of mesh points in the radial integration in
+            case if anisotropic Green's function (ignored if isotropic=True
+            or fourier=True)
+        optimize (bool): cf. `optimize` in `numpy.einsum`
+        check_unique (bool): Whether to check the unique positions
+
+    Returns:
+        ((n, 3, 3)-array): Green's function values for the given positions
+    """
+    if elastic_constants.is_isotropic(C):
+        param = elastic_constants.get_elastic_moduli(C)
+        C = Isotropic(
+            param["poissons_ratio"], param["shear_modulus"], optimize=optimize
+        )
+    else:
+        C = Anisotropic(C, n_mesh=n_mesh, optimize=optimize)
+    return C.get_greens_function(
+        r=positions,
+        derivative=derivative,
+        fourier=fourier,
+        check_unique=check_unique,
+    )
