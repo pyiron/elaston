@@ -31,7 +31,8 @@ Examples I: Get bulk modulus from the elastic tensor:
 from elaston import LinearElasticity
 
 medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)  # Fe
-parameters = medium.get_elastic_moduli()
+medium_voigt = medium.get_voigt_average()
+parameters = medium_voigt.get_elastic_moduli()
 print(parameters['bulk_modulus'])
 ```
 

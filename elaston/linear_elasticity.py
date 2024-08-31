@@ -30,10 +30,11 @@ class LinearElasticity:
     where :math:\\sigma_{ij} is the ij-component of stress and
     :math:\\epsilon_{kl} is the kl-component of strain.
 
-    Examples I: Get bulk modulus from the elastic tensor:
+    Examples I: Get bulk modulus from the elastic tensor from the voigt average:
 
-    >>> medium = LinearElasticity(elastic_tensor)
-    >>> parameters = medium.get_elastic_moduli()
+    >>> medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)
+    >>> medium_voigt = medium.get_voigt_average()
+    >>> parameters = medium_voigt.get_elastic_moduli()
     >>> print(parameters['bulk_modulus'])
 
     Example II: Get strain field around a point defect:
@@ -84,20 +85,31 @@ class LinearElasticity:
     ):
         """
         Args:
-            elastic_tensor ((3,3,3,3)-, (6,6)- or (3,)-array): Elastic tensor
-                (in C_ijkl notation, Voigt notation or a 3-component array
-                containing [C_11, C_12, C_44]).
-            orientation ((3,3)-array): Rotation matrix that defines the
-                orientation of the system.
+            C_tensor ((6, 6)-array, (3, 3, 3, 3)-array): Elastic tensor in
+                Voigt notation or full matrix
+            C_11 (float): Elastic constant
+            C_12 (float): Elastic constant
+            C_13 (float): Elastic constant
+            C_22 (float): Elastic constant
+            C_33 (float): Elastic constant
+            C_44 (float): Elastic constant
+            C_55 (float): Elastic constant
+            C_66 (float): Elastic constant
+            youngs_modulus (float): Young's modulus
+            poissons_ratio (float): Poisson's ratio
+            shear_modulus (float): Shear modulus
+            orientation ((3,3)-array): Rotation matrix that defines the orientation
+                of the system. If set, the elastic tensor will be rotated accordingly.
 
-        Here is a list of elastic constants of a few materials:
+        Here is a list of elastic constants of a few materials for
+        :math:`C_{11}`, :math:`C_{12}`, and :math:`C_{44}` in GPa:
 
-        - Al: [110.5, 64.8, 30.9]
-        - Cu: [170.0, 121.0, 75.0]
-        - Fe: [211.0, 130.0, 82.0]
-        - Mo: [442.0, 142.0, 162.0]
-        - Ni: [248.0, 140.0, 76.0]
-        - W: [630.0, 161.0, 160.0]
+        - Al: 110.5, 64.8, 30.9
+        - Cu: 170.0, 121.0, 75.0
+        - Fe: 211.0, 130.0, 82.0
+        - Mo: 262.0, 135.0, 120.0
+        - Ni: 243.0, 160.0, 140.0
+        - W: 411.0, 248.0, 160.0
         """
         self._orientation = None
         self._elastic_tensor = tools.C_from_voigt(
