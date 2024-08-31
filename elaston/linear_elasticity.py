@@ -30,10 +30,11 @@ class LinearElasticity:
     where :math:\\sigma_{ij} is the ij-component of stress and
     :math:\\epsilon_{kl} is the kl-component of strain.
 
-    Examples I: Get bulk modulus from the elastic tensor:
+    Examples I: Get bulk modulus from the elastic tensor from the voigt average:
 
-    >>> medium = LinearElasticity(elastic_tensor)
-    >>> parameters = medium.get_elastic_moduli()
+    >>> medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)
+    >>> medium_voigt = medium.get_voigt_average()
+    >>> parameters = medium_voigt.get_elastic_moduli()
     >>> print(parameters['bulk_modulus'])
 
     Example II: Get strain field around a point defect:
