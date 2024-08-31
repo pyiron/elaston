@@ -66,6 +66,23 @@ def get_elastic_tensor_from_tensor(
     C_55: Optional[float] = None,
     C_66: Optional[float] = None,
 ):
+    """
+    Get the elastic tensor from the elastic constants
+
+    Args:
+        C_tensor (np.ndarray): Elastic tensor in Voigt notation or full tensor
+        C_11 (float): Elastic constant
+        C_12 (float): Elastic constant
+        C_13 (float): Elastic constant
+        C_22 (float): Elastic constant
+        C_33 (float): Elastic constant
+        C_44 (float): Elastic constant
+        C_55 (float): Elastic constant
+        C_66 (float): Elastic constant
+
+    Returns:
+        np.ndarray: Elastic tensor in Voigt notation
+    """
     if C_tensor is not None:
         if np.shape(C_tensor) == (6, 6):
             return np.asarray(C_tensor)
@@ -274,7 +291,8 @@ def initialize_elastic_tensor(
     Initialize the elastic tensor
 
     Args:
-        C_tensor (np.ndarray): Elastic tensor
+        C_tensor (np.ndarray): Elastic tensor in Voigt notation or full
+            tensor
         C_11 (float): Elastic constant
         C_12 (float): Elastic constant
         C_13 (float): Elastic constant
@@ -289,6 +307,13 @@ def initialize_elastic_tensor(
 
     Returns:
         np.ndarray: Elastic tensor in Voigt notation
+
+    You can define either the full elastic tensor via C_tensor, some
+    components of the elastic tensor or the elastic moduli. If you
+    define the elastic moduli, the elastic tensor will be calculated
+    from them. When two components of the elastic tensor are given, the
+    resulting tensor will be isotropic. If at least three components are
+    given, there must be at least C_11, C_12, and C_44.
     """
     is_tensor = check_is_tensor(
         C_tensor=C_tensor,
