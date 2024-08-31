@@ -210,8 +210,8 @@ class LinearElasticity:
         """
         return inclusion.get_point_defect_displacement(
             C=self.get_elastic_tensor(),
-            positions=positions,
-            dipole_tensor=dipole_tensor,
+            x=positions,
+            P=dipole_tensor,
             n_mesh=n_mesh,
             optimize=optimize,
             check_unique=check_unique,
@@ -245,8 +245,8 @@ class LinearElasticity:
         """
         return inclusion.get_point_defect_strain(
             C=self.get_elastic_tensor(),
-            positions=positions,
-            dipole_tensor=dipole_tensor,
+            x=positions,
+            P=dipole_tensor,
             n_mesh=n_mesh,
             optimize=optimize,
             check_unique=check_unique,
@@ -278,8 +278,8 @@ class LinearElasticity:
         """
         return inclusion.get_point_defect_stress(
             C=self.get_elastic_tensor(),
-            positions=positions,
-            dipole_tensor=dipole_tensor,
+            x=positions,
+            P=dipole_tensor,
             n_mesh=n_mesh,
             optimize=optimize,
         )
@@ -310,8 +310,8 @@ class LinearElasticity:
         """
         return inclusion.get_point_defect_energy_density(
             C=self.get_elastic_tensor(),
-            positions=positions,
-            dipole_tensor=dipole_tensor,
+            x=positions,
+            P=dipole_tensor,
             n_mesh=n_mesh,
             optimize=optimize,
         )
