@@ -135,11 +135,13 @@ def units(outputs=None, inputs=None):
             ureg = _get_ureg(args, kwargs)
             if ureg is None:
                 return func(*args, **kwargs)
-            # This step unifies args and kwargs
-            kwargs.update(zip(inspect.getfullargspec(func).args, args))
+            signature = inspect.signature(func)
+            bound_args = signature.bind_partial(*args, **kwargs)
+            bound_args.apply_defaults()  # Fill in the default values
+            bound_args = dict(bound_args.arguments)
             if outputs is not None:
-                output_units = _get_output_units(outputs, kwargs, ureg)
-            result = func(**_pint_to_value(kwargs, inputs))
+                output_units = _get_output_units(outputs, bound_args, ureg)
+            result = func(**_pint_to_value(bound_args, inputs))
             if outputs is not None and output_units is not None:
                 if isinstance(output_units, Unit):
                     return result * output_units
