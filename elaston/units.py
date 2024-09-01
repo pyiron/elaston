@@ -3,7 +3,7 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 from pint import Quantity, Unit
-from inspect import getfullargspec
+import inspect
 import warnings
 
 __author__ = "Sam Waseda"
@@ -136,7 +136,7 @@ def units(outputs=None, inputs=None):
             if ureg is None:
                 return func(*args, **kwargs)
             # This step unifies args and kwargs
-            kwargs.update(zip(getfullargspec(func).args, args))
+            kwargs.update(zip(inspect.getfullargspec(func).args, args))
             if outputs is not None:
                 output_units = _get_output_units(outputs, kwargs, ureg)
             result = func(**_pint_to_value(kwargs, inputs))
