@@ -150,3 +150,10 @@ def units(outputs=None, inputs=None):
         return wrapper
 
     return decorator
+
+
+def optional_units(*args):
+    for arg in args:
+        if isinstance(arg, Quantity):
+            return arg.u
+    return 1
