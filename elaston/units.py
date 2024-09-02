@@ -5,6 +5,7 @@
 from pint import Quantity, Unit
 import inspect
 import warnings
+from functools import wraps
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -156,6 +157,7 @@ def units(outputs=None, inputs=None):
     _check_inputs_and_outputs(inputs, outputs)
 
     def decorator(func):
+        @wraps(func)
         def wrapper(*args, **kwargs):
             ureg = _get_ureg(args, kwargs)
             if ureg is None:
