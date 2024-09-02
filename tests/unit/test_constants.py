@@ -1,5 +1,5 @@
 import unittest
-from elaston.elastic_constants import ElasticConstants
+from elaston import elastic_constants as ec
 import numpy as np
 
 data = {
@@ -30,91 +30,104 @@ class TestConstants(unittest.TestCase):
     def test_consistency(self):
         E = 211
         nu = 0.29
-        G = E / (2 * (1 + nu))
-        ec = ElasticConstants(youngs_modulus=E, poissons_ratio=nu)
+        mu = E / (2 * (1 + nu))
         self.assertTrue(
             np.allclose(
-                ec.elastic_tensor,
-                ElasticConstants(youngs_modulus=E, shear_modulus=G).elastic_tensor,
+                ec.get_elastic_tensor_from_moduli(E=E, nu=nu),
+                ec.get_elastic_tensor_from_moduli(E=E, mu=mu),
             )
         )
         self.assertTrue(
             np.allclose(
-                ec.elastic_tensor,
-                ElasticConstants(poissons_ratio=nu, shear_modulus=G).elastic_tensor,
+                ec.get_elastic_tensor_from_moduli(E=E, nu=nu),
+                ec.get_elastic_tensor_from_moduli(nu=nu, mu=mu),
             )
         )
         C_11 = 211.0
         C_12 = 145.0
         C_44 = (C_11 - C_12) / 2
-        ec = ElasticConstants(C_11=C_11, C_12=C_12)
         self.assertTrue(
             np.allclose(
-                ec.elastic_tensor, ElasticConstants(C_11=C_11, C_44=C_44).elastic_tensor
+                ec.get_elastic_tensor_from_tensor(C_11=C_11, C_12=C_12),
+                ec.get_elastic_tensor_from_tensor(C_11=C_11, C_44=C_44)
             )
         )
         self.assertTrue(
             np.allclose(
-                ec.elastic_tensor, ElasticConstants(C_12=C_12, C_44=C_44).elastic_tensor
+                ec.get_elastic_tensor_from_tensor(C_11=C_11, C_12=C_12),
+                ec.get_elastic_tensor_from_tensor(C_12=C_12, C_44=C_44)
             )
         )
         self.assertRaises(
-            ValueError, ElasticConstants, youngs_modulus=E, C_12=C_12, C_11=C_11
+            ValueError,
+            ec.initialize_elastic_tensor,
+            youngs_modulus=E,
+            C_12=C_12,
+            C_11=C_11,
         )
-        self.assertRaises(ValueError, ElasticConstants)
-        self.assertRaises(ValueError, ElasticConstants, C_11=C_11)
-        self.assertRaises(ValueError, ElasticConstants, C_tensor=np.arange(6))
-        ec = ElasticConstants(C_tensor=np.eye(6))
-        self.assertEqual(ec.elastic_tensor.tolist(), np.eye(6).tolist())
-        ec = ElasticConstants(C_tensor=np.eye(9).reshape(3, 3, 3, 3))
-        self.assertEqual(ec.elastic_tensor.tolist(), np.eye(6).tolist())
+        self.assertRaises(ValueError, ec.get_elastic_tensor_from_moduli)
+        self.assertRaises(ValueError, ec.get_elastic_tensor_from_tensor)
+        self.assertRaises(ValueError, ec.initialize_elastic_tensor)
+        self.assertRaises(ValueError, ec.initialize_elastic_tensor, C_11=C_11)
+        self.assertRaises(
+            ValueError, ec.initialize_elastic_tensor, C_tensor=np.arange(6)
+        )
+        C = ec.initialize_elastic_tensor(C_tensor=np.eye(6))
+        self.assertEqual(C.tolist(), np.eye(6).tolist())
+        C = ec.initialize_elastic_tensor(C_tensor=np.eye(9).reshape(3, 3, 3, 3))
+        self.assertEqual(C.tolist(), np.eye(6).tolist())
 
     def test_is_cubic(self):
-        ec = ElasticConstants(**data["Fe"])
-        self.assertTrue(ec.is_cubic())
-        ec = ElasticConstants(**data["W"])
-        self.assertTrue(ec.is_cubic())
-        ec = ElasticConstants(C_11=211.0, C_12=145.0, C_13=140, C_44=82.0)
-        self.assertFalse(ec.is_cubic())
+        C = ec.initialize_elastic_tensor(**data["Fe"])
+        self.assertTrue(ec.is_cubic(C))
+        C = ec.initialize_elastic_tensor(**data["W"])
+        self.assertTrue(ec.is_cubic(C))
+        C = ec.initialize_elastic_tensor(
+            C_11=211.0, C_12=145.0, C_13=140, C_44=82.0
+        )
+        self.assertFalse(ec.is_cubic(C))
 
     def test_zener_ratio(self):
-        ec = ElasticConstants(C_11=211.0, C_12=145.0, C_44=82.0)
-        self.assertAlmostEqual(ec.get_zener_ratio(), 2 * 82 / (211 - 145))
-        ec = ElasticConstants(C_11=211.0, C_12=145.0)
-        self.assertAlmostEqual(ec.get_zener_ratio(), 1)
-        ec = ElasticConstants(C_11=211.0, C_44=82.0)
-        self.assertTrue(ec.is_isotropic())
-        ec = ElasticConstants(C_11=211.0, C_12=145.0, C_13=140, C_44=82.0)
-        self.assertRaises(ValueError, ec.get_zener_ratio)
+        C = ec.initialize_elastic_tensor(C_11=211.0, C_12=145.0, C_44=82.0)
+        self.assertAlmostEqual(ec.get_zener_ratio(C), 2 * 82 / (211 - 145))
+        C = ec.initialize_elastic_tensor(C_11=211.0, C_12=145.0)
+        self.assertAlmostEqual(ec.get_zener_ratio(C), 1)
+        C = ec.initialize_elastic_tensor(C_11=211.0, C_44=82.0)
+        self.assertTrue(ec.is_isotropic(C))
+        C = ec.initialize_elastic_tensor(
+            C_11=211.0, C_12=145.0, C_13=140, C_44=82.0
+        )
+        self.assertRaises(ValueError, ec.get_zener_ratio, C)
 
     def test_voigt_average(self):
-        ec = ElasticConstants(C_11=211.0, C_12=145.0, C_44=82.0)
-        self.assertFalse(ec.is_isotropic())
-        ec_ave = ec.get_voigt_average()
-        self.assertTrue(ec_ave.is_isotropic())
+        C = ec.initialize_elastic_tensor(C_11=211.0, C_12=145.0, C_44=82.0)
+        self.assertFalse(ec.is_isotropic(C))
+        C = ec.initialize_elastic_tensor(**ec.get_voigt_average(C))
+        self.assertTrue(ec.is_isotropic(C))
 
     def test_reuss_average(self):
-        ec = ElasticConstants(C_11=211.0, C_12=145.0, C_44=82.0)
-        self.assertFalse(ec.is_isotropic())
-        ec_ave = ec.get_reuss_average()
-        self.assertTrue(ec_ave.is_isotropic())
+        C = ec.initialize_elastic_tensor(C_11=211.0, C_12=145.0, C_44=82.0)
+        self.assertFalse(ec.is_isotropic(C))
+        C = ec.initialize_elastic_tensor(**ec.get_reuss_average(C))
+        self.assertTrue(ec.is_isotropic(C))
 
     def test_unique_constants(self):
-        ec = ElasticConstants(C_11=211.0, C_12=145.0, C_44=82.0)
+        C = ec.initialize_elastic_tensor(C_11=211.0, C_12=145.0, C_44=82.0)
         self.assertEqual(
-            ec.get_unique_elastic_constants(),
+            ec.get_unique_elastic_constants(C),
             {"C_11": 211.0, "C_12": 145.0, "C_44": 82.0},
         )
 
     def test_elastic_moduli(self):
-        ec = ElasticConstants(**data["Ni"])
-        self.assertRaises(ValueError, ec.get_elastic_moduli)
-        ec_reuss = ec.get_reuss_average()
-        moduli = ec_reuss.get_elastic_moduli()
+        C = ec.initialize_elastic_tensor(**data["Ni"])
+        self.assertRaises(ValueError, ec.get_elastic_moduli, C)
+        C = ec.initialize_elastic_tensor(**ec.get_reuss_average(C))
+        moduli = ec.get_elastic_moduli(C)
         self.assertLess(np.absolute(moduli["bulk_modulus"] - 174.0), 1)
         self.assertLess(np.absolute(moduli["shear_modulus"] - 85.0), 1)
-        ec_voigt = ec.get_voigt_average()
-        moduli = ec_voigt.get_elastic_moduli()
+        C = ec.initialize_elastic_tensor(**data["Ni"])
+        C = ec.initialize_elastic_tensor(**ec.get_voigt_average(C))
+        moduli = ec.get_elastic_moduli(C)
         self.assertLess(np.absolute(moduli["bulk_modulus"] - 174.0), 1)
         self.assertLess(np.absolute(moduli["shear_modulus"] - 99.0), 1)
 
