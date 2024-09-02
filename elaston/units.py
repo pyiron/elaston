@@ -91,7 +91,7 @@ def _get_output_units(outputs, kwargs, ureg):
 
     def f(out, kwargs=kwargs, ureg=ureg):
         if callable(out):
-            return extend_callable_with_kwargs(out(**kwargs))
+            return extend_callable_with_kwargs(out)(**kwargs)
         else:
             getattr(ureg, out)
 
@@ -99,7 +99,7 @@ def _get_output_units(outputs, kwargs, ureg):
         if callable(outputs) or isinstance(outputs, str):
             return f(outputs)
         if isinstance(outputs, (list, tuple)):
-            return tuple([f(outputs) for output in outputs])
+            return tuple([f(output) for output in outputs])
     except AttributeError as e:
         warnings.warn(
             "This function return an output with a relative unit. Either you"
