@@ -56,7 +56,11 @@ def check_is_tensor(**kwargs):
     return False
 
 
-@units(outputs=lambda C_tensor, C_11, C_12, C_13, C_22, C_33, C_44, C_55, C_66: optional_units(C_tensor, C_11, C_12, C_13, C_22, C_33, C_44, C_55, C_66))
+@units(
+    outputs=lambda C_tensor, C_11, C_12, C_13, C_22, C_33, C_44, C_55, C_66: optional_units(
+        C_tensor, C_11, C_12, C_13, C_22, C_33, C_44, C_55, C_66
+    )
+)
 def get_elastic_tensor_from_tensor(
     C_tensor: Optional[np.ndarray] = None,
     C_11: Optional[float] = None,
