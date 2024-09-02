@@ -168,6 +168,7 @@ def get_elastic_tensor_from_moduli(
     )
 
 
+@units(outputs=lambda C: C.u)
 def get_voigt_average(C):
     """
     Get the Voigt average of the elastic constants
@@ -184,6 +185,7 @@ def get_voigt_average(C):
     return dict(zip(["C_11", "C_12", "C_44"], tools.voigt_average(C_11, C_12, C_44)))
 
 
+@units(outputs=lambda C: C.u)
 def get_reuss_average(C):
     """
     Get the Reuss average of the elastic constants
