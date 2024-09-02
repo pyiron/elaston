@@ -164,6 +164,7 @@ def get_elastic_tensor_from_moduli(
     )
 
 
+@units(outputs=lambda C: C)
 def get_voigt_average(C):
     """
     Get the Voigt average of the elastic constants
@@ -180,6 +181,7 @@ def get_voigt_average(C):
     return dict(zip(["C_11", "C_12", "C_44"], tools.voigt_average(C_11, C_12, C_44)))
 
 
+@units(outputs=lambda C: C)
 def get_reuss_average(C):
     """
     Get the Reuss average of the elastic constants
@@ -251,6 +253,7 @@ def get_zener_ratio(C):
     return 2 * C_44 / (C_11 - C_12)
 
 
+@units(outputs=lambda C: C)
 def get_unique_elastic_constants(C):
     indices = np.sort(np.unique(np.round(C, decimals=8), return_index=True)[1])
     i, j = np.unravel_index(indices, (6, 6))
@@ -276,6 +279,7 @@ def get_elastic_moduli(C):
     }
 
 
+@units(outputs=lambda C_tensor, C_11, C_12, C_13, C_22, C_33, C_44, C_55, C_66, youngs_modulus, poissons_ratio, shear_modulus: optional_units(C_tensor, C_11, C_12, C_13, C_22, C_33, C_44, C_55, C_66, youngs_modulus, poissons_ratio, shear_modulus))
 def initialize_elastic_tensor(
     C_tensor=None,
     C_11=None,
