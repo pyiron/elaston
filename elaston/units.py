@@ -93,7 +93,7 @@ def _get_output_units(outputs, kwargs, ureg):
         if callable(out):
             return extend_callable_with_kwargs(out)(**kwargs)
         else:
-            getattr(ureg, out)
+            return getattr(ureg, out)
 
     try:
         if callable(outputs) or isinstance(outputs, str):
@@ -129,6 +129,14 @@ def _check_inputs_and_outputs(inp, out):
             )
 
 
+def _get_input_args(func, *args, **kwargs):
+    signature = inspect.signature(func)
+    bound_args = signature.bind_partial(*args, **kwargs)
+    bound_args.apply_defaults()  # Fill in the default values
+    bound_args = dict(bound_args.arguments)
+    return bound_args
+
+
 def units(outputs=None, inputs=None):
     """
     Decorator to handle units in functions.
@@ -152,10 +160,7 @@ def units(outputs=None, inputs=None):
             ureg = _get_ureg(args, kwargs)
             if ureg is None:
                 return func(*args, **kwargs)
-            signature = inspect.signature(func)
-            bound_args = signature.bind_partial(*args, **kwargs)
-            bound_args.apply_defaults()  # Fill in the default values
-            bound_args = dict(bound_args.arguments)
+            bound_args = _get_input_args(func, *args, **kwargs)
             if outputs is not None:
                 output_units = _get_output_units(outputs, bound_args, ureg)
             result = func(**_pint_to_value(bound_args, inputs))
