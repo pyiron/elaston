@@ -128,23 +128,6 @@ def C_to_voigt(C_in):
     return C
 
 
-def coeff_to_voigt(C_in):
-    """
-    Convert C_11, C_12, and C_44 to Voigt notation.
-
-    Args:
-        C_in (list): A list of elastic constants C_11, C_12, and C_44.
-
-    Returns:
-        numpy.ndarray: Elastic tensor in Voigt notation.
-    """
-    C = np.zeros((6, 6))
-    C[:3, :3] = C_in[1]
-    C[:3, :3] += np.eye(3) * (C_in[0] - C_in[1])
-    C[3:, 3:] = C_in[2] * np.eye(3)
-    return C
-
-
 def voigt_average(C_11: float, C_12: float, C_44: float):
     """Make isotropic elastic tensor from C_11, C_12, and C_44."""
     return np.array([[3, 2, 4], [1, 4, -2], [1, -1, 3]]) / 5 @ [C_11, C_12, C_44]

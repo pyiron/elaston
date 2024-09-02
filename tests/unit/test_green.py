@@ -1,6 +1,7 @@
 import numpy as np
 import unittest
 from elaston.green import Anisotropic, Isotropic
+from elaston import elastic_constants as ec
 from elaston import tools
 
 
@@ -51,7 +52,9 @@ class TestGreen(unittest.TestCase):
         C_44 = shear_modulus
         iso = Isotropic(poissons_ratio, shear_modulus)
         aniso = Anisotropic(
-            tools.C_from_voigt(tools.coeff_to_voigt([C_11, C_12, C_44]))
+            tools.C_from_voigt(
+                ec.get_elastic_tensor_from_tensor(C_11=C_11, C_12=C_12, C_44=C_44)
+            )
         )
         x = np.random.randn(100, 3) * 10
         for i in range(3):
