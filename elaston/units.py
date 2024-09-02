@@ -60,6 +60,20 @@ def _pint_to_value(kwargs, inputs):
     return kwargs_tmp
 
 
+def extend_callable_with_kwargs(f):
+    # Retrieve the signature of the callable `f`
+    sig = inspect.signature(f)
+
+    def wrapper(*args, **kwargs):
+        # Filter `kwargs` to include only the parameters that `f` accepts
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k in sig.parameters}
+
+        # Call `f` with the positional arguments and filtered keyword arguments
+        return f(*args, **filtered_kwargs)
+
+    return wrapper
+
+
 def _get_output_units(outputs, kwargs, ureg):
     """
     Get the output units.
@@ -80,9 +94,11 @@ def _get_output_units(outputs, kwargs, ureg):
 
     try:
         if callable(outputs) or isinstance(outputs, str):
-            return f(outputs)
+            return f(extend_callable_with_kwargs(outputs))
         if isinstance(outputs, (list, tuple)):
-            return tuple([f(output) for output in outputs])
+            return tuple(
+                [f(extend_callable_with_kwargs(outputs)) for output in outputs]
+            )
     except AttributeError as e:
         warnings.warn(
             "This function return an output with a relative unit. Either you"
