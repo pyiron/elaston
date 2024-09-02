@@ -3,7 +3,7 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 from pint import Quantity, Unit
-from inspect import getfullargspec
+import inspect
 import warnings
 
 __author__ = "Sam Waseda"
@@ -60,6 +60,20 @@ def _pint_to_value(kwargs, inputs):
     return kwargs_tmp
 
 
+def extend_callable_with_kwargs(f):
+    # Retrieve the signature of the callable `f`
+    sig = inspect.signature(f)
+
+    def wrapper(*args, **kwargs):
+        # Filter `kwargs` to include only the parameters that `f` accepts
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k in sig.parameters}
+
+        # Call `f` with the positional arguments and filtered keyword arguments
+        return f(*args, **filtered_kwargs)
+
+    return wrapper
+
+
 def _get_output_units(outputs, kwargs, ureg):
     """
     Get the output units.
@@ -76,7 +90,10 @@ def _get_output_units(outputs, kwargs, ureg):
     """
 
     def f(out, kwargs=kwargs, ureg=ureg):
-        return out(**kwargs) if callable(out) else getattr(ureg, out)
+        if callable(out):
+            return extend_callable_with_kwargs(out)(**kwargs)
+        else:
+            return getattr(ureg, out)
 
     try:
         if callable(outputs) or isinstance(outputs, str):
@@ -112,6 +129,14 @@ def _check_inputs_and_outputs(inp, out):
             )
 
 
+def _get_input_args(func, *args, **kwargs):
+    signature = inspect.signature(func)
+    bound_args = signature.bind_partial(*args, **kwargs)
+    bound_args.apply_defaults()  # Fill in the default values
+    bound_args = dict(bound_args.arguments)
+    return bound_args
+
+
 def units(outputs=None, inputs=None):
     """
     Decorator to handle units in functions.
@@ -135,11 +160,10 @@ def units(outputs=None, inputs=None):
             ureg = _get_ureg(args, kwargs)
             if ureg is None:
                 return func(*args, **kwargs)
-            # This step unifies args and kwargs
-            kwargs.update(zip(getfullargspec(func).args, args))
+            bound_args = _get_input_args(func, *args, **kwargs)
             if outputs is not None:
-                output_units = _get_output_units(outputs, kwargs, ureg)
-            result = func(**_pint_to_value(kwargs, inputs))
+                output_units = _get_output_units(outputs, bound_args, ureg)
+            result = func(**_pint_to_value(bound_args, inputs))
             if outputs is not None and output_units is not None:
                 if isinstance(output_units, Unit):
                     return result * output_units
@@ -150,3 +174,10 @@ def units(outputs=None, inputs=None):
         return wrapper
 
     return decorator
+
+
+def optional_units(*args):
+    for arg in args:
+        if isinstance(arg, Quantity):
+            return arg.u
+    return 1

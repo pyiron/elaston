@@ -4,6 +4,7 @@
 
 import numpy as np
 import string
+from elaston.units import units
 
 
 __author__ = "Sam Waseda"
@@ -85,6 +86,7 @@ def index_from_voigt(i, j):
         return 6 - i - j
 
 
+@units(outputs=lambda C_in: C_in.u)
 def C_from_voigt(C_in, inverse=False):
     """
     Convert elastic tensor in Voigt notation to matrix notation.
@@ -109,6 +111,7 @@ def C_from_voigt(C_in, inverse=False):
     return C
 
 
+@units(outputs=lambda C_in: C_in.u)
 def C_to_voigt(C_in):
     """
     Convert elastic tensor in matrix notation to Voigt notation.
