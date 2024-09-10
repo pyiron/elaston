@@ -184,6 +184,7 @@ def units(outputs=None, inputs=None):
             inputs = get_input_units_from_type_hints(func)
         if outputs is None:
             outputs = get_output_units_from_type_hints(func)
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             ureg = _get_ureg(args, kwargs)
