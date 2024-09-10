@@ -168,6 +168,7 @@ def units(func=None, *, outputs=None, inputs=None):
         # Return the actual decorator that expects the function
         def decorator(func):
             return _units_decorator(func, inputs, outputs)
+
         return decorator
     else:
         # The decorator is called without parentheses, so func is the actual function

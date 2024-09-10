@@ -12,9 +12,7 @@ def get_speed_multiple_dispatch(
 
 
 @units()
-def get_speed_ints(
-    distance: Int["meter"], time: Int["second"]
-) -> Int["meter/second"]:
+def get_speed_ints(distance: Int["meter"], time: Int["second"]) -> Int["meter/second"]:
     return distance / time
 
 
