@@ -213,11 +213,11 @@ def optional_units(*args):
     return 1
 
 
-class Floats:
+class Float:
     def __class_getitem__(cls, metadata):
         return Annotated[float, metadata]
 
 
-class Ints:
+class Int:
     def __class_getitem__(cls, metadata):
         return Annotated[int, metadata]

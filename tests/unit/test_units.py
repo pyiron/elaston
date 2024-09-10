@@ -1,20 +1,20 @@
 import numpy as np
 import unittest
-from elaston.units import units, optional_units, Floats, Ints
+from elaston.units import units, optional_units, Float, Int
 from pint import UnitRegistry
 
 
 @units()
 def get_speed_ints(
-    distance: Ints["meter"], time: Ints["second"]
-) -> Ints["meter/second"]:
+    distance: Int["meter"], time: Int["second"]
+) -> Int["meter/second"]:
     return distance / time
 
 
 @units()
 def get_speed_floats(
-    distance: Floats["meter"], time: Floats["second"]
-) -> Floats["meter/second"]:
+    distance: Float["meter"], time: Float["second"]
+) -> Float["meter/second"]:
     return distance / time
 
 
