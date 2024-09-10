@@ -160,50 +160,45 @@ def get_output_units_from_type_hints(func):
     return get_units_from_type_hints(func).get("return", None)
 
 
-def units(outputs=None, inputs=None):
-    """
-    Decorator to handle units in functions.
-
-    Parameters
-    ----------
-    outputs : str, list, tuple, callable, optional
-        Output units. If a string, it should be a valid unit. If a list or
-        tuple, it should contain valid units. If a callable, it should return a
-        valid unit.
-    inputs : dict, optional
-
-    Returns
-    -------
-    callable
-    """
+def units(func=None, *, outputs=None, inputs=None):
+    # Perform initial checks
     _check_inputs_and_outputs(inputs, outputs)
+    # If func is None, this means the decorator is called with parentheses
+    if func is None:
+        # Return the actual decorator that expects the function
+        def decorator(func):
+            return _units_decorator(func, inputs, outputs)
+        return decorator
+    else:
+        # The decorator is called without parentheses, so func is the actual function
+        return _units_decorator(func, inputs, outputs)
 
-    def decorator(func):
-        nonlocal inputs, outputs
-        if inputs is None:
-            inputs = get_input_units_from_type_hints(func)
-        if outputs is None:
-            outputs = get_output_units_from_type_hints(func)
 
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            ureg = _get_ureg(args, kwargs)
-            if ureg is None:
-                return func(*args, **kwargs)
-            bound_args = _get_input_args(func, *args, **kwargs)
-            if outputs is not None:
-                output_units = _get_output_units(outputs, bound_args, ureg)
-            result = func(**_pint_to_value(bound_args, inputs))
-            if outputs is not None and output_units is not None:
-                if isinstance(output_units, Unit):
-                    return result * output_units
-                else:
-                    return tuple([res * out for res, out in zip(result, output_units)])
-            return result
+def _units_decorator(func, inputs, outputs):
 
-        return wrapper
+    # If inputs or outputs are None, set them based on the function signature
+    if inputs is None:
+        inputs = get_input_units_from_type_hints(func)
+    if outputs is None:
+        outputs = get_output_units_from_type_hints(func)
 
-    return decorator
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        ureg = _get_ureg(args, kwargs)
+        if ureg is None:
+            return func(*args, **kwargs)
+        bound_args = _get_input_args(func, *args, **kwargs)
+        if outputs is not None:
+            output_units = _get_output_units(outputs, bound_args, ureg)
+        result = func(**_pint_to_value(bound_args, inputs))
+        if outputs is not None and output_units is not None:
+            if isinstance(output_units, Unit):
+                return result * output_units
+            else:
+                return tuple([res * out for res, out in zip(result, output_units)])
+        return result
+
+    return wrapper
 
 
 def optional_units(*args):
