@@ -6,6 +6,17 @@ from pint import UnitRegistry
 
 
 @units
+def get_speed_optional_union(
+    distance: Union[Float["meter"], Array["meter"]],
+    time: Union[Float["second"], Array["second"]],
+    duration: Optional[Union[Float["second"], Array["second"]]]
+) -> Union[Float["meter/second"], Array["meter/second"]]:
+    if duration is not None:
+        return distance / duration
+    return distance / time
+
+
+@units
 def get_speed_optional(
     distance: Float["meter"], time: Float["second"], duration: Optional[Float["second"]]
 ) -> Float["meter/second"]:
@@ -178,6 +189,21 @@ class TestUnits(unittest.TestCase):
         )
         self.assertAlmostEqual(
             get_speed_optional(1 * ureg.meter, 1 * ureg.second, 1 * ureg.millisecond).magnitude,
+            1e3
+        )
+
+    def test_optional_union(self):
+        ureg = UnitRegistry()
+        self.assertAlmostEqual(
+            get_speed_optional_union(1 * ureg.meter, 1 * ureg.second, 1 * ureg.second).magnitude,
+            1
+        )
+        self.assertAlmostEqual(
+            get_speed_optional_union(1 * ureg.meter, 1 * ureg.second, None).magnitude,
+            1
+        )
+        self.assertAlmostEqual(
+            get_speed_optional_union(1 * ureg.meter, 1 * ureg.second, 1 * ureg.millisecond).magnitude,
             1e3
         )
 
