@@ -159,7 +159,9 @@ def get_metadata_if_annotated(tp):
 
     # Handle generic types like List, Dict, Tuple, etc.
     elif origin in {list, dict, tuple}:
-        raise NotImplementedError(f"Generic types like {origin} are not supported yet.")
+        pass
+        # Following code would in principle work but is commented out for now
+        # as long as it is not clear how to deal with the actual values
         # for arg in get_args(tp):
         #     metadata = get_metadata_if_annotated(arg)
         #     if metadata:
