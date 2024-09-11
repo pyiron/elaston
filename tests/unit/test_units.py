@@ -1,7 +1,25 @@
 import numpy as np
 import unittest
 from elaston.units import units, optional_units, Float, Int, Array
+from typing import Union, Optional
 from pint import UnitRegistry
+
+
+@units
+def get_speed_optional(
+    distance: Float["meter"], time: Float["second"], duration: Optional[Float["second"]]
+) -> Float["meter/second"]:
+    if duration is not None:
+        return distance / duration
+    return distance / time
+
+
+@units
+def get_speed_union(
+    distance: Union[Float["meter"], Array["meter"]],
+    time: Union[Float["second"], Array["second"]]
+) -> Union[Float["meter/second"], Array["meter/second"]]:
+    return distance / time
 
 
 @units
@@ -60,7 +78,7 @@ def get_velocity(distance, time=None, duration=None):
         return distance / duration
 
 
-class TestTools(unittest.TestCase):
+class TestUnits(unittest.TestCase):
     def test_units(self):
         self.assertEqual(get_stress_absolute(1, 1, 1), 1)
         self.assertEqual(get_stress_relative(1, 1, 1), 1)
@@ -133,6 +151,34 @@ class TestTools(unittest.TestCase):
                     np.array([1, 2, 3]) * ureg.meter, np.array([1, 2, 3]) * ureg.second
                 ).magnitude == np.array([1, 1, 1])
             )
+        )
+
+    def test_union(self):
+        ureg = UnitRegistry()
+        self.assertAlmostEqual(
+            get_speed_union(1 * ureg.meter, 1 * ureg.second).magnitude, 1
+        )
+        self.assertTrue(
+            np.all(
+                get_speed_union(
+                    np.array([1, 2, 3]) * ureg.meter, np.array([1, 2, 3]) * ureg.second
+                ).magnitude == np.array([1, 1, 1])
+            )
+        )
+
+    def test_optional(self):
+        ureg = UnitRegistry()
+        self.assertAlmostEqual(
+            get_speed_optional(1 * ureg.meter, 1 * ureg.second, 1 * ureg.second).magnitude,
+            1
+        )
+        self.assertAlmostEqual(
+            get_speed_optional(1 * ureg.meter, 1 * ureg.second, None).magnitude,
+            1
+        )
+        self.assertAlmostEqual(
+            get_speed_optional(1 * ureg.meter, 1 * ureg.second, 1 * ureg.millisecond).magnitude,
+            1e3
         )
 
 

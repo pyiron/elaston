@@ -7,6 +7,8 @@ import inspect
 import warnings
 from functools import wraps
 from typing import Annotated, get_type_hints
+from typing import Optional, Annotated, Union, get_args, get_origin
+
 import numpy as np
 
 __author__ = "Sam Waseda"
@@ -140,12 +142,43 @@ def _get_input_args(func, *args, **kwargs):
     return bound_args
 
 
+def get_metadata_if_annotated(tp):
+    # Check if the type is a Union (Optional is a Union[X, None])
+    origin = get_origin(tp)
+
+    # Handle Union type (like Optional)
+    if origin is Union:
+        # Iterate over all the arguments in the Union
+        for arg in get_args(tp):
+            # If the argument is an Annotated type, return its metadata
+            if get_origin(arg) is Annotated:
+                return arg.__metadata__[0]
+
+    # Handle direct Annotated type
+    elif origin is Annotated:
+        return tp.__metadata__[0]
+
+    # Handle generic types like List, Dict, Tuple, etc.
+    elif origin in {list, dict, tuple}:
+        raise NotImplementedError(
+            f"Generic types like {origin} are not supported yet."
+        )
+        # for arg in get_args(tp):
+        #     metadata = get_metadata_if_annotated(arg)
+        #     if metadata:
+        #         return metadata
+
+    # Return None if no metadata is found
+    return None
+
+
 def get_units_from_type_hints(func):
-    return {
-        key: value.__metadata__[0]
-        for key, value in get_type_hints(func, include_extras=True).items()
-        if hasattr(value, "__metadata__")
-    }
+    result = {}
+    for key, value in get_type_hints(func, include_extras=True).items():
+        th = get_metadata_if_annotated(value)
+        if th is not None:
+            result[key] = th
+    return result
 
 
 def get_input_units_from_type_hints(func):
