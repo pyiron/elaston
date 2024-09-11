@@ -1,7 +1,14 @@
 import numpy as np
 import unittest
-from elaston.units import units, optional_units, Float, Int
+from elaston.units import units, optional_units, Float, Int, Array
 from pint import UnitRegistry
+
+
+@units
+def get_speed_array(
+    distance: Array["meter"], time: Array["second"]
+) -> Array["meter/second"]:
+    return distance / time
 
 
 @units
@@ -116,6 +123,16 @@ class TestTools(unittest.TestCase):
         self.assertAlmostEqual(
             get_speed_multiple_dispatch(1 * ureg.meter, 1 * ureg.millisecond).magnitude,
             1e3,
+        )
+
+    def get_speed_array(self):
+        ureg = UnitRegistry()
+        self.assertTrue(
+            np.all(
+                get_speed_array(
+                    np.array([1, 2, 3]) * ureg.meter, np.array([1, 2, 3]) * ureg.second
+                ).magnitude == np.array([1, 1, 1])
+            )
         )
 
 
