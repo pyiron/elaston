@@ -7,6 +7,7 @@ import inspect
 import warnings
 from functools import wraps
 from typing import Annotated, get_type_hints
+import numpy as np
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -217,3 +218,8 @@ class Float:
 class Int:
     def __class_getitem__(cls, metadata):
         return Annotated[int, metadata]
+
+
+class Array:
+    def __class_getitem__(cls, metadata):
+        return Annotated[np.ndarray, metadata]
