@@ -6,8 +6,7 @@ from pint import Quantity, Unit
 import inspect
 import warnings
 from functools import wraps
-from typing import Annotated, get_type_hints
-from typing import Optional, Annotated, Union, get_args, get_origin
+from typing import Annotated, Union, get_args, get_origin, get_type_hints
 
 import numpy as np
 
