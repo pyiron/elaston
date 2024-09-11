@@ -9,7 +9,7 @@ from pint import UnitRegistry
 def get_speed_optional_union(
     distance: Union[Float["meter"], Array["meter"]],
     time: Union[Float["second"], Array["second"]],
-    duration: Optional[Union[Float["second"], Array["second"]]]
+    duration: Optional[Union[Float["second"], Array["second"]]],
 ) -> Union[Float["meter/second"], Array["meter/second"]]:
     if duration is not None:
         return distance / duration
@@ -28,7 +28,7 @@ def get_speed_optional(
 @units
 def get_speed_union(
     distance: Union[Float["meter"], Array["meter"]],
-    time: Union[Float["second"], Array["second"]]
+    time: Union[Float["second"], Array["second"]],
 ) -> Union[Float["meter/second"], Array["meter/second"]]:
     return distance / time
 
@@ -160,7 +160,8 @@ class TestUnits(unittest.TestCase):
             np.all(
                 get_speed_array(
                     np.array([1, 2, 3]) * ureg.meter, np.array([1, 2, 3]) * ureg.second
-                ).magnitude == np.array([1, 1, 1])
+                ).magnitude
+                == np.array([1, 1, 1])
             )
         )
 
@@ -173,38 +174,45 @@ class TestUnits(unittest.TestCase):
             np.all(
                 get_speed_union(
                     np.array([1, 2, 3]) * ureg.meter, np.array([1, 2, 3]) * ureg.second
-                ).magnitude == np.array([1, 1, 1])
+                ).magnitude
+                == np.array([1, 1, 1])
             )
         )
 
     def test_optional(self):
         ureg = UnitRegistry()
         self.assertAlmostEqual(
-            get_speed_optional(1 * ureg.meter, 1 * ureg.second, 1 * ureg.second).magnitude,
-            1
+            get_speed_optional(
+                1 * ureg.meter, 1 * ureg.second, 1 * ureg.second
+            ).magnitude,
+            1,
         )
         self.assertAlmostEqual(
-            get_speed_optional(1 * ureg.meter, 1 * ureg.second, None).magnitude,
-            1
+            get_speed_optional(1 * ureg.meter, 1 * ureg.second, None).magnitude, 1
         )
         self.assertAlmostEqual(
-            get_speed_optional(1 * ureg.meter, 1 * ureg.second, 1 * ureg.millisecond).magnitude,
-            1e3
+            get_speed_optional(
+                1 * ureg.meter, 1 * ureg.second, 1 * ureg.millisecond
+            ).magnitude,
+            1e3,
         )
 
     def test_optional_union(self):
         ureg = UnitRegistry()
         self.assertAlmostEqual(
-            get_speed_optional_union(1 * ureg.meter, 1 * ureg.second, 1 * ureg.second).magnitude,
-            1
+            get_speed_optional_union(
+                1 * ureg.meter, 1 * ureg.second, 1 * ureg.second
+            ).magnitude,
+            1,
         )
         self.assertAlmostEqual(
-            get_speed_optional_union(1 * ureg.meter, 1 * ureg.second, None).magnitude,
-            1
+            get_speed_optional_union(1 * ureg.meter, 1 * ureg.second, None).magnitude, 1
         )
         self.assertAlmostEqual(
-            get_speed_optional_union(1 * ureg.meter, 1 * ureg.second, 1 * ureg.millisecond).magnitude,
-            1e3
+            get_speed_optional_union(
+                1 * ureg.meter, 1 * ureg.second, 1 * ureg.millisecond
+            ).magnitude,
+            1e3,
         )
 
 
