@@ -2,11 +2,14 @@
 # Copyright (c) Max-Planck-Institut für Eisenforschung GmbH - Computational Materials Design (CM) Department
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
-from pint import Quantity, Unit
-import inspect
-import warnings
+from abc import ABC
 from functools import wraps
-from typing import Annotated, get_type_hints
+import inspect
+from typing import Annotated, Any, ClassVar, get_type_hints
+import warnings
+
+from pint import Quantity, Unit
+from pyiron_snippets.factory import classfactory, sanitize_callable_name
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -209,11 +212,18 @@ def optional_units(*args):
     return 1
 
 
-class Float:
+class HasUnits(ABC):
+    _hint: ClassVar[Any]
+
     def __class_getitem__(cls, metadata):
-        return Annotated[float, metadata]
+        return Annotated[cls._hint, metadata]
 
 
-class Int:
-    def __class_getitem__(cls, metadata):
-        return Annotated[int, metadata]
+@classfactory
+def u(hint, /):
+    return (
+        sanitize_callable_name(str(hint)),
+        (HasUnits,),
+        {"_hint": hint},
+        {},
+    )
