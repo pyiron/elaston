@@ -1,25 +1,31 @@
 import numpy as np
 import unittest
-from elaston.units import units, optional_units, Float, Int
+from elaston.units import units, optional_units, u
 from pint import UnitRegistry
 
 
 @units
+def get_speed_optional_arg(
+    distance: u(float)["meter"],
+    time: u(float)["second"],
+    duration: u(float | None)["second"] = None,
+) -> u(float)["meter/second"]:
+    if duration is not None:
+        return distance / duration
+    return distance / time
+
+
+@units
 def get_speed_multiple_dispatch(
-    distance: Float["meter"], time: Float["second"]
-) -> Float["meter/second"]:
+    distance: u(float)["meter"], time: u(float)["second"]
+) -> u(float)["meter/second"]:
     return distance / time
 
 
 @units()
-def get_speed_ints(distance: Int["meter"], time: Int["second"]) -> Int["meter/second"]:
-    return distance / time
-
-
-@units()
-def get_speed_floats(
-    distance: Float["meter"], time: Float["second"]
-) -> Float["meter/second"]:
+def get_speed_multiple_types(
+    distance: u(float | int)["meter"], time: u(float | int)["second"]
+) -> u(float | int)["meter/second"]:
     return distance / time
 
 
@@ -98,14 +104,11 @@ class TestTools(unittest.TestCase):
         )
 
     def test_type_hinting(self):
-        self.assertEqual(get_speed_floats(1, 1), 1)
-        self.assertEqual(get_speed_ints(1, 1), 1)
+        self.assertEqual(get_speed_multiple_types(1, 1), 1)
         ureg = UnitRegistry()
         self.assertAlmostEqual(
-            get_speed_floats(1 * ureg.meter, 1 * ureg.millisecond).magnitude, 1e3
-        )
-        self.assertAlmostEqual(
-            get_speed_ints(1 * ureg.meter, 1 * ureg.millisecond).magnitude, int(1e3)
+            get_speed_multiple_types(1 * ureg.meter, 1 * ureg.millisecond).magnitude,
+            1e3,
         )
 
     def test_multiple_dispatch(self):
@@ -115,6 +118,27 @@ class TestTools(unittest.TestCase):
         )
         self.assertAlmostEqual(
             get_speed_multiple_dispatch(1 * ureg.meter, 1 * ureg.millisecond).magnitude,
+            1e3,
+        )
+
+    def test_optional_arg(self):
+        ureg = UnitRegistry()
+        self.assertAlmostEqual(
+            get_speed_optional_arg(1 * ureg.meter, 1 * ureg.second).magnitude, 1
+        )
+        self.assertAlmostEqual(
+            get_speed_optional_arg(
+                1 * ureg.meter, 1 * ureg.second, 1 * ureg.second
+            ).magnitude,
+            1,
+        )
+        self.assertAlmostEqual(
+            get_speed_optional_arg(1 * ureg.meter, 1 * ureg.millisecond).magnitude, 1e3
+        )
+        self.assertAlmostEqual(
+            get_speed_optional_arg(
+                1 * ureg.meter, 1 * ureg.millisecond, 1 * ureg.millisecond
+            ).magnitude,
             1e3,
         )
 
