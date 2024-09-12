@@ -124,22 +124,28 @@ class TestTools(unittest.TestCase):
     def test_optional_arg(self):
         ureg = UnitRegistry()
         self.assertAlmostEqual(
-            get_speed_optional_arg(1 * ureg.meter, 1 * ureg.second).magnitude, 1
+            get_speed_optional_arg(1 * ureg.meter, 1 * ureg.second).magnitude,
+            1/1,
+            msg="Optional None kwarg should be ignored."
         )
         self.assertAlmostEqual(
             get_speed_optional_arg(
-                1 * ureg.meter, 1 * ureg.second, 1 * ureg.second
+                1 * ureg.meter, 1 * ureg.second, 2 * ureg.second
             ).magnitude,
-            1,
+            1/2,
+            msg="Optional kwarg should take precedence."
         )
         self.assertAlmostEqual(
-            get_speed_optional_arg(1 * ureg.meter, 1 * ureg.millisecond).magnitude, 1e3
+            get_speed_optional_arg(1 * ureg.meter, 1 * ureg.millisecond).magnitude,
+            1/1e-3,
+            msg="Alternative units on standard arg should compute."
         )
         self.assertAlmostEqual(
             get_speed_optional_arg(
-                1 * ureg.meter, 1 * ureg.millisecond, 1 * ureg.millisecond
+                1 * ureg.meter, 1 * ureg.millisecond, 2 * ureg.millisecond
             ).magnitude,
-            1e3,
+            1/2e-3,
+            msg="Alternative units from preferred optional kwarg should compute."
         )
 
 
