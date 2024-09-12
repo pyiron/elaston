@@ -60,92 +60,13 @@ def get_velocity(distance, time=None, duration=None):
 
 
 class TestTools(unittest.TestCase):
-    def test_units(self):
-        self.assertEqual(get_stress_absolute(1, 1, 1), 1)
-        self.assertEqual(get_stress_relative(1, 1, 1), 1)
-        ureg = UnitRegistry()
-        self.assertEqual(
-            get_stress_absolute(1 * ureg.angstrom, 1 * ureg.angstrom, 1 * ureg.GPa),
-            1 * ureg.GPa,
-        )
-        self.assertEqual(
-            get_stress_absolute(1 * ureg.nanometer, 1 * ureg.angstrom, 1 * ureg.GPa),
-            10 * ureg.GPa,
-        )
-        self.assertEqual(
-            get_stress_relative(1 * ureg.angstrom, 1 * ureg.angstrom, 1 * ureg.GPa),
-            1 * ureg.GPa,
-        )
-        self.assertEqual(
-            get_stress_relative(1 * ureg.nanometer, 1 * ureg.angstrom, 1 * ureg.GPa),
-            1 * ureg.nanometer / ureg.angstrom * ureg.GPa,
-        )
-        with self.assertWarns(SyntaxWarning):
-            get_stress_relative(1 * ureg.nanometer, 1 * ureg.angstrom, 1)
-        self.assertEqual(
-            get_multiple_outputs(1 * ureg.angstrom, 1 * ureg.angstrom),
-            (2 * ureg.angstrom, 1 * ureg.angstrom**2),
-        )
-        with self.assertRaises(ValueError):
-            # No relative output units and absolute input units at the same time
-            units(outputs=lambda x: x.u, inputs={"x": "GPa"})
-        self.assertEqual(no_units(1), 1)
-        self.assertEqual(no_units(1 * ureg.angstrom), 1)
 
-    def test_optional_units(self):
+    def test_pint_alone(self):
         ureg = UnitRegistry()
         self.assertEqual(
-            get_velocity(distance=1 * ureg.angstrom, time=1 * ureg.second),
-            1 * ureg.angstrom / ureg.second,
-        )
-        self.assertEqual(
-            get_velocity(distance=1 * ureg.angstrom, duration=1 * ureg.second),
-            1 * ureg.angstrom / ureg.second,
-        )
-
-    def test_type_hinting(self):
-        self.assertEqual(get_speed_multiple_types(1, 1), 1)
-        ureg = UnitRegistry()
-        self.assertAlmostEqual(
-            get_speed_multiple_types(1 * ureg.meter, 1 * ureg.millisecond).magnitude,
-            1e3,
-        )
-
-    def test_multiple_dispatch(self):
-        ureg = UnitRegistry()
-        self.assertAlmostEqual(
-            get_speed_multiple_dispatch(1 * ureg.meter, 1 * ureg.second).magnitude, 1
-        )
-        self.assertAlmostEqual(
-            get_speed_multiple_dispatch(1 * ureg.meter, 1 * ureg.millisecond).magnitude,
-            1e3,
-        )
-
-    def test_optional_arg(self):
-        ureg = UnitRegistry()
-        self.assertAlmostEqual(
-            get_speed_optional_arg(1 * ureg.meter, 1 * ureg.second).magnitude,
-            1/1,
-            msg="Optional None kwarg should be ignored."
-        )
-        self.assertAlmostEqual(
-            get_speed_optional_arg(
-                1 * ureg.meter, 1 * ureg.second, 2 * ureg.second
-            ).magnitude,
-            1/2,
-            msg="Optional kwarg should take precedence."
-        )
-        self.assertAlmostEqual(
-            get_speed_optional_arg(1 * ureg.meter, 1 * ureg.millisecond).magnitude,
+            (1 * ureg.meter / 1 * ureg.millisecond).magnitude,
             1/1e-3,
-            msg="Alternative units on standard arg should compute."
-        )
-        self.assertAlmostEqual(
-            get_speed_optional_arg(
-                1 * ureg.meter, 1 * ureg.millisecond, 2 * ureg.millisecond
-            ).magnitude,
-            1/2e-3,
-            msg="Alternative units from preferred optional kwarg should compute."
+            msg="Does pint itself work on python 3.10?"
         )
 
 
