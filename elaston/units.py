@@ -218,20 +218,6 @@ class HasUnits(ABC):
     def __class_getitem__(cls, metadata):
         return Annotated[cls._hint, metadata]
 
-    def __getitem__(self, unit):
-        # The subscript method for handling unit strings
-        if not isinstance(unit, str):
-            raise TypeError("Unit must be a string.")
-        # Return a new instance or perform any specific behavior you want
-        return self.base_type_with_unit(unit)
-
-    def base_type_with_unit(self, unit):
-        # Placeholder for an actual implementation.
-        # This could, for example, return a custom type or a decorated function
-        # that incorporates the unit information.
-        return f"{self.base_type.__name__} with unit '{unit}'"
-
-
 
 @classfactory
 def u(hint, /):
