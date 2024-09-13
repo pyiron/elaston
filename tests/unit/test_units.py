@@ -1,7 +1,21 @@
 import numpy as np
 import unittest
-from elaston.units import units, optional_units
+from elaston.units import units, optional_units, Float, Int
 from pint import UnitRegistry
+
+
+@units()
+def get_speed_ints(
+    distance: Int["meter"], time: Int["second"]
+) -> Int["meter/second"]:
+    return distance / time
+
+
+@units()
+def get_speed_floats(
+    distance: Float["meter"], time: Float["second"]
+) -> Float["meter/second"]:
+    return distance / time
 
 
 @units(inputs={"b": "angstrom", "x": "angstrom", "C": "GPa"}, outputs="GPa")
@@ -76,6 +90,17 @@ class TestTools(unittest.TestCase):
         self.assertEqual(
             get_velocity(distance=1 * ureg.angstrom, duration=1 * ureg.second),
             1 * ureg.angstrom / ureg.second,
+        )
+
+    def test_type_hinting(self):
+        self.assertEqual(get_speed_floats(1, 1), 1)
+        self.assertEqual(get_speed_ints(1, 1), 1)
+        ureg = UnitRegistry()
+        self.assertAlmostEqual(
+            get_speed_floats(1 * ureg.meter, 1 * ureg.millisecond).magnitude, 1e3
+        )
+        self.assertAlmostEqual(
+            get_speed_ints(1 * ureg.meter, 1 * ureg.millisecond).magnitude, int(1e3)
         )
 
 

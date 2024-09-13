@@ -6,6 +6,7 @@ from pint import Quantity, Unit
 import inspect
 import warnings
 from functools import wraps
+from typing import Annotated, get_type_hints
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -126,7 +127,7 @@ def _check_inputs_and_outputs(inp, out):
             isinstance(out, (list, tuple)) and any(map(callable, out))
         ):
             raise ValueError(
-                "You cannot use relative output units when inpput units are defined"
+                "You cannot use relative output units when input units are defined"
             )
 
 
@@ -136,6 +137,27 @@ def _get_input_args(func, *args, **kwargs):
     bound_args.apply_defaults()  # Fill in the default values
     bound_args = dict(bound_args.arguments)
     return bound_args
+
+
+def get_units_from_type_hints(func):
+    return {
+        key: value.__metadata__[0]
+        for key, value in get_type_hints(func, include_extras=True).items()
+        if hasattr(value, "__metadata__")
+    }
+
+
+def get_input_units_from_type_hints(func):
+    d = get_units_from_type_hints(func)
+    if "return" in d:
+        del d["return"]
+    if len(d) == 0:
+        return None
+    return d
+
+
+def get_output_units_from_type_hints(func):
+    return get_units_from_type_hints(func).get("return", None)
 
 
 def units(outputs=None, inputs=None):
@@ -157,6 +179,12 @@ def units(outputs=None, inputs=None):
     _check_inputs_and_outputs(inputs, outputs)
 
     def decorator(func):
+        nonlocal inputs, outputs
+        if inputs is None:
+            inputs = get_input_units_from_type_hints(func)
+        if outputs is None:
+            outputs = get_output_units_from_type_hints(func)
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             ureg = _get_ureg(args, kwargs)
@@ -183,3 +211,13 @@ def optional_units(*args):
         if isinstance(arg, Quantity):
             return arg.u
     return 1
+
+
+class Float:
+    def __class_getitem__(cls, metadata):
+        return Annotated[float, metadata]
+
+
+class Int:
+    def __class_getitem__(cls, metadata):
+        return Annotated[int, metadata]
