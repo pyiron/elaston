@@ -4,10 +4,15 @@ from elaston.units import units, optional_units, Float, Int
 from pint import UnitRegistry
 
 
+@units
+def get_speed_multiple_dispatch(
+    distance: Float["meter"], time: Float["second"]
+) -> Float["meter/second"]:
+    return distance / time
+
+
 @units()
-def get_speed_ints(
-    distance: Int["meter"], time: Int["second"]
-) -> Int["meter/second"]:
+def get_speed_ints(distance: Int["meter"], time: Int["second"]) -> Int["meter/second"]:
     return distance / time
 
 
@@ -101,6 +106,16 @@ class TestTools(unittest.TestCase):
         )
         self.assertAlmostEqual(
             get_speed_ints(1 * ureg.meter, 1 * ureg.millisecond).magnitude, int(1e3)
+        )
+
+    def test_multiple_dispatch(self):
+        ureg = UnitRegistry()
+        self.assertAlmostEqual(
+            get_speed_multiple_dispatch(1 * ureg.meter, 1 * ureg.second).magnitude, 1
+        )
+        self.assertAlmostEqual(
+            get_speed_multiple_dispatch(1 * ureg.meter, 1 * ureg.millisecond).magnitude,
+            1e3,
         )
 
 
