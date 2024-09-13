@@ -10,6 +10,7 @@ def get_speed_onto(
 ) -> u(float, "meter/second"):
     return distance / time
 
+
 @units
 def get_speed_multiple_dispatch(
     distance: Float["meter"], time: Float["second"]
