@@ -1,8 +1,14 @@
 import numpy as np
 import unittest
-from elaston.units import units, optional_units, Float, Int
+from elaston.units import units, optional_units, Float, Int, u
 from pint import UnitRegistry
 
+
+@units
+def get_speed_onto(
+    distance: u(float, "meter"), time: u(float, "second")
+) -> u(float, "meter/second"):
+    return distance / time
 
 @units
 def get_speed_multiple_dispatch(
@@ -116,6 +122,15 @@ class TestTools(unittest.TestCase):
         self.assertAlmostEqual(
             get_speed_multiple_dispatch(1 * ureg.meter, 1 * ureg.millisecond).magnitude,
             1e3,
+        )
+
+    def test_onto(self):
+        ureg = UnitRegistry()
+        self.assertAlmostEqual(
+            get_speed_onto(1 * ureg.meter, 1 * ureg.second).magnitude, 1
+        )
+        self.assertAlmostEqual(
+            get_speed_onto(1 * ureg.meter, 1 * ureg.millisecond).magnitude, 1e3
         )
 
 

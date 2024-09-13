@@ -7,6 +7,7 @@ import inspect
 import warnings
 from functools import wraps
 from typing import Annotated, get_type_hints
+from abc import ABC
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -139,9 +140,16 @@ def _get_input_args(func, *args, **kwargs):
     return bound_args
 
 
+def _dict_or_item(d):
+    if isinstance(d, dict) and "units" in d:
+        return d["units"]
+    elif isinstance(d, str):
+        return d
+
+
 def get_units_from_type_hints(func):
     return {
-        key: value.__metadata__[0]
+        key: _dict_or_item(value.__metadata__[0])
         for key, value in get_type_hints(func, include_extras=True).items()
         if hasattr(value, "__metadata__")
     }
@@ -217,3 +225,11 @@ class Float:
 class Int:
     def __class_getitem__(cls, metadata):
         return Annotated[int, metadata]
+
+
+class OntoType(ABC):
+    pass
+
+
+def u(type_, /, units: str | None = None, otype: OntoType | None = None):
+    return Annotated[type_, {"units": units, "otype": otype}]
