@@ -5,6 +5,17 @@ from pint import UnitRegistry
 
 
 @units
+def get_speed_onto_optional_args(
+    distance: u(float, "meter"),
+    time: u(float, "second"),
+    duration: u(float | None, "second") = None,
+) -> u(float, "meter/second"):
+    if duration is not None:
+        return distance / duration
+    return distance / time
+
+
+@units
 def get_speed_onto(
     distance: u(float, "meter"), time: u(float, "second")
 ) -> u(float, "meter/second"):
@@ -132,6 +143,30 @@ class TestTools(unittest.TestCase):
         )
         self.assertAlmostEqual(
             get_speed_onto(1 * ureg.meter, 1 * ureg.millisecond).magnitude, 1e3
+        )
+
+    def test_onto_optional_args(self):
+        ureg = UnitRegistry()
+        self.assertAlmostEqual(
+            get_speed_onto_optional_args(1 * ureg.meter, 1 * ureg.second).magnitude, 1
+        )
+        self.assertAlmostEqual(
+            get_speed_onto_optional_args(
+                1 * ureg.meter, 1 * ureg.millisecond
+            ).magnitude,
+            1e3,
+        )
+        self.assertAlmostEqual(
+            get_speed_onto_optional_args(
+                1 * ureg.meter, 1 * ureg.second, 1 * ureg.second
+            ).magnitude,
+            1,
+        )
+        self.assertAlmostEqual(
+            get_speed_onto_optional_args(
+                1 * ureg.meter, 1 * ureg.millisecond, 1 * ureg.millisecond
+            ).magnitude,
+            1e3,
         )
 
 
