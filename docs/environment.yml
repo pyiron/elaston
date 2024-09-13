@@ -9,6 +9,6 @@ dependencies:
 - versioneer
 - coveralls
 - coverage
-- numpy =2.0.1
 - pint =0.24.3
 - pyiron_snippets =0.1.4
+- numpy =2.1.1
