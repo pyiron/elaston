@@ -8,7 +8,7 @@ from pint import UnitRegistry
 def get_speed_onto_optional_args(
     distance: u(float, "meter"),
     time: u(float, "second"),
-    duration: u(float | None, "second") = None,
+    duration: u(float, "second") = 3,
 ) -> u(float, "meter/second"):
     if duration is not None:
         return distance / duration
