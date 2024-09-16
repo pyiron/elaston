@@ -217,9 +217,5 @@ def optional_units(*args):
     return 1
 
 
-class OntoType(ABC):
-    pass
-
-
-def u(type_, /, units: str | None = None, otype: OntoType | None = None):
-    return Annotated[type_, {"units": units, "otype": otype}]
+def u(type_, /, units: str | None = None):
+    return Annotated[type_, {"units": units}]
