@@ -6,7 +6,7 @@ from pint import Quantity, Unit
 import inspect
 import warnings
 from functools import wraps
-from typing import Annotated, get_type_hints
+from typing import Annotated, get_type_hints, Any
 from abc import ABC
 
 __author__ = "Sam Waseda"
@@ -217,5 +217,5 @@ def optional_units(*args):
     return 1
 
 
-def u(type_, /, units: str | None = None):
-    return Annotated[type_, {"units": units}]
+def u(type_, /, units: str | None = None, otype: Any = None):
+    return Annotated[type_, {"units": units, "otype": otype}]
