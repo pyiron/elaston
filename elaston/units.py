@@ -7,7 +7,6 @@ import inspect
 import warnings
 from functools import wraps
 from typing import Annotated, get_type_hints, Any
-from abc import ABC
 
 __author__ = "Sam Waseda"
 __copyright__ = (
