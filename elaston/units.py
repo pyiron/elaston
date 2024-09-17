@@ -140,16 +140,9 @@ def _get_input_args(func, *args, **kwargs):
     return bound_args
 
 
-def _dict_or_item(d):
-    if isinstance(d, dict) and "units" in d:
-        return d["units"]
-    elif isinstance(d, str):
-        return d
-
-
 def get_units_from_type_hints(func):
     return {
-        key: _dict_or_item(value.__metadata__[0])
+        key: dict(value.__metadata__[0])["units"]
         for key, value in get_type_hints(func, include_extras=True).items()
         if hasattr(value, "__metadata__")
     }
@@ -218,4 +211,4 @@ def optional_units(*args):
 
 
 def u(type_, /, units: str | None = None, otype: Any = None):
-    return Annotated[type_, frozenset({"units": units, "otype": otype})]
+    return Annotated[type_, frozenset({"units": units, "otype": otype}.items())]
