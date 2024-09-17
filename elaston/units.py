@@ -141,7 +141,7 @@ def _get_input_args(func, *args, **kwargs):
 
 def get_units_from_type_hints(func):
     return {
-        key: dict(value.__metadata__[0])["units"]
+        key: value.__metadata__[0]
         for key, value in get_type_hints(func, include_extras=True).items()
         if hasattr(value, "__metadata__")
     }
@@ -210,4 +210,4 @@ def optional_units(*args):
 
 
 def u(type_, /, units: str | None = None, otype: Any = None):
-    return Annotated[type_, frozenset({"units": units, "otype": otype}.items())]
+    return Annotated[type_, units, otype]
