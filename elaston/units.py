@@ -218,4 +218,4 @@ def optional_units(*args):
 
 
 def u(type_, /, units: str | None = None, otype: Any = None):
-    return Annotated[type_, {"units": units, "otype": otype}]
+    return Annotated[type_, frozenset({"units": units, "otype": otype})]
