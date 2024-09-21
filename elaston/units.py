@@ -207,13 +207,3 @@ def optional_units(*args):
         if isinstance(arg, Quantity):
             return arg.u
     return 1
-
-
-class Float:
-    def __class_getitem__(cls, metadata):
-        return Annotated[float, metadata]
-
-
-class Int:
-    def __class_getitem__(cls, metadata):
-        return Annotated[int, metadata]
