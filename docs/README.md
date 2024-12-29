@@ -19,8 +19,8 @@ pip install .
 ## Features
 
 - Calculation of elastic constants
-- Stress strain field around dislocations using anisotropic elasticity
-- Stress strain field around point defects
+- Stress, strain and displacement field around dislocations using anisotropic elasticity
+- Stress, strain and displacement field around point defects
 
 
 ## Usage
