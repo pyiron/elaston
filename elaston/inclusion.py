@@ -5,7 +5,7 @@
 import numpy as np
 from elaston.green import get_greens_function
 from semantikon.typing import u
-from semantikon.converter import units as semantikon_units
+from semantikon.converter import units
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -84,7 +84,7 @@ Vol. 1. Elsevier, 2012.
 """
 
 
-@semantikon_units
+@units
 def get_point_defect_displacement(
     C: u(np.ndarray, units="=C"),
     x: u(np.ndarray, units="=x"),
@@ -122,7 +122,7 @@ def get_point_defect_displacement(
     return -np.einsum("...ijk,...jk->...i", g_tmp, P)
 
 
-@semantikon_units
+@units
 def get_point_defect_strain(
     C: u(np.ndarray, units="=C"),
     x: u(np.ndarray, units="=x"),
@@ -161,7 +161,7 @@ def get_point_defect_strain(
     return 0.5 * (v + np.einsum("...ij->...ji", v))
 
 
-@semantikon_units
+@units
 def get_point_defect_stress(
     C: u(np.ndarray, units="=C"),
     x: u(np.ndarray, units="=x"),
@@ -195,7 +195,7 @@ def get_point_defect_stress(
     return np.einsum("ijkl,...kl->...ij", C, strain)
 
 
-@semantikon_units
+@units
 def get_point_defect_energy_density(
     C: u(np.ndarray, units="=C"),
     x: u(np.ndarray, units="=x"),
