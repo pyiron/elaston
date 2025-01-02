@@ -4,7 +4,8 @@
 
 import numpy as np
 import string
-from elaston.units import units
+from semantikon.typing import u
+from semantikon.converter import units
 
 
 __author__ = "Sam Waseda"
@@ -86,8 +87,10 @@ def index_from_voigt(i, j):
         return 6 - i - j
 
 
-@units(outputs=lambda C_in: C_in.u)
-def C_from_voigt(C_in, inverse=False):
+@units
+def C_from_voigt(
+    C_in: u(np.ndarray, units="=C"), inverse=False
+) -> u(np.ndarray, units="=C"):
     """
     Convert elastic tensor in Voigt notation to matrix notation.
 
@@ -111,8 +114,8 @@ def C_from_voigt(C_in, inverse=False):
     return C
 
 
-@units(outputs=lambda C_in: C_in.u)
-def C_to_voigt(C_in):
+@units
+def C_to_voigt(C_in: u(np.ndarray, units="=C")) -> u(np.ndarray, units="=C"):
     """
     Convert elastic tensor in matrix notation to Voigt notation.
 
