@@ -151,7 +151,7 @@ def get_dislocation_displacement(
 @units
 def get_dislocation_strain(
     elastic_tensor: np.ndarray,
-    positions: u(np.ndarray units="=p"),
+    positions: u(np.ndarray, units="=p"),
     burgers_vector: u(np.ndarray, units="=b"),
 ) -> u(np.ndarray, units="=b/p"):
     """
