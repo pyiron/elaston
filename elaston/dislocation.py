@@ -221,7 +221,7 @@ def get_dislocation_energy(
     elastic_tensor: u(np.ndarray, units="=e"),
     burgers_vector: u(np.ndarray, units="=b"),
     r_min: float,
-    r_max: float
+    r_max: float,
     mesh: int = 100,
 ) -> u(float, units="=e*b**2"):
     """
