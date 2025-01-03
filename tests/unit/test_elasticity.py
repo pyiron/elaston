@@ -2,6 +2,7 @@ import numpy as np
 import unittest
 from elaston.linear_elasticity import LinearElasticity
 from elaston import tools
+from pint import UnitRegistry
 
 
 def create_random_C(isotropic=False):
@@ -23,15 +24,21 @@ def create_random_C(isotropic=False):
 
 class TestElasticity(unittest.TestCase):
     def test_cubic(self):
-        medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0, C_13=140.0)
-        self.assertFalse(medium.is_isotropic())
-        self.assertFalse(medium.is_cubic())
-        medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)
-        self.assertFalse(medium.is_isotropic())
-        self.assertTrue(medium.is_cubic())
-        medium = LinearElasticity(C_11=211.0, C_12=130.0)
-        self.assertTrue(medium.is_isotropic())
-        self.assertTrue(medium.is_cubic())
+        ureg = UnitRegistry()
+        for p in [1, ureg.gigapascal]:
+            medium = LinearElasticity(
+                C_11=211.0 * p, C_12=130.0 * p, C_44=82.0 * p, C_13=140.0 * p
+            )
+            self.assertFalse(medium.is_isotropic())
+            self.assertFalse(medium.is_cubic())
+            medium = LinearElasticity(
+                C_11=211.0 * p, C_12=130.0 * p, C_44=82.0 * p
+            )
+            self.assertFalse(medium.is_isotropic())
+            self.assertTrue(medium.is_cubic())
+            medium = LinearElasticity(C_11=211.0 * p, C_12=130.0 * p)
+            self.assertTrue(medium.is_isotropic())
+            self.assertTrue(medium.is_cubic())
 
     def test_frame(self):
         medium = LinearElasticity(np.random.random((6, 6)))
