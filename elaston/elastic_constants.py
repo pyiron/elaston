@@ -88,9 +88,7 @@ def get_elastic_tensor_from_tensor(
         np.ndarray: Elastic tensor in Voigt notation
     """
     if C_tensor is not None:
-        if np.shape(C_tensor) == (6, 6):
-            return np.asarray(C_tensor)
-        elif np.shape(C_tensor) == (3, 3, 3, 3):
+        if np.shape(C_tensor) in [(6, 6), (3, 3, 3, 3)]:
             return tools.C_to_voigt(C_tensor)
         else:
             raise ValueError(

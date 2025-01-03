@@ -125,6 +125,8 @@ def C_to_voigt(C_in: u(np.ndarray, units="=C")) -> u(np.ndarray, units="=C"):
     Returns:
         numpy.ndarray: Elastic tensor in Voigt notation.
     """
+    if np.shape(C_in) == (6, 6):
+        return np.asarray(C_in)
     C = np.zeros((6, 6))
     for i in range(3):
         for j in range(i + 1):
