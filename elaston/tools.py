@@ -134,7 +134,12 @@ def C_to_voigt(C_in: u(np.ndarray, units="=C")) -> u(np.ndarray, units="=C"):
     return C
 
 
-def voigt_average(C_11: float, C_12: float, C_44: float):
+@units
+def voigt_average(
+    C_11: u(float, units="=C"),
+    C_12: u(float, units="=C"),
+    C_44: u(float, units="=C"),
+) -> u(np.ndarray, units="=C"):
     """Make isotropic elastic tensor from C_11, C_12, and C_44."""
     return np.array([[3, 2, 4], [1, 4, -2], [1, -1, 3]]) / 5 @ [C_11, C_12, C_44]
 

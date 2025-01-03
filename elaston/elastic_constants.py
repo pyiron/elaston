@@ -121,6 +121,7 @@ def get_elastic_tensor_from_tensor(
     )
     return C
 
+
 @units
 def _convert_elastic_constants(
     C_11: u(float, units="=A"),
