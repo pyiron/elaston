@@ -41,11 +41,13 @@ class TestElasticity(unittest.TestCase):
             self.assertTrue(medium.is_cubic())
 
     def test_frame(self):
-        medium = LinearElasticity(np.random.random((6, 6)))
-        self.assertIsNone(medium.orientation)
-        medium.orientation = 0.1 * np.random.randn(3, 3) + np.eye(3)
-        self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
-        self.assertRaises(ValueError, setattr, medium, "orientation", -np.eye(3))
+        ureg = UnitRegistry()
+        for p in [1, ureg.gigapascal]:
+            medium = LinearElasticity(np.random.random((6, 6)) * p)
+            self.assertIsNone(medium.orientation)
+            medium.orientation = 0.1 * np.random.randn(3, 3) + np.eye(3)
+            self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
+            self.assertRaises(ValueError, setattr, medium, "orientation", -np.eye(3))
 
     def test_orientation(self):
         elastic_tensor = create_random_C()
