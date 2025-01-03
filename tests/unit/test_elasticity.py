@@ -47,7 +47,9 @@ class TestElasticity(unittest.TestCase):
             self.assertIsNone(medium.orientation)
             medium.orientation = 0.1 * np.random.randn(3, 3) + np.eye(3)
             self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
-            self.assertRaises(ValueError, setattr, medium, "orientation", -np.eye(3))
+            self.assertRaises(
+                ValueError, setattr, medium, "orientation", -np.eye(3)
+            )
 
     def test_orientation(self):
         elastic_tensor = create_random_C()
@@ -87,15 +89,17 @@ class TestElasticity(unittest.TestCase):
                 self.assertIn(key, param)
 
     def test_isotropic(self):
-        medium = LinearElasticity(create_random_C(isotropic=True))
-        self.assertTrue(medium.is_isotropic())
-        medium = LinearElasticity(create_random_C(isotropic=False))
-        self.assertFalse(medium.is_isotropic())
-        medium = medium.get_voigt_average()
-        self.assertTrue(medium.is_isotropic())
-        medium = LinearElasticity(create_random_C(isotropic=False))
-        medium = medium.get_reuss_average()
-        self.assertTrue(medium.is_isotropic())
+        ureg = UnitRegistry()
+        for p in [1, ureg.gigapascal]:
+            medium = LinearElasticity(create_random_C(isotropic=True) * p)
+            self.assertTrue(medium.is_isotropic())
+            medium = LinearElasticity(create_random_C(isotropic=False) * p)
+            self.assertFalse(medium.is_isotropic())
+            medium = medium.get_voigt_average()
+            self.assertTrue(medium.is_isotropic())
+            medium = LinearElasticity(create_random_C(isotropic=False) * p)
+            medium = medium.get_reuss_average()
+            self.assertTrue(medium.is_isotropic())
 
     def test_compliance_tensor(self):
         elastic_tensor = create_random_C()

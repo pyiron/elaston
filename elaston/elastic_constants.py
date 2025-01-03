@@ -208,6 +208,18 @@ def get_voigt_average(C):
     return dict(zip(["C_11", "C_12", "C_44"], tools.voigt_average(C_11, C_12, C_44)))
 
 
+@units
+def _get_reuss_average_values(
+    C: u(np.ndarray, units="=A")
+) -> u(np.ndarray, units="=A"):
+    S = np.linalg.inv(C)
+    S[3:, 3:] /= 4
+    S = get_voigt_average(S)
+    S = get_elastic_tensor_from_tensor(**S)
+    C = np.linalg.inv(S)
+    return C
+
+
 def get_reuss_average(C):
     """
     Get the Reuss average of the elastic constants
@@ -218,11 +230,7 @@ def get_reuss_average(C):
     Returns:
         dict: Reuss average
     """
-    S = np.linalg.inv(C)
-    S[3:, 3:] /= 4
-    S = get_voigt_average(S)
-    S = get_elastic_tensor_from_tensor(**S)
-    C = np.linalg.inv(S)
+    C = _get_reuss_average_values(C)
     return dict(zip(["C_11", "C_12", "C_44"], [C[0, 0], C[0, 1], C[3, 3] / 4]))
 
 
