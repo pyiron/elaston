@@ -125,6 +125,8 @@ def C_to_voigt(C_in: u(np.ndarray, units="=C")) -> u(np.ndarray, units="=C"):
     Returns:
         numpy.ndarray: Elastic tensor in Voigt notation.
     """
+    if np.shape(C_in) == (6, 6):
+        return np.asarray(C_in)
     C = np.zeros((6, 6))
     for i in range(3):
         for j in range(i + 1):
@@ -134,7 +136,12 @@ def C_to_voigt(C_in: u(np.ndarray, units="=C")) -> u(np.ndarray, units="=C"):
     return C
 
 
-def voigt_average(C_11: float, C_12: float, C_44: float):
+@units
+def voigt_average(
+    C_11: u(float, units="=C"),
+    C_12: u(float, units="=C"),
+    C_44: u(float, units="=C"),
+) -> u(np.ndarray, units="=C"):
     """Make isotropic elastic tensor from C_11, C_12, and C_44."""
     return np.array([[3, 2, 4], [1, 4, -2], [1, -1, 3]]) / 5 @ [C_11, C_12, C_44]
 
@@ -206,3 +213,14 @@ def _rotate_tensor(tensor, orientation, inverse, axes=None):
         *len(axes) * [orthonormalize(orientation)],
         v,
     ).reshape(tensor.shape)
+
+
+@units
+def get_compliance_tensor(
+    elastic_tensor: u(np.ndarray, units="=C"),
+    voigt: bool = False,
+) -> u(np.ndarray, units="=1/C"):
+    S = np.linalg.inv(elastic_tensor)
+    if voigt:
+        return S
+    return C_from_voigt(S, inverse=True)
