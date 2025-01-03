@@ -4,7 +4,8 @@
 
 import numpy as np
 from elaston.green import get_greens_function
-from elaston.units import units
+from semantikon.typing import u
+from semantikon.converter import units
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -83,15 +84,15 @@ Vol. 1. Elsevier, 2012.
 """
 
 
-@units(outputs=lambda C, x, P: P.u / C.u / x.u**2)
+@units
 def get_point_defect_displacement(
-    C: np.ndarray,
-    x: np.ndarray,
-    P: np.ndarray,
+    C: u(np.ndarray, units="=C"),
+    x: u(np.ndarray, units="=x"),
+    P: u(np.ndarray, units="=P"),
     n_mesh: int = 100,
     optimize: bool = True,
     check_unique: bool = False,
-):
+) -> u(np.ndarray, units="=P/C/x**2"):
     """
     Displacement field around a point defect
 
@@ -121,15 +122,15 @@ def get_point_defect_displacement(
     return -np.einsum("...ijk,...jk->...i", g_tmp, P)
 
 
-@units(outputs=lambda C, x, P: P.u / C.u / x.u**3)
+@units
 def get_point_defect_strain(
-    C: np.ndarray,
-    x: np.ndarray,
-    P: np.ndarray,
+    C: u(np.ndarray, units="=C"),
+    x: u(np.ndarray, units="=x"),
+    P: u(np.ndarray, units="=P"),
     n_mesh: int = 100,
     optimize: bool = True,
     check_unique: bool = False,
-):
+) -> u(np.ndarray, units="=P/C/x**3"):
     """
     Strain field around a point defect using the Green's function method
 
@@ -160,14 +161,14 @@ def get_point_defect_strain(
     return 0.5 * (v + np.einsum("...ij->...ji", v))
 
 
-@units(outputs=lambda x, P: P.u / x.u**3)
+@units
 def get_point_defect_stress(
-    C: np.ndarray,
-    x: np.ndarray,
-    P: np.ndarray,
+    C: u(np.ndarray, units="=C"),
+    x: u(np.ndarray, units="=x"),
+    P: u(np.ndarray, units="=P"),
     n_mesh: int = 100,
     optimize: bool = True,
-):
+) -> u(np.ndarray, units="=P/C/x**3"):
     """
     Stress field around a point defect using the Green's function method
 
@@ -194,14 +195,14 @@ def get_point_defect_stress(
     return np.einsum("ijkl,...kl->...ij", C, strain)
 
 
-@units(outputs=lambda C, x, P: P.u**2 / C.u / x.u**6)
+@units
 def get_point_defect_energy_density(
-    C: np.ndarray,
-    x: np.ndarray,
-    P: np.ndarray,
+    C: u(np.ndarray, units="=C"),
+    x: u(np.ndarray, units="=x"),
+    P: u(np.ndarray, units="=P"),
     n_mesh: int = 100,
     optimize: bool = True,
-):
+) -> u(np.ndarray, units="=P**2/C/x**6"):
     """
     Energy density field around a point defect using the Green's function method
 
