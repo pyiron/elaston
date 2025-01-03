@@ -119,16 +119,7 @@ def get_elastic_tensor_from_tensor(
     C = _convert_elastic_constants(
         C_11, C_12, C_13, C_22, C_23, C_33, C_44, C_55, C_66
     )
-    return np.array(
-        [
-            [C[0], C[1], C[2], 0, 0, 0],
-            [C[1], C[3], C[4], 0, 0, 0],
-            [C[2], C[4], C[5], 0, 0, 0],
-            [0, 0, 0, C[6], 0, 0],
-            [0, 0, 0, 0, C[7], 0],
-            [0, 0, 0, 0, 0, C[8]],
-        ]
-    )
+    return C
 
 @units
 def _convert_elastic_constants(
@@ -142,7 +133,16 @@ def _convert_elastic_constants(
     C_55: u(float, units="=A"),
     C_66: u(float, units="=A"),
 ) -> u(np.ndarray, units="=A"):
-    return np.array([C_11, C_12, C_13, C_22, C_23, C_33, C_44, C_55, C_66])
+    return np.array(
+        [
+            [C_11, C_12, C_13, 0, 0, 0],
+            [C_12, C_22, C_23, 0, 0, 0],
+            [C_13, C_23, C_33, 0, 0, 0],
+            [0, 0, 0, C_44, 0, 0],
+            [0, 0, 0, 0, C_55, 0],
+            [0, 0, 0, 0, 0, C_66],
+        ]
+    )
 
 
 def get_elastic_tensor_from_moduli(
