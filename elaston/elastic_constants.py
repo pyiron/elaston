@@ -114,9 +114,7 @@ def get_elastic_tensor_from_tensor(
         C_55 = C_44
     if C_66 is None:
         C_66 = C_44
-    C = _convert_elastic_constants(
-        C_11, C_12, C_13, C_22, C_23, C_33, C_44, C_55, C_66
-    )
+    C = _convert_elastic_constants(C_11, C_12, C_13, C_22, C_23, C_33, C_44, C_55, C_66)
     return C
 
 

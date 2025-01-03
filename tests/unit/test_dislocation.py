@@ -21,7 +21,7 @@ class TestDislocation(unittest.TestCase):
         self.assertLess(
             np.absolute(np.linalg.det(hl._get_pmat(hl.p)).max()),
             1e-6,
-            msg="p-matrix has a full dimension"
+            msg="p-matrix has a full dimension",
         )
 
     def test_Ak(self):

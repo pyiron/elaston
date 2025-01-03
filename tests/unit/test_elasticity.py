@@ -31,9 +31,7 @@ class TestElasticity(unittest.TestCase):
             )
             self.assertFalse(medium.is_isotropic())
             self.assertFalse(medium.is_cubic())
-            medium = LinearElasticity(
-                C_11=211.0 * p, C_12=130.0 * p, C_44=82.0 * p
-            )
+            medium = LinearElasticity(C_11=211.0 * p, C_12=130.0 * p, C_44=82.0 * p)
             self.assertFalse(medium.is_isotropic())
             self.assertTrue(medium.is_cubic())
             medium = LinearElasticity(C_11=211.0 * p, C_12=130.0 * p)
@@ -47,9 +45,7 @@ class TestElasticity(unittest.TestCase):
             self.assertIsNone(medium.orientation)
             medium.orientation = 0.1 * np.random.randn(3, 3) + np.eye(3)
             self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
-            self.assertRaises(
-                ValueError, setattr, medium, "orientation", -np.eye(3)
-            )
+            self.assertRaises(ValueError, setattr, medium, "orientation", -np.eye(3))
 
     def test_orientation(self):
         elastic_tensor = create_random_C()
