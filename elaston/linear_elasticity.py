@@ -160,10 +160,9 @@ class LinearElasticity:
 
     def get_compliance_tensor(self, rotate=True, voigt=False):
         """Compliance matrix in Voigt notation."""
-        S = np.linalg.inv(self.get_elastic_tensor(voigt=True, rotate=rotate))
-        if voigt:
-            return S
-        return tools.C_from_voigt(S, inverse=True)
+        return tools.get_compliance_tensor(
+            self.get_elastic_tensor(voigt=True, rotate=rotate), voigt=voigt
+        )
 
     def get_zener_ratio(self):
         """

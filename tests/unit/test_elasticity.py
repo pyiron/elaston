@@ -102,26 +102,28 @@ class TestElasticity(unittest.TestCase):
             self.assertTrue(medium.is_isotropic())
 
     def test_compliance_tensor(self):
-        elastic_tensor = create_random_C()
-        medium = LinearElasticity(elastic_tensor)
-        compliance = medium.get_compliance_tensor(voigt=True)
-        self.assertTrue(
-            np.allclose(
-                np.linalg.inv(medium.get_elastic_tensor(voigt=True)), compliance
+        ureg = UnitRegistry()
+        for ii, p in enumerate([1, ureg.gigapascal]):
+            elastic_tensor = create_random_C() * p
+            medium = LinearElasticity(elastic_tensor)
+            compliance = medium.get_compliance_tensor(voigt=True)
+            C = medium.get_elastic_tensor(voigt=True)
+            if ii == 1:
+                C = C.magnitude
+                compliance = compliance.magnitude
+            self.assertTrue(np.allclose(np.linalg.inv(C), compliance))
+            E = 0.5 * np.einsum("ik,jl->ijkl", *2 * [np.eye(3)])
+            E += 0.5 * np.einsum("il,jk->ijkl", *2 * [np.eye(3)])
+            self.assertTrue(
+                np.allclose(
+                    np.einsum(
+                        "ijkl,klmn->ijmn",
+                        medium.get_compliance_tensor(voigt=False),
+                        medium.get_elastic_tensor(voigt=False),
+                    ),
+                    E,
+                )
             )
-        )
-        E = 0.5 * np.einsum("ik,jl->ijkl", *2 * [np.eye(3)])
-        E += 0.5 * np.einsum("il,jk->ijkl", *2 * [np.eye(3)])
-        self.assertTrue(
-            np.allclose(
-                np.einsum(
-                    "ijkl,klmn->ijmn",
-                    medium.get_compliance_tensor(voigt=False),
-                    medium.get_elastic_tensor(voigt=False),
-                ),
-                E,
-            )
-        )
 
     def test_dislocation_energy(self):
         elastic_tensor = create_random_C()

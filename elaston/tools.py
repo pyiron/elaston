@@ -213,3 +213,14 @@ def _rotate_tensor(tensor, orientation, inverse, axes=None):
         *len(axes) * [orthonormalize(orientation)],
         v,
     ).reshape(tensor.shape)
+
+
+@units
+def get_compliance_tensor(
+    elastic_tensor: u(np.ndarray, units="=C"),
+    voigt: bool = False,
+) -> u(np.ndarray, units="=1/C"):
+    S = np.linalg.inv(elastic_tensor)
+    if voigt:
+        return S
+    return C_from_voigt(S, inverse=True)
