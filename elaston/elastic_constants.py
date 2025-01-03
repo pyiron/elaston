@@ -5,7 +5,8 @@
 import numpy as np
 from typing import Optional
 from elaston import tools
-from elaston.units import units, optional_units
+from semantikon.typing import u
+from semantikon.converter import units
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -56,17 +57,13 @@ def check_is_tensor(**kwargs):
     return False
 
 
-@units(
-    outputs=lambda C_tensor, C_11, C_12, C_13, C_22, C_33, C_44, C_55, C_66: optional_units(
-        C_tensor, C_11, C_12, C_13, C_22, C_33, C_44, C_55, C_66
-    )
-)
 def get_elastic_tensor_from_tensor(
     C_tensor: Optional[np.ndarray] = None,
     C_11: Optional[float] = None,
     C_12: Optional[float] = None,
     C_13: Optional[float] = None,
     C_22: Optional[float] = None,
+    C_23: Optional[float] = None,
     C_33: Optional[float] = None,
     C_44: Optional[float] = None,
     C_55: Optional[float] = None,
@@ -81,6 +78,7 @@ def get_elastic_tensor_from_tensor(
         C_12 (float): Elastic constant
         C_13 (float): Elastic constant
         C_22 (float): Elastic constant
+        C_23 (float): Elastic constant
         C_33 (float): Elastic constant
         C_44 (float): Elastic constant
         C_55 (float): Elastic constant
@@ -108,6 +106,8 @@ def get_elastic_tensor_from_tensor(
         raise ValueError("Out of C_11, C_12, and C_44 at least two must be given")
     if C_13 is None:
         C_13 = C_12
+    if C_23 is None:
+        C_23 = C_12
     if C_22 is None:
         C_22 = C_11
     if C_33 is None:
@@ -116,19 +116,35 @@ def get_elastic_tensor_from_tensor(
         C_55 = C_44
     if C_66 is None:
         C_66 = C_44
+    C = _convert_elastic_constants(
+        C_11, C_12, C_13, C_22, C_23, C_33, C_44, C_55, C_66
+    )
     return np.array(
         [
-            [C_11, C_12, C_13, 0, 0, 0],
-            [C_12, C_22, C_13, 0, 0, 0],
-            [C_13, C_13, C_33, 0, 0, 0],
-            [0, 0, 0, C_44, 0, 0],
-            [0, 0, 0, 0, C_55, 0],
-            [0, 0, 0, 0, 0, C_66],
+            [C[0], C[1], C[2], 0, 0, 0],
+            [C[1], C[3], C[4], 0, 0, 0],
+            [C[2], C[4], C[5], 0, 0, 0],
+            [0, 0, 0, C[6], 0, 0],
+            [0, 0, 0, 0, C[7], 0],
+            [0, 0, 0, 0, 0, C[8]],
         ]
     )
 
+@units
+def _convert_elastic_constants(
+    C_11: u(float, units="=A"),
+    C_12: u(float, units="=A"),
+    C_13: u(float, units="=A"),
+    C_22: u(float, units="=A"),
+    C_23: u(float, units="=A"),
+    C_33: u(float, units="=A"),
+    C_44: u(float, units="=A"),
+    C_55: u(float, units="=A"),
+    C_66: u(float, units="=A"),
+) -> u(np.ndarray, units="=A"):
+    return np.array([C_11, C_12, C_13, C_22, C_23, C_33, C_44, C_55, C_66])
 
-@units(outputs=lambda E, nu, mu: optional_units(E, nu, mu))
+
 def get_elastic_tensor_from_moduli(
     E: Optional[float] = None,
     nu: Optional[float] = None,
@@ -156,6 +172,15 @@ def get_elastic_tensor_from_moduli(
             "Out of Young's modulus, Poisson's ratio, and shear modulus"
             " at least two must be given"
         )
+    return _convert_elastic_moduli(E, nu, mu)
+
+
+@units
+def _convert_elastic_moduli(
+    E: u(float, units="=A"),
+    nu: u(float, units="=A"),
+    mu: u(float, units="=A"),
+) -> u(np.ndarray, units="=A"):
     return np.linalg.inv(
         [
             [1 / E, -nu / E, -nu / E, 0, 0, 0],
@@ -168,7 +193,6 @@ def get_elastic_tensor_from_moduli(
     )
 
 
-@units(outputs=lambda C: C.u)
 def get_voigt_average(C):
     """
     Get the Voigt average of the elastic constants
@@ -185,7 +209,6 @@ def get_voigt_average(C):
     return dict(zip(["C_11", "C_12", "C_44"], tools.voigt_average(C_11, C_12, C_44)))
 
 
-@units(outputs=lambda C: C.u)
 def get_reuss_average(C):
     """
     Get the Reuss average of the elastic constants
