@@ -153,16 +153,21 @@ class TestElasticity(unittest.TestCase):
             )
 
     def test_dislocation_force(self):
-        elastic_tensor = create_random_C()
-        medium = LinearElasticity(elastic_tensor)
-        medium.orientation = [[1, -2, 1], [1, 1, 1], [-1, 0, 1]]
-        lattice_constant = 3.52
-        partial_one = np.array([-0.5, 0, np.sqrt(3) / 2]) * lattice_constant
-        partial_two = np.array([0.5, 0, np.sqrt(3) / 2]) * lattice_constant
-        stress = medium.get_dislocation_stress([0, 10, 0], partial_one)
-        force = medium.get_dislocation_force(stress, [0, 1, 0], partial_two)
-        self.assertAlmostEqual(force[1], 0)
-        self.assertAlmostEqual(force[2], 0)
+        for with_units in [True, False]:
+            elastic_tensor = create_random_C(with_units=with_units)
+            medium = LinearElasticity(elastic_tensor)
+            medium.orientation = [[1, -2, 1], [1, 1, 1], [-1, 0, 1]]
+            lattice_constant = 3.52
+            position = np.array([0., 10., 0.])
+            if with_units:
+                lattice_constant = lattice_constant * ureg.angstrom
+                position = position * ureg.angstrom
+            partial_one = np.array([-0.5, 0, np.sqrt(3) / 2]) * lattice_constant
+            partial_two = np.array([0.5, 0, np.sqrt(3) / 2]) * lattice_constant
+            stress = medium.get_dislocation_stress(position, partial_one)
+            force = medium.get_dislocation_force(stress, [0., 1., 0.], partial_two)
+            self.assertAlmostEqual(force[1], 0)
+            self.assertAlmostEqual(force[2], 0)
 
     def test_dislocation_stress(self):
         medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)
