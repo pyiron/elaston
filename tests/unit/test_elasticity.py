@@ -219,34 +219,54 @@ class TestElasticity(unittest.TestCase):
         self.assertRaises(ValueError, LinearElasticity, np.random.random((3, 3)))
 
     def test_point_defect(self):
-        for d in [
-            {"C_11": 211.0, "C_12": 130.0, "C_44": 82.0},
-            {"C_11": 211.0, "C_12": 130.0},
-        ]:
-            medium = LinearElasticity(**d)
-            self.assertEqual(
-                medium.get_point_defect_displacement(np.ones(3), np.eye(3)).shape, (3,)
-            )
-            dx = 1e-7
-            x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(3)
-            y = medium.get_point_defect_displacement(x, np.eye(3))
-            eps = (y[1:] - y[0]) / dx
-            eps = 0.5 * (eps + eps.T)
-            self.assertTrue(
-                np.allclose(
-                    eps, medium.get_point_defect_strain(x, np.eye(3)).mean(axis=0)
+        for with_units in [True, False]:
+            for d in [
+                {"C_11": 211.0, "C_12": 130.0, "C_44": 82.0},
+                {"C_11": 211.0, "C_12": 130.0},
+            ]:
+                if with_units:
+                    d = {k: v * ureg.gigapascal for k, v in d.items()}
+                medium = LinearElasticity(**d)
+                length_unit = ureg.angstrom if with_units else 1
+                P = np.eye(3)
+                if with_units:
+                    P = P * ureg.eV
+                self.assertEqual(
+                    medium.get_point_defect_displacement(
+                        length_unit * np.ones(3), P
+                    ).shape,
+                    (3,)
                 )
-            )
-            x = np.random.randn(3)
-            strain = medium.get_point_defect_strain(x, np.eye(3))
-            stress = np.einsum("ijkl,kl->ij", medium.get_elastic_tensor(), strain)
-            self.assertTrue(
-                np.allclose(stress, medium.get_point_defect_stress(x, np.eye(3)))
-            )
-            x = np.random.randn(10, 3)
-            self.assertGreater(
-                medium.get_point_defect_energy_density(x, np.eye(3)).min(), 0
-            )
+                dx = 1e-7
+                x = np.array(
+                    [[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]
+                ) + np.ones(3)
+                x = x * length_unit
+                y = medium.get_point_defect_displacement(x, P)
+                if with_units:
+                    y = y.magnitude
+                eps = (y[1:] - y[0]) / dx
+                eps = 0.5 * (eps + eps.T)
+                self.assertTrue(
+                    np.allclose(
+                        eps,
+                        medium.get_point_defect_strain(x, np.eye(3)).mean(axis=0)
+                    )
+                )
+                x = np.random.randn(3) * length_unit
+                strain = medium.get_point_defect_strain(x, P)
+                stress = np.einsum(
+                    "ijkl,kl->ij", medium.get_elastic_tensor(), strain
+                )
+                stress_calculated = medium.get_point_defect_stress(x, P)
+                if with_units:
+                    stress = stress.to("gigapascal").magnitude
+                    stress_calculated = stress_calculated.to("gigapascal").magnitude
+                self.assertTrue(np.allclose(stress, stress_calculated))
+                x = np.random.randn(10, 3) * length_unit
+                self.assertGreater(
+                    medium.get_point_defect_energy_density(x, np.eye(3)).min(), 0
+                )
 
 
 if __name__ == "__main__":

@@ -168,7 +168,7 @@ def get_point_defect_stress(
     P: u(np.ndarray, units="=P"),
     n_mesh: int = 100,
     optimize: bool = True,
-) -> u(np.ndarray, units="=P/C/x**3"):
+) -> u(np.ndarray, units="=P/x**3"):
     """
     Stress field around a point defect using the Green's function method
 
