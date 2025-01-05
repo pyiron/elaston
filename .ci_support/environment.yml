@@ -5,4 +5,4 @@ dependencies:
 - coverage
 - numpy =2.2.1
 - pint =0.24.4
-- semantikon =0.0.5
+- semantikon =0.0.6
