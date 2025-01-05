@@ -140,12 +140,8 @@ class TestElasticity(unittest.TestCase):
                 r_min_one = r_min_one * ureg.angstrom
                 r_min_two = r_min_two * ureg.angstrom
                 burgers_vector = burgers_vector * ureg.angstrom
-            E_one = medium.get_dislocation_energy(
-                burgers_vector, r_min_one, r_max
-            )
-            E_two = medium.get_dislocation_energy(
-                burgers_vector, r_min_two, r_max
-            )
+            E_one = medium.get_dislocation_energy(burgers_vector, r_min_one, r_max)
+            E_two = medium.get_dislocation_energy(burgers_vector, r_min_two, r_max)
             self.assertGreater(E_one, 0)
             self.assertGreater(E_two, 0)
             self.assertAlmostEqual(
@@ -158,14 +154,14 @@ class TestElasticity(unittest.TestCase):
             medium = LinearElasticity(elastic_tensor)
             medium.orientation = [[1, -2, 1], [1, 1, 1], [-1, 0, 1]]
             lattice_constant = 3.52
-            position = np.array([0., 10., 0.])
+            position = np.array([0.0, 10.0, 0.0])
             if with_units:
                 lattice_constant = lattice_constant * ureg.angstrom
                 position = position * ureg.angstrom
             partial_one = np.array([-0.5, 0, np.sqrt(3) / 2]) * lattice_constant
             partial_two = np.array([0.5, 0, np.sqrt(3) / 2]) * lattice_constant
             stress = medium.get_dislocation_stress(position, partial_one)
-            force = medium.get_dislocation_force(stress, [0., 1., 0.], partial_two)
+            force = medium.get_dislocation_force(stress, [0.0, 1.0, 0.0], partial_two)
             self.assertAlmostEqual(force[1], 0)
             self.assertAlmostEqual(force[2], 0)
 
@@ -235,12 +231,12 @@ class TestElasticity(unittest.TestCase):
                     medium.get_point_defect_displacement(
                         length_unit * np.ones(3), P
                     ).shape,
-                    (3,)
+                    (3,),
                 )
                 dx = 1e-7
-                x = np.array(
-                    [[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]
-                ) + np.ones(3)
+                x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(
+                    3
+                )
                 x = x * length_unit
                 y = medium.get_point_defect_displacement(x, P)
                 if with_units:
@@ -249,15 +245,12 @@ class TestElasticity(unittest.TestCase):
                 eps = 0.5 * (eps + eps.T)
                 self.assertTrue(
                     np.allclose(
-                        eps,
-                        medium.get_point_defect_strain(x, np.eye(3)).mean(axis=0)
+                        eps, medium.get_point_defect_strain(x, np.eye(3)).mean(axis=0)
                     )
                 )
                 x = np.random.randn(3) * length_unit
                 strain = medium.get_point_defect_strain(x, P)
-                stress = np.einsum(
-                    "ijkl,kl->ij", medium.get_elastic_tensor(), strain
-                )
+                stress = np.einsum("ijkl,kl->ij", medium.get_elastic_tensor(), strain)
                 stress_calculated = medium.get_point_defect_stress(x, P)
                 if with_units:
                     stress = stress.to("gigapascal").magnitude
