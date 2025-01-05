@@ -5,7 +5,10 @@ from elaston import tools
 from pint import UnitRegistry
 
 
-def create_random_C(isotropic=False):
+ureg = UnitRegistry()
+
+
+def create_random_C(isotropic=False, with_units=False, ureg=ureg):
     C11_range = np.array([0.7120697386322292, 1.5435656086034886])
     coeff_C12 = np.array([0.65797601, -0.0199679])
     coeff_C44 = np.array([0.72753844, -0.30418746])
@@ -19,12 +22,13 @@ def create_random_C(isotropic=False):
         C[3:, 3:] = np.eye(3) * (C[0, 0] - C[0, 1]) / 2
     else:
         C[3:, 3:] = C44 * np.eye(3)
+    if with_units:
+        C = ureg.gigapascal * C
     return tools.C_from_voigt(C)
 
 
 class TestElasticity(unittest.TestCase):
     def test_cubic(self):
-        ureg = UnitRegistry()
         for p in [1, ureg.gigapascal]:
             medium = LinearElasticity(
                 C_11=211.0 * p, C_12=130.0 * p, C_44=82.0 * p, C_13=140.0 * p
@@ -39,7 +43,6 @@ class TestElasticity(unittest.TestCase):
             self.assertTrue(medium.is_cubic())
 
     def test_frame(self):
-        ureg = UnitRegistry()
         for p in [1, ureg.gigapascal]:
             medium = LinearElasticity(np.random.random((6, 6)) * p)
             self.assertIsNone(medium.orientation)
@@ -72,7 +75,6 @@ class TestElasticity(unittest.TestCase):
     def test_elastic_constants(self):
         medium = LinearElasticity(np.eye(6))
         self.assertRaises(ValueError, medium.get_elastic_moduli)
-        ureg = UnitRegistry()
         for p in [1, ureg.gigapascal]:
             medium = LinearElasticity(C_11=211.0 * p, C_12=130.0 * p)
             param = medium.get_elastic_moduli()
@@ -85,26 +87,30 @@ class TestElasticity(unittest.TestCase):
                 self.assertIn(key, param)
 
     def test_isotropic(self):
-        ureg = UnitRegistry()
-        for p in [1, ureg.gigapascal]:
-            medium = LinearElasticity(create_random_C(isotropic=True) * p)
+        for with_units in [True, False]:
+            medium = LinearElasticity(
+                create_random_C(isotropic=True, with_units=with_units)
+            )
             self.assertTrue(medium.is_isotropic())
-            medium = LinearElasticity(create_random_C(isotropic=False) * p)
+            medium = LinearElasticity(
+                create_random_C(isotropic=False, with_units=with_units)
+            )
             self.assertFalse(medium.is_isotropic())
             medium = medium.get_voigt_average()
             self.assertTrue(medium.is_isotropic())
-            medium = LinearElasticity(create_random_C(isotropic=False) * p)
+            medium = LinearElasticity(
+                create_random_C(isotropic=False, with_units=with_units)
+            )
             medium = medium.get_reuss_average()
             self.assertTrue(medium.is_isotropic())
 
     def test_compliance_tensor(self):
-        ureg = UnitRegistry()
-        for ii, p in enumerate([1, ureg.gigapascal]):
-            elastic_tensor = create_random_C() * p
+        for with_units in [True, False]:
+            elastic_tensor = create_random_C(with_units=with_units)
             medium = LinearElasticity(elastic_tensor)
             compliance = medium.get_compliance_tensor(voigt=True)
             C = medium.get_elastic_tensor(voigt=True)
-            if ii == 1:
+            if with_units:
                 C = C.magnitude
                 compliance = compliance.magnitude
             self.assertTrue(np.allclose(np.linalg.inv(C), compliance))
@@ -122,30 +128,42 @@ class TestElasticity(unittest.TestCase):
             )
 
     def test_dislocation_energy(self):
-        elastic_tensor = create_random_C()
-        medium = LinearElasticity(elastic_tensor)
-        r_max = 1e6 * np.random.random() + 10
-        r_min_one = 10 * np.random.random()
-        r_min_two = 10 * np.random.random()
-        E_one = medium.get_dislocation_energy([0, 0, 1], r_min_one, r_max)
-        E_two = medium.get_dislocation_energy([0, 0, 1], r_min_two, r_max)
-        self.assertGreater(E_one, 0)
-        self.assertGreater(E_two, 0)
-        self.assertAlmostEqual(
-            E_one / np.log(r_max / r_min_one), E_two / np.log(r_max / r_min_two)
-        )
+        for with_units in [True, False]:
+            elastic_tensor = create_random_C(with_units=with_units)
+            medium = LinearElasticity(elastic_tensor)
+            r_max = 1e6 * np.random.random() + 10
+            r_min_one = 10 * np.random.random()
+            r_min_two = 10 * np.random.random()
+            burgers_vector = np.asarray([0, 0, 1])
+            if with_units:
+                r_max = r_max * ureg.angstrom
+                r_min_one = r_min_one * ureg.angstrom
+                r_min_two = r_min_two * ureg.angstrom
+                burgers_vector = burgers_vector * ureg.angstrom
+            E_one = medium.get_dislocation_energy(burgers_vector, r_min_one, r_max)
+            E_two = medium.get_dislocation_energy(burgers_vector, r_min_two, r_max)
+            self.assertGreater(E_one, 0)
+            self.assertGreater(E_two, 0)
+            self.assertAlmostEqual(
+                E_one / np.log(r_max / r_min_one), E_two / np.log(r_max / r_min_two)
+            )
 
     def test_dislocation_force(self):
-        elastic_tensor = create_random_C()
-        medium = LinearElasticity(elastic_tensor)
-        medium.orientation = [[1, -2, 1], [1, 1, 1], [-1, 0, 1]]
-        lattice_constant = 3.52
-        partial_one = np.array([-0.5, 0, np.sqrt(3) / 2]) * lattice_constant
-        partial_two = np.array([0.5, 0, np.sqrt(3) / 2]) * lattice_constant
-        stress = medium.get_dislocation_stress([0, 10, 0], partial_one)
-        force = medium.get_dislocation_force(stress, [0, 1, 0], partial_two)
-        self.assertAlmostEqual(force[1], 0)
-        self.assertAlmostEqual(force[2], 0)
+        for with_units in [True, False]:
+            elastic_tensor = create_random_C(with_units=with_units)
+            medium = LinearElasticity(elastic_tensor)
+            medium.orientation = [[1, -2, 1], [1, 1, 1], [-1, 0, 1]]
+            lattice_constant = 3.52
+            position = np.array([0.0, 10.0, 0.0])
+            if with_units:
+                lattice_constant = lattice_constant * ureg.angstrom
+                position = position * ureg.angstrom
+            partial_one = np.array([-0.5, 0, np.sqrt(3) / 2]) * lattice_constant
+            partial_two = np.array([0.5, 0, np.sqrt(3) / 2]) * lattice_constant
+            stress = medium.get_dislocation_stress(position, partial_one)
+            force = medium.get_dislocation_force(stress, [0.0, 1.0, 0.0], partial_two)
+            self.assertAlmostEqual(force[1], 0)
+            self.assertAlmostEqual(force[2], 0)
 
     def test_dislocation_stress(self):
         medium = LinearElasticity(C_11=211.0, C_12=130.0, C_44=82.0)
@@ -197,34 +215,51 @@ class TestElasticity(unittest.TestCase):
         self.assertRaises(ValueError, LinearElasticity, np.random.random((3, 3)))
 
     def test_point_defect(self):
-        for d in [
-            {"C_11": 211.0, "C_12": 130.0, "C_44": 82.0},
-            {"C_11": 211.0, "C_12": 130.0},
-        ]:
-            medium = LinearElasticity(**d)
-            self.assertEqual(
-                medium.get_point_defect_displacement(np.ones(3), np.eye(3)).shape, (3,)
-            )
-            dx = 1e-7
-            x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(3)
-            y = medium.get_point_defect_displacement(x, np.eye(3))
-            eps = (y[1:] - y[0]) / dx
-            eps = 0.5 * (eps + eps.T)
-            self.assertTrue(
-                np.allclose(
-                    eps, medium.get_point_defect_strain(x, np.eye(3)).mean(axis=0)
+        for with_units in [True, False]:
+            for d in [
+                {"C_11": 211.0, "C_12": 130.0, "C_44": 82.0},
+                {"C_11": 211.0, "C_12": 130.0},
+            ]:
+                if with_units:
+                    d = {k: v * ureg.gigapascal for k, v in d.items()}
+                medium = LinearElasticity(**d)
+                length_unit = ureg.angstrom if with_units else 1
+                P = np.eye(3)
+                if with_units:
+                    P = P * ureg.eV
+                self.assertEqual(
+                    medium.get_point_defect_displacement(
+                        length_unit * np.ones(3), P
+                    ).shape,
+                    (3,),
                 )
-            )
-            x = np.random.randn(3)
-            strain = medium.get_point_defect_strain(x, np.eye(3))
-            stress = np.einsum("ijkl,kl->ij", medium.get_elastic_tensor(), strain)
-            self.assertTrue(
-                np.allclose(stress, medium.get_point_defect_stress(x, np.eye(3)))
-            )
-            x = np.random.randn(10, 3)
-            self.assertGreater(
-                medium.get_point_defect_energy_density(x, np.eye(3)).min(), 0
-            )
+                dx = 1e-7
+                x = np.array([[0, 0, 0], [dx, 0, 0], [0, dx, 0], [0, 0, dx]]) + np.ones(
+                    3
+                )
+                x = x * length_unit
+                y = medium.get_point_defect_displacement(x, P)
+                if with_units:
+                    y = y.magnitude
+                eps = (y[1:] - y[0]) / dx
+                eps = 0.5 * (eps + eps.T)
+                self.assertTrue(
+                    np.allclose(
+                        eps, medium.get_point_defect_strain(x, np.eye(3)).mean(axis=0)
+                    )
+                )
+                x = np.random.randn(3) * length_unit
+                strain = medium.get_point_defect_strain(x, P)
+                stress = np.einsum("ijkl,kl->ij", medium.get_elastic_tensor(), strain)
+                stress_calculated = medium.get_point_defect_stress(x, P)
+                if with_units:
+                    stress = stress.to("gigapascal").magnitude
+                    stress_calculated = stress_calculated.to("gigapascal").magnitude
+                self.assertTrue(np.allclose(stress, stress_calculated))
+                x = np.random.randn(10, 3) * length_unit
+                self.assertGreater(
+                    medium.get_point_defect_energy_density(x, np.eye(3)).min(), 0
+                )
 
 
 if __name__ == "__main__":

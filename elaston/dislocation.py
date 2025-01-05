@@ -128,7 +128,7 @@ class Dislocation:
 
 @units
 def get_dislocation_displacement(
-    elastic_tensor: np.ndarray,
+    elastic_tensor: u(np.ndarray, units="=e"),
     positions: np.ndarray,
     burgers_vector: u(np.ndarray, units="=b"),
 ) -> u(np.ndarray, units="=b"):
@@ -150,7 +150,7 @@ def get_dislocation_displacement(
 
 @units
 def get_dislocation_strain(
-    elastic_tensor: np.ndarray,
+    elastic_tensor: u(np.ndarray, units="=e"),
     positions: u(np.ndarray, units="=p"),
     burgers_vector: u(np.ndarray, units="=b"),
 ) -> u(np.ndarray, units="=b/p"):
@@ -220,8 +220,8 @@ def get_dislocation_energy_density(
 def get_dislocation_energy(
     elastic_tensor: u(np.ndarray, units="=e"),
     burgers_vector: u(np.ndarray, units="=b"),
-    r_min: float,
-    r_max: float,
+    r_min: u(float, units="=r"),
+    r_max: u(float, units="=r"),
     mesh: int = 100,
 ) -> u(float, units="=e*b**2"):
     """
