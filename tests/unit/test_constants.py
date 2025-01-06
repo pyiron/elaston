@@ -127,12 +127,11 @@ class TestConstants(unittest.TestCase):
 
     def test_elastic_moduli(self):
         C = ec.initialize_elastic_tensor(**data["Ni"])
-        self.assertRaises(
+        with self.assertRaises(
             ValueError,
-            ec.get_elastic_moduli,
-            C,
             msg="Not isotropic and therefore no unique moduli",
-        )
+        ):
+            ec.get_elastic_moduli(C)
         C = ec.initialize_elastic_tensor(**ec.get_reuss_average(C))
         moduli = ec.get_elastic_moduli(C)
         self.assertLess(np.absolute(moduli["bulk_modulus"] - 174.0), 1)
@@ -143,7 +142,7 @@ class TestConstants(unittest.TestCase):
         self.assertLess(np.absolute(moduli["bulk_modulus"] - 174.0), 1)
         self.assertLess(np.absolute(moduli["shear_modulus"] - 99.0), 1)
         moduli = ec.get_elastic_moduli(C * ureg.gigapascal)
-        self.assertLess(np.absolute(moduli["bulk_modulus"] - 174.0), 1)
+        self.assertLess(np.absolute(moduli["bulk_modulus"].magnitude - 174.0), 1)
 
 
 if __name__ == "__main__":
