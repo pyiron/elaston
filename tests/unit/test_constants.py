@@ -142,6 +142,8 @@ class TestConstants(unittest.TestCase):
         moduli = ec.get_elastic_moduli(C)
         self.assertLess(np.absolute(moduli["bulk_modulus"] - 174.0), 1)
         self.assertLess(np.absolute(moduli["shear_modulus"] - 99.0), 1)
+        moduli = ec.get_elastic_moduli(C * ureg.gigapascal)
+        self.assertLess(np.absolute(moduli["bulk_modulus"] - 174.0), 1)
 
 
 if __name__ == "__main__":
