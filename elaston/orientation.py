@@ -82,21 +82,8 @@ def get_shockley_partials(burgers_vector=(1, -1, 0), glide_plane=(1, 1, 1)):
         (np.ndarray, np.ndarray): Shockley partials.
     """
     assert np.shape(burgers_vector) == np.shape(glide_plane) == (3,)
-    if np.sum(np.isclose(burgers_vector, 0)) != 1:
-        raise ValueError(
-            f"Burgers vector must have one zero component in fcc: {burgers_vector}."
-        )
     if not np.isclose(np.dot(burgers_vector, glide_plane), 0):
         raise ValueError("Burgers vector and glide plane are not orthogonal.")
-    length = np.linalg.norm(burgers_vector) / np.sqrt(2)
-    v_side = np.zeros(3)
-    v_side[np.isclose(burgers_vector, 0)] = length / 3
-    b_1 = np.array(burgers_vector) / 3
-    b_2 = np.array(burgers_vector) / 3
-    b_1[np.where(~np.isclose(b_1, 0))[0][0]] *= 2
-    b_2[np.where(~np.isclose(b_1, 0))[0][1]] *= 2
-    if np.abs(np.dot(b_1 + v_side, glide_plane)) > np.abs(
-        np.dot(b_1 - v_side, glide_plane)
-    ):
-        v_side *= -1
-    return b_1 + v_side, b_2 - v_side
+    b = np.asarray(burgers_vector) / 2
+    cross = np.cross(b, glide_plane) / np.linalg.norm(glide_plane) / np.sqrt(3)
+    return b + cross, b - cross
