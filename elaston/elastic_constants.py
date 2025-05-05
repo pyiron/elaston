@@ -208,7 +208,7 @@ def get_voigt_average(C):
 
 @units
 def _get_reuss_average_values(
-    C: u(np.ndarray, units="=A")
+    C: u(np.ndarray, units="=A"),
 ) -> u(np.ndarray, units="=A"):
     S = np.linalg.inv(C)
     S[3:, 3:] /= 4
