@@ -106,11 +106,11 @@ def C_from_voigt(
         C_v[3:] /= 2
         C_v[:, 3:] /= 2
     C = np.zeros((3, 3, 3, 3))
-    for i in range(3):
-        for j in range(3):
-            for k in range(3):
-                for l in range(3):
-                    C[i, j, k, l] = C_v[index_from_voigt(i, j), index_from_voigt(k, l)]
+    for I in range(3):
+        for J in range(3):
+            for K in range(3):
+                for L in range(3):
+                    C[I, J, K, L] = C_v[index_from_voigt(I, J), index_from_voigt(K, L)]
     return C
 
 
@@ -128,11 +128,11 @@ def C_to_voigt(C_in: u(np.ndarray, units="=C")) -> u(np.ndarray, units="=C"):
     if np.shape(C_in) == (6, 6):
         return np.asarray(C_in)
     C = np.zeros((6, 6))
-    for i in range(3):
-        for j in range(i + 1):
-            for k in range(3):
-                for l in range(k + 1):
-                    C[index_from_voigt(i, j), index_from_voigt(k, l)] = C_in[i, j, k, l]
+    for I in range(3):
+        for J in range(I + 1):
+            for K in range(3):
+                for L in range(K + 1):
+                    C[index_from_voigt(I, J), index_from_voigt(K, L)] = C_in[I, J, K, L]
     return C
 
 
