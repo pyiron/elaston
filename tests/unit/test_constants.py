@@ -86,9 +86,7 @@ class TestConstants(unittest.TestCase):
         self.assertTrue(ec.is_cubic(C))
         C = ec.initialize_elastic_tensor(**data["W"])
         self.assertTrue(ec.is_cubic(C))
-        C = ec.initialize_elastic_tensor(
-            C_11=211.0, C_12=145.0, C_13=140, C_44=82.0
-        )
+        C = ec.initialize_elastic_tensor(C_11=211.0, C_12=145.0, C_13=140, C_44=82.0)
         self.assertFalse(ec.is_cubic(C))
 
     def test_zener_ratio(self):
@@ -102,9 +100,7 @@ class TestConstants(unittest.TestCase):
             C_11=211.0 * ureg.gigapascal, C_44=82.0 * ureg.gigapascal
         )
         self.assertTrue(ec.is_isotropic(C))
-        C = ec.initialize_elastic_tensor(
-            C_11=211.0, C_12=145.0, C_13=140, C_44=82.0
-        )
+        C = ec.initialize_elastic_tensor(C_11=211.0, C_12=145.0, C_13=140, C_44=82.0)
         self.assertRaises(ValueError, ec.get_zener_ratio, C)
 
     def test_voigt_average(self):
