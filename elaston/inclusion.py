@@ -3,9 +3,10 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 import numpy as np
-from elaston.green import get_greens_function
-from semantikon.typing import u
 from semantikon.converter import units
+from semantikon.typing import u
+
+from elaston.green import get_greens_function
 
 __author__ = "Sam Waseda"
 __copyright__ = (

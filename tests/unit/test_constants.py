@@ -1,6 +1,7 @@
 import unittest
-from elaston import elastic_constants as ec
+
 import numpy as np
+from elaston import elastic_constants as ec
 from pint import UnitRegistry
 
 ureg = UnitRegistry()

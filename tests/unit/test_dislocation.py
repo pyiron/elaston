@@ -1,7 +1,8 @@
-import numpy as np
 import unittest
-from elaston.dislocation import Dislocation
+
+import numpy as np
 from elaston import tools
+from elaston.dislocation import Dislocation
 
 
 def create_random_HL(b=None):

@@ -2,11 +2,11 @@
 # Copyright (c) Max-Planck-Institut für Eisenforschung GmbH - Computational Materials Design (CM) Department
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
-import numpy as np
 import string
-from semantikon.typing import u
-from semantikon.converter import units
 
+import numpy as np
+from semantikon.converter import units
+from semantikon.typing import u
 
 __author__ = "Sam Waseda"
 __copyright__ = (
