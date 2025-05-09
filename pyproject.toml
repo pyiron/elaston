@@ -50,3 +50,6 @@ include = [ "elaston*",]
 
 [tool.setuptools.dynamic.version]
 attr = "elaston.__version__"
+
+[tool.ruff]
+src = ["elaston"]
