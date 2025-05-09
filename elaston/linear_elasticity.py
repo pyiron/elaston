@@ -3,10 +3,8 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 import numpy as np
-from elaston import dislocation
-from elaston import tools
-from elaston import elastic_constants
-from elaston import inclusion
+
+from elaston import dislocation, elastic_constants, inclusion, tools
 
 __author__ = "Sam Waseda"
 __copyright__ = (

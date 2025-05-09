@@ -2,11 +2,11 @@
 # Copyright (c) Max-Planck-Institut für Eisenforschung GmbH - Computational Materials Design (CM) Department
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
-import numpy as np
 import string
-from semantikon.typing import u
-from semantikon.converter import units
 
+import numpy as np
+from semantikon.converter import units
+from semantikon.typing import u
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -106,11 +106,13 @@ def C_from_voigt(
         C_v[3:] /= 2
         C_v[:, 3:] /= 2
     C = np.zeros((3, 3, 3, 3))
-    for i in range(3):
-        for j in range(3):
-            for k in range(3):
-                for l in range(3):
-                    C[i, j, k, l] = C_v[index_from_voigt(i, j), index_from_voigt(k, l)]
+    for ii in range(3):
+        for jj in range(3):
+            for kk in range(3):
+                for ll in range(3):
+                    C[ii, jj, kk, ll] = C_v[
+                        index_from_voigt(ii, jj), index_from_voigt(kk, ll)
+                    ]
     return C
 
 
@@ -128,11 +130,13 @@ def C_to_voigt(C_in: u(np.ndarray, units="=C")) -> u(np.ndarray, units="=C"):
     if np.shape(C_in) == (6, 6):
         return np.asarray(C_in)
     C = np.zeros((6, 6))
-    for i in range(3):
-        for j in range(i + 1):
-            for k in range(3):
-                for l in range(k + 1):
-                    C[index_from_voigt(i, j), index_from_voigt(k, l)] = C_in[i, j, k, l]
+    for ii in range(3):
+        for jj in range(ii + 1):
+            for kk in range(3):
+                for ll in range(kk + 1):
+                    C[index_from_voigt(ii, jj), index_from_voigt(kk, ll)] = C_in[
+                        ii, jj, kk, ll
+                    ]
     return C
 
 

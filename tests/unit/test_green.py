@@ -1,8 +1,10 @@
-import numpy as np
 import unittest
-from elaston.green import Anisotropic, Isotropic
+
+import numpy as np
+
 from elaston import elastic_constants as ec
 from elaston import tools
+from elaston.green import Anisotropic, Isotropic
 
 
 def create_random_C(isotropic=False):

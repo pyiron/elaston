@@ -2,11 +2,12 @@
 # Copyright (c) Max-Planck-Institut für Eisenforschung GmbH - Computational Materials Design (CM) Department
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
-import numpy as np
-from functools import cached_property
 from abc import ABC, abstractmethod
+from functools import cached_property
 
-from elaston import tools, elastic_constants
+import numpy as np
+
+from elaston import elastic_constants, tools
 
 __author__ = "Sam Waseda"
 __copyright__ = (

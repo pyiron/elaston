@@ -1,9 +1,10 @@
-import numpy as np
 import unittest
-from elaston.linear_elasticity import LinearElasticity
-from elaston import tools
+
+import numpy as np
 from pint import UnitRegistry
 
+from elaston import tools
+from elaston.linear_elasticity import LinearElasticity
 
 ureg = UnitRegistry()
 
