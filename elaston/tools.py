@@ -110,7 +110,9 @@ def C_from_voigt(
         for jj in range(3):
             for kk in range(3):
                 for ll in range(3):
-                    C[ii, jj, kk, ll] = C_v[index_from_voigt(ii, jj), index_from_voigt(kk, ll)]
+                    C[ii, jj, kk, ll] = C_v[
+                        index_from_voigt(ii, jj), index_from_voigt(kk, ll)
+                    ]
     return C
 
 
@@ -132,7 +134,9 @@ def C_to_voigt(C_in: u(np.ndarray, units="=C")) -> u(np.ndarray, units="=C"):
         for jj in range(ii + 1):
             for kk in range(3):
                 for ll in range(kk + 1):
-                    C[index_from_voigt(ii, jj), index_from_voigt(kk, ll)] = C_in[ii, jj, kk, ll]
+                    C[index_from_voigt(ii, jj), index_from_voigt(kk, ll)] = C_in[
+                        ii, jj, kk, ll
+                    ]
     return C
 
 
