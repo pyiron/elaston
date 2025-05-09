@@ -1,6 +1,7 @@
 import unittest
 
 import numpy as np
+
 from elaston import orientation
 
 

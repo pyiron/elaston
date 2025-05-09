@@ -1,6 +1,7 @@
 import unittest
 
 import numpy as np
+
 from elaston import elastic_constants as ec
 from elaston import tools
 from elaston.green import Anisotropic, Isotropic
