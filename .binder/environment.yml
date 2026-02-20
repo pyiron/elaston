@@ -3,6 +3,4 @@ channels:
 dependencies:
 - coveralls
 - coverage
-- numpy =2.3.0
-- pint =0.25.2
 - semantikon =0.0.27
