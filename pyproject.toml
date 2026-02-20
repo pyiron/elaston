@@ -1,7 +1,7 @@
 [build-system]
 requires = [
-    "setuptools",
-    "versioneer[toml]==0.29",
+    "hatchling==1.27.0",
+    "hatch-vcs==0.5.0",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -27,7 +27,7 @@ dependencies = [
 ]
 dynamic = [ "version",]
 authors = [
-    { name = "Lorem Ipsum", email = "lorem@ipsum.com" },
+    { name = "Sam Waseda", email = "waseda@mpie.de" },
 ]
 
 [project.license]
