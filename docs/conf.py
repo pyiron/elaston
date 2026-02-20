@@ -15,9 +15,10 @@
 import importlib.util
 import os
 import shutil
-import subprocess
 
 from sphinx.ext.apidoc import main
+
+import elaston
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -75,14 +76,8 @@ copyright = (
 # built documents.
 #
 # The short X.Y version.
-version_full = subprocess.check_output(
-    "python -c 'import versioneer; print(versioneer.get_version())'",
-    cwd=os.path.join(os.path.curdir, ".."),
-    universal_newlines=True,
-    shell=True,
-)
-version_full = version_full.split("\n")[0]
-version = ".".join(version_full.split(".")[0:2])
+version_full = elaston.__version__
+version = ".".join(version_full.split(".")[:2])
 # The full version, including alpha/beta/rc tags.
 release = version_full
 
@@ -147,6 +142,7 @@ modindex_common_prefix = [
 # except ImportError:
 #    raise ImportError("You need to install bootstrap: pip install sphinx_bootstrap_theme")
 #    html_theme = 'default'
+
 
 if importlib.util.find_spec("sphinx_rtd_theme") is not None:
     # sphinx_rtd_theme is available

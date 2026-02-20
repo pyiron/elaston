@@ -4,7 +4,7 @@
 
 import numpy as np
 from semantikon.converter import units
-from semantikon.typing import u
+from semantikon.metadata import u
 
 from elaston.green import get_greens_function
 

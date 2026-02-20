@@ -6,7 +6,7 @@ from functools import cached_property
 
 import numpy as np
 from semantikon.converter import units
-from semantikon.typing import u
+from semantikon.metadata import u
 
 __author__ = "Sam Waseda"
 __copyright__ = (

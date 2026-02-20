@@ -1,33 +1,33 @@
 [build-system]
 requires = [
-    "setuptools",
-    "versioneer[toml]==0.29",
+    "hatchling==1.27.0",
+    "hatch-vcs==0.5.0",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
 
 [project]
 name = "Elaston"
 description = "Elaston - linear elasticity toolbox"
 readme = "docs/README.md"
 keywords = [ "pyiron",]
-requires-python = ">=3.9, <3.13"
+requires-python = ">=3.11, <3.15"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Topic :: Scientific/Engineering",
     "License :: OSI Approved :: BSD License",
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-    "numpy==2.2.3"
+    "semantikon==0.0.27",
 ]
 dynamic = [ "version",]
 authors = [
-    { name = "Lorem Ipsum", email = "lorem@ipsum.com" },
+    { name = "Sam Waseda", email = "waseda@mpie.de" },
 ]
 
 [project.license]
@@ -38,15 +38,35 @@ Homepage = "https://pyiron.org/"
 Documentation = "https://elaston.readthedocs.io"
 Repository = "https://github.com/pyiron/elaston"
 
-[tool.versioneer]
-VCS = "git"
-style = "pep440-pre"
-versionfile_source = "elaston/_version.py"
-parentdir_prefix = "elaston"
-tag_prefix = "elaston-"
+[tool.hatch.build]
+include = [
+    "elaston"
+]
 
-[tool.setuptools.packages.find]
-include = [ "elaston*",]
+[tool.hatch.build.hooks.vcs]
+version-file = "elaston/_version.py"
 
-[tool.setuptools.dynamic.version]
-attr = "elaston.__version__"
+[tool.hatch.build.targets.sdist]
+include = [
+    "elaston"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "elaston"
+]
+
+[tool.hatch.version]
+source = "vcs"
+path = "elaston/_version.py"
+
+
+[tool.mypy]
+exclude = [
+    "^docs/conf\\.py$",
+    "^tests/",
+]
+ignore_missing_imports = true
+strict_equality = true
+non_interactive = true
+install_types = true
