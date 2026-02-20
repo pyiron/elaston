@@ -9,7 +9,10 @@ on:
 
 jobs:
   pyiron:
-    uses: pyiron/actions/.github/workflows/push-pull.yml@actions-4.0.1
+    uses: pyiron/actions/.github/workflows/push-pull.yml@actions-4.0.8
     with:
-      python-version-alt3: 'exclude'  # No python 3.9
+      python-version-alt1: '3.11'
+      python-version-alt2: '3.12'
+      python-version: '3.13'
+      python-version-alt3: '3.14'
     secrets: inherit
