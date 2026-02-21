@@ -291,7 +291,9 @@ class Anisotropic(Green):
       solutions and is therefore much faster.
     """
 
-    def __init__(self, elastic_tensor: np.array, n_mesh=100, optimize=True):
+    def __init__(
+        self, elastic_tensor: np.array, n_mesh: int = 100, optimize: bool = True
+    ):
         """
         Args:
             elastic_tensor ((3,3,3,3)-array): Elastic tensor
@@ -305,7 +307,7 @@ class Anisotropic(Green):
         self.optimize = optimize
 
     @cached_property
-    def z(self):
+    def z(self) -> np.ndarray:
         """Unit vector in the direction of the azimuthal angle."""
         return np.einsum(
             "i...x,in->n...x",
@@ -314,7 +316,7 @@ class Anisotropic(Green):
         )
 
     @cached_property
-    def Ms(self):
+    def Ms(self) -> np.ndarray:
         """Inverse of the matrix `Ms`."""
         return np.linalg.inv(
             np.einsum(
@@ -323,17 +325,17 @@ class Anisotropic(Green):
         )
 
     @cached_property
-    def T(self):
+    def T(self) -> np.ndarray:
         """Normalized `r`."""
         return tools.normalize(self.r)
 
     @cached_property
-    def zT(self):
+    def zT(self) -> np.ndarray:
         zT = np.einsum("...p,...w->...pw", self.z, self.T)
         return zT + np.einsum("...ij->...ji", zT)
 
     @cached_property
-    def F(self):
+    def F(self) -> np.ndarray:
         return np.einsum(
             "jpnw,...ij,...nr,...pw->...ir",
             self.C,
@@ -344,12 +346,12 @@ class Anisotropic(Green):
         )
 
     @cached_property
-    def MF(self):
+    def MF(self) -> np.ndarray:
         MF = np.einsum("...ij,...nr->...ijnr", self.F, self.Ms)
         return MF + np.einsum("...ijnr->...nrij", MF)
 
     @property
-    def Air(self):
+    def Air(self) -> np.ndarray:
         Air = np.einsum("...pw,...ijnr->...ijnrpw", self.zT, self.MF)
         Air -= 2 * np.einsum(
             "...ij,...nr,...p,...w->...ijnrpw",
@@ -363,7 +365,7 @@ class Anisotropic(Green):
         return Air
 
     @property
-    def _integrand_second_derivative(self):
+    def _integrand_second_derivative(self) -> np.ndarray:
         results = -2 * np.einsum("...sm,...ir->...isrm", self.zT, self.F)
         results += 2 * np.einsum(
             "...s,...m,...ir->...isrm", self.T, self.T, self.Ms, optimize=self.optimize
@@ -374,12 +376,14 @@ class Anisotropic(Green):
         return results
 
     @property
-    def _integrand_first_derivative(self):
+    def _integrand_first_derivative(self) -> np.ndarray:
         results = np.einsum("...s,...ir->...isr", self.z, self.F)
         results -= np.einsum("...s,...ir->...isr", self.T, self.Ms)
         return results
 
-    def _get_greens_function(self, r, derivative=0, fourier=False):
+    def _get_greens_function(
+        self, r: np.ndarray, derivative: int = 0, fourier: bool = False
+    ) -> np.ndarray:
         self.r = np.asarray(r)
         if fourier:
             G = np.einsum(
