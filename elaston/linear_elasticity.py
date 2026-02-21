@@ -20,6 +20,8 @@ __date__ = "Aug 21, 2021"
 
 class LinearElasticity:
     """
+    Linear elastic field class based on the 3x3x3x3 elastic tensor :math:C_{ijkl}:
+
     .. math:
         \\sigma_{ij} = C_{ijkl} * \\epsilon_{kl}
 
@@ -183,22 +185,6 @@ class LinearElasticity:
         )
 
     def get_elastic_moduli(self) -> dict[str, float]:
-        """
-        Displacement field around a point defect
-
-        Args:
-            positions ((n,3)-array): Positions in real space or reciprocal
-                space (if fourier=True).
-            dipole_tensor ((3,3)-array): Dipole tensor
-            n_mesh (int): Number of mesh points in the radial integration in
-                case if anisotropic Green's function (ignored if isotropic=True
-                or fourier=True)
-            optimize (bool): cf. `optimize` in `numpy.einsum`
-            check_unique (bool): Whether to check the unique positions
-
-        Returns:
-            ((n,3)-array): Displacement field
-        """
         if not self.is_isotropic():
             raise ValueError(
                 "The material must be isotropic. Re-instantiate with isotropic"
@@ -217,6 +203,22 @@ class LinearElasticity:
         optimize: bool = True,
         check_unique: bool = False,
     ) -> np.ndarray:
+        """
+        Displacement field around a point defect
+
+        Args:
+            positions ((n,3)-array): Positions in real space or reciprocal
+                space (if fourier=True).
+            dipole_tensor ((3,3)-array): Dipole tensor
+            n_mesh (int): Number of mesh points in the radial integration in
+                case if anisotropic Green's function (ignored if isotropic=True
+                or fourier=True)
+            optimize (bool): cf. `optimize` in `numpy.einsum`
+            check_unique (bool): Whether to check the unique positions
+
+        Returns:
+            ((n,3)-array): Displacement field
+        """
         return inclusion.get_point_defect_displacement(
             C=self.get_elastic_tensor(),
             x=positions,

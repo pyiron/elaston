@@ -291,7 +291,7 @@ class Anisotropic(Green):
       solutions and is therefore much faster.
     """
 
-    def __init__(self, elastic_tensor, n_mesh=100, optimize=True):
+    def __init__(self, elastic_tensor: np.array, n_mesh=100, optimize=True):
         """
         Args:
             elastic_tensor ((3,3,3,3)-array): Elastic tensor

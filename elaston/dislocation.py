@@ -3,7 +3,6 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 from functools import cached_property
-from typing import Any
 
 import numpy as np
 from semantikon.converter import units
