@@ -20,7 +20,7 @@ __status__ = "development"
 __date__ = "Aug 21, 2021"
 
 
-def normalize(x):
+def normalize(x: np.ndarray) -> np.ndarray:
     """
     Normalize a vector or an array of vectors.
 
@@ -33,7 +33,7 @@ def normalize(x):
     return (x.T / np.linalg.norm(x, axis=-1).T).T
 
 
-def orthonormalize(vectors):
+def orthonormalize(vectors: list) -> np.ndarray:
     """
     Orthonormalize a set of vectors.
 
@@ -54,7 +54,7 @@ def orthonormalize(vectors):
     return normalize(x)
 
 
-def get_plane(T):
+def get_plane(T: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Get a plane perpendicular to a vector.
 
@@ -70,7 +70,7 @@ def get_plane(T):
     return x, y
 
 
-def index_from_voigt(i, j):
+def index_from_voigt(i: int, j: int) -> int:
     """
     Convert Voigt notation to matrix index.
 
@@ -89,7 +89,7 @@ def index_from_voigt(i, j):
 
 @units
 def C_from_voigt(
-    C_in: u(np.ndarray, units="=C"), inverse=False
+    C_in: u(np.ndarray, units="=C"), inverse: bool = False
 ) -> u(np.ndarray, units="=C"):
     """
     Convert elastic tensor in Voigt notation to matrix notation.
@@ -150,7 +150,9 @@ def voigt_average(
     return np.array([[3, 2, 4], [1, 4, -2], [1, -1, 3]]) / 5 @ [C_11, C_12, C_44]
 
 
-def _get_einsum_str(shape: tuple, inverse: bool = True, axes=None) -> str:
+def _get_einsum_str(
+    shape: tuple[int, ...], inverse: bool = True, axes: np.ndarray | None = None
+) -> str:
     """
     Get the einsum string for the given shape.
 
@@ -177,7 +179,9 @@ def _get_einsum_str(shape: tuple, inverse: bool = True, axes=None) -> str:
     return s_rot + s_mul + "->" + "".join(s)
 
 
-def crystal_to_box(tensor, orientation, axes=None):
+def crystal_to_box(
+    tensor: np.ndarray, orientation: np.ndarray, axes: np.ndarray | None = None
+) -> np.ndarray:
     """
     Translate a tensor given in the crystal coordinate system to the box
     coordinate system. Crystal coordinates are (usually) given by [[1, 0, 0],
@@ -192,7 +196,9 @@ def crystal_to_box(tensor, orientation, axes=None):
     return _rotate_tensor(tensor, orientation, inverse=False, axes=axes)
 
 
-def box_to_crystal(tensor, orientation, axes=None):
+def box_to_crystal(
+    tensor: np.ndarray, orientation: np.ndarray, axes: np.ndarray | None = None
+) -> np.ndarray:
     """
     Translate a tensor given in the box coordinate system to the crystal
     coordinate system. Crystal coordinates are (usually) given by [[1, 0, 0],
@@ -207,7 +213,12 @@ def box_to_crystal(tensor, orientation, axes=None):
     return _rotate_tensor(tensor, orientation, inverse=True, axes=axes)
 
 
-def _rotate_tensor(tensor, orientation, inverse, axes=None):
+def _rotate_tensor(
+    tensor: np.ndarray,
+    orientation: np.ndarray,
+    inverse: bool,
+    axes: np.ndarray | None = None,
+) -> np.ndarray:
     v = np.atleast_2d(tensor)
     if axes is None:
         axes = np.where(np.array(v.shape) == 3)[0]
@@ -227,4 +238,3 @@ def get_compliance_tensor(
     S = np.linalg.inv(elastic_tensor)
     if voigt:
         return S
-    return C_from_voigt(S, inverse=True)

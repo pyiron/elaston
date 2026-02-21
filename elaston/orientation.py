@@ -18,7 +18,9 @@ __status__ = "development"
 __date__ = "Aug 21, 2021"
 
 
-def get_dislocation_orientation(dislocation_type="screw", crystal="bcc"):
+def get_dislocation_orientation(
+    dislocation_type: str = "screw", crystal: str = "bcc"
+) -> dict[str, np.ndarray]:
     """
     Get the orientation of a dislocation in a crystal.
 
@@ -36,32 +38,32 @@ def get_dislocation_orientation(dislocation_type="screw", crystal="bcc"):
     """
     assert dislocation_type in ["screw", "edge"]
     assert crystal in ["bcc", "fcc"]
-    result = {}
+    result: dict[str, np.ndarray] = {}
     if crystal == "bcc":
         if dislocation_type == "screw":
             result = {
-                "glide_plane": ([1, -1, 0], [1, 1, -2]),
-                "burgers_vector": [1, 1, 1],
-                "dislocation_line": [1, 1, 1],
+                "glide_plane": np.array([1, -1, 0]),
+                "burgers_vector": np.array([1, 1, 1]),
+                "dislocation_line": np.array([1, 1, 1]),
             }
         elif dislocation_type == "edge":
             result = {
-                "glide_plane": [1, -1, 0],
-                "burgers_vector": [1, 1, 1],
-                "dislocation_line": [1, 1, -2],
+                "glide_plane": np.array([1, -1, 0]),
+                "burgers_vector": np.array([1, 1, 1]),
+                "dislocation_line": np.array([1, 1, -2]),
             }
     elif crystal == "fcc":
         if dislocation_type == "screw":
             result = {
-                "glide_plane": [1, 1, 1],
-                "burgers_vector": [1, -1, 0],
-                "dislocation_line": [1, -1, 0],
+                "glide_plane": np.array([1, 1, 1]),
+                "burgers_vector": np.array([1, -1, 0]),
+                "dislocation_line": np.array([1, -1, 0]),
             }
         elif dislocation_type == "edge":
             result = {
-                "glide_plane": [1, 1, 1],
-                "burgers_vector": [1, -1, 0],
-                "dislocation_line": [1, 1, -2],
+                "glide_plane": np.array([1, 1, 1]),
+                "burgers_vector": np.array([1, -1, 0]),
+                "dislocation_line": np.array([1, 1, -2]),
             }
     gp = np.atleast_2d(result["glide_plane"])[0]
     result["orientation"] = np.roll(
@@ -70,7 +72,10 @@ def get_dislocation_orientation(dislocation_type="screw", crystal="bcc"):
     return result
 
 
-def get_shockley_partials(burgers_vector=(1, -1, 0), glide_plane=(1, 1, 1)):
+def get_shockley_partials(
+    burgers_vector: np.ndarray = np.array([1, -1, 0]),
+    glide_plane: np.ndarray = np.array([1, 1, 1]),
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Get the Shockley partials for a dislocation in fcc materials.
 

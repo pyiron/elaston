@@ -25,19 +25,19 @@ __date__ = "Aug 21, 2021"
 # ref https://en.m.wikiversity.org/wiki/Elasticity/Constitutive_relations
 
 
-def get_C_11_indices():
+def get_C_11_indices() -> tuple[list[int], list[int]]:
     return [0, 1, 2], [0, 1, 2]
 
 
-def get_C_44_indices():
+def get_C_44_indices() -> tuple[list[int], list[int]]:
     return [3, 4, 5], [3, 4, 5]
 
 
-def get_C_12_indices():
+def get_C_12_indices() -> tuple[list[int], list[int]]:
     return [0, 0, 1, 1, 2, 2], [1, 2, 0, 2, 0, 1]
 
 
-def check_is_tensor(**kwargs):
+def check_is_tensor(**kwargs: float | np.ndarray | None) -> bool:
     """
     Check if the elastic constants are given as a tensor or as Young's modulus,
     Poisson's ratio, and/or shear modulus
@@ -60,17 +60,17 @@ def check_is_tensor(**kwargs):
 
 
 def get_elastic_tensor_from_tensor(
-    C_tensor: Optional[np.ndarray] = None,
-    C_11: Optional[float] = None,
-    C_12: Optional[float] = None,
-    C_13: Optional[float] = None,
-    C_22: Optional[float] = None,
-    C_23: Optional[float] = None,
-    C_33: Optional[float] = None,
-    C_44: Optional[float] = None,
-    C_55: Optional[float] = None,
-    C_66: Optional[float] = None,
-):
+    C_tensor: np.ndarray | None = None,
+    C_11: float | None = None,
+    C_12: float | None = None,
+    C_13: float | None = None,
+    C_22: float | None = None,
+    C_23: float | None = None,
+    C_33: float | None = None,
+    C_44: float | None = None,
+    C_55: float | None = None,
+    C_66: float | None = None,
+) -> np.ndarray:
     """
     Get the elastic tensor from the elastic constants
 
@@ -145,10 +145,10 @@ def _convert_elastic_constants(
 
 
 def get_elastic_tensor_from_moduli(
-    E: Optional[float] = None,
-    nu: Optional[float] = None,
-    mu: Optional[float] = None,
-):
+    E: float | None = None,
+    nu: float | None = None,
+    mu: float | None = None,
+) -> np.ndarray:
     """
     Get the elastic tensor from Young's modulus, Poisson's ratio, and/or shear modulus
 
@@ -192,7 +192,7 @@ def _convert_elastic_moduli(
     )
 
 
-def get_voigt_average(C):
+def get_voigt_average(C: np.ndarray) -> dict[str, float]:
     """
     Get the Voigt average of the elastic constants
 
@@ -220,7 +220,7 @@ def _get_reuss_average_values(
     return C
 
 
-def get_reuss_average(C):
+def get_reuss_average(C: np.ndarray) -> dict[str, float]:
     """
     Get the Reuss average of the elastic constants
 
@@ -234,7 +234,7 @@ def get_reuss_average(C):
     return dict(zip(["C_11", "C_12", "C_44"], [C[0, 0], C[0, 1], C[3, 3] / 4]))
 
 
-def is_cubic(C):
+def is_cubic(C: np.ndarray) -> bool:
     """
     Check if the material is cubic
 
@@ -254,7 +254,7 @@ def is_cubic(C):
     )
 
 
-def is_isotropic(C):
+def is_isotropic(C: np.ndarray) -> bool:
     """
     Check if the material is isotropic
 
@@ -269,7 +269,7 @@ def is_isotropic(C):
     return is_cubic(C) and np.isclose(get_zener_ratio(C), 1)
 
 
-def get_zener_ratio(C):
+def get_zener_ratio(C: np.ndarray) -> float:
     """
     Get the Zener anisotropy ratio
 
@@ -287,7 +287,7 @@ def get_zener_ratio(C):
     return 2 * C_44 / (C_11 - C_12)
 
 
-def get_unique_elastic_constants(C):
+def get_unique_elastic_constants(C: np.ndarray) -> dict[str, float]:
     indices = np.sort(np.unique(np.round(C, decimals=8), return_index=True)[1])
     i, j = np.unravel_index(indices, (6, 6))
     return {
@@ -297,7 +297,7 @@ def get_unique_elastic_constants(C):
     }
 
 
-def get_elastic_moduli(C):
+def get_elastic_moduli(C: np.ndarray) -> dict[str, float]:
     if np.shape(C) == (3, 3, 3, 3):
         C = tools.C_to_voigt(C)
     if not is_isotropic(C):
@@ -315,19 +315,19 @@ def get_elastic_moduli(C):
 
 
 def initialize_elastic_tensor(
-    C_tensor=None,
-    C_11=None,
-    C_12=None,
-    C_13=None,
-    C_22=None,
-    C_33=None,
-    C_44=None,
-    C_55=None,
-    C_66=None,
-    youngs_modulus=None,
-    poissons_ratio=None,
-    shear_modulus=None,
-):
+    C_tensor: np.ndarray | None = None,
+    C_11: float | None = None,
+    C_12: float | None = None,
+    C_13: float | None = None,
+    C_22: float | None = None,
+    C_33: float | None = None,
+    C_44: float | None = None,
+    C_55: float | None = None,
+    C_66: float | None = None,
+    youngs_modulus: float | None = None,
+    poissons_ratio: float | None = None,
+    shear_modulus: float | None = None,
+) -> np.ndarray:
     """
     Initialize the elastic tensor
 
@@ -348,13 +348,6 @@ def initialize_elastic_tensor(
 
     Returns:
         np.ndarray: Elastic tensor in Voigt notation
-
-    You can define either the full elastic tensor via C_tensor, some
-    components of the elastic tensor or the elastic moduli. If you
-    define the elastic moduli, the elastic tensor will be calculated
-    from them. When two components of the elastic tensor are given, the
-    resulting tensor will be isotropic. If at least three components are
-    given, there must be at least C_11, C_12, and C_44.
     """
     is_tensor = check_is_tensor(
         C_tensor=C_tensor,

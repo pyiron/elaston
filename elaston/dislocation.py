@@ -3,6 +3,7 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 from functools import cached_property
+from typing import Any
 
 import numpy as np
 from semantikon.converter import units
@@ -28,7 +29,7 @@ class Dislocation:
     All notations follow the original paper.
     """
 
-    def __init__(self, elastic_tensor, burgers_vector):
+    def __init__(self, elastic_tensor: np.ndarray, burgers_vector: np.ndarray) -> None:
         """
         Args:
             elastic_tensor ((3,3,3,3)-array): Elastic tensor
@@ -36,11 +37,11 @@ class Dislocation:
         """
         assert np.shape(elastic_tensor) == (3, 3, 3, 3)
         assert np.shape(burgers_vector) == (3,)
-        self.elastic_tensor = elastic_tensor
-        self.burgers_vector = burgers_vector
-        self.fit_range = np.linspace(0, 1, 10)
+        self.elastic_tensor: np.ndarray = elastic_tensor
+        self.burgers_vector: np.ndarray = burgers_vector
+        self.fit_range: np.ndarray = np.linspace(0, 1, 10)
 
-    def _get_pmat(self, x):
+    def _get_pmat(self, x: np.ndarray) -> np.ndarray:
         return (
             self.elastic_tensor[:, 0, :, 0]
             + np.einsum(
@@ -52,41 +53,43 @@ class Dislocation:
         )
 
     @cached_property
-    def p(self):
-        coeff = np.polyfit(
+    def p(self) -> np.ndarray:
+        coeff: np.ndarray = np.polyfit(
             self.fit_range, np.linalg.det(self._get_pmat(self.fit_range)), 6
         )
-        p = np.roots(coeff)
+        p: np.ndarray = np.roots(coeff)
         p = p[np.imag(p) > 0]
         return p
 
     @cached_property
-    def Ak(self):
-        Ak = []
+    def Ak(self) -> np.ndarray:
+        Ak: list[np.ndarray] = []
         for mat in self._get_pmat(self.p):
             values, vectors = np.linalg.eig(mat.T)
             Ak.append(vectors.T[np.absolute(values).argmin()])
         return np.array(Ak)
 
     @cached_property
-    def D(self):
-        F = np.einsum("n,ij->nij", self.p, self.elastic_tensor[:, 1, :, 1])
+    def D(self) -> np.ndarray:
+        F: np.ndarray = np.einsum("n,ij->nij", self.p, self.elastic_tensor[:, 1, :, 1])
         F += self.elastic_tensor[:, 1, :, 0]
         F = np.einsum("nik,nk->ni", F, self.Ak)
         F = np.concatenate((F.T, self.Ak.T), axis=0)
         F = np.concatenate((np.real(F), -np.imag(F)), axis=-1)
-        D = np.linalg.solve(F, np.concatenate((np.zeros(3), self.burgers_vector)))
+        D: np.ndarray = np.linalg.solve(
+            F, np.concatenate((np.zeros(3), self.burgers_vector))
+        )
         return D[:3] + 1j * D[3:]
 
     @property
-    def dzdx(self):
+    def dzdx(self) -> np.ndarray:
         return np.stack((np.ones_like(self.p), self.p, np.zeros_like(self.p)), axis=-1)
 
-    def _get_z(self, positions):
-        z = np.stack((np.ones_like(self.p), self.p), axis=-1)
+    def _get_z(self, positions: np.ndarray) -> np.ndarray:
+        z: np.ndarray = np.stack((np.ones_like(self.p), self.p), axis=-1)
         return np.einsum("nk,...k->...n", z, np.asarray(positions)[..., :2])
 
-    def get_displacement(self, positions):
+    def get_displacement(self, positions: np.ndarray) -> np.ndarray:
         """
         Displacement vectors
 
@@ -103,7 +106,7 @@ class Dislocation:
             )
         ) / (2 * np.pi)
 
-    def get_strain(self, positions):
+    def get_strain(self, positions: np.ndarray) -> np.ndarray:
         """
         Strain tensors
 
@@ -114,7 +117,7 @@ class Dislocation:
         Returns:
             ((n,3,3)-array): Strain tensors
         """
-        strain = np.imag(
+        strain: np.ndarray = np.imag(
             np.einsum(
                 "ni,n,...n,nj->...ij",
                 self.Ak,
@@ -237,24 +240,6 @@ def get_dislocation_energy(
 
     Returns:
         (float): Energy of dislocation per unit length
-
-    The energy is defined by the product of the stress and strain (i.e. energy density),
-    which is integrated over the plane vertical to the dislocation line. The energy density
-    :math:`w` according to the linear elasticity is given by:
-
-    .. math:
-        w(r, \\theta) = A(\\theta)/r^2
-
-    Therefore, the energy per unit length :math:`U` is given by:
-
-    .. math:
-        U = \\log(r_max/r_min)\\int A(\\theta)\\mathrm d\\theta
-
-    This implies :math:`r_min` cannot be 0 as well as :math:`r_max` cannot be infinity. This
-    is the consequence of the fact that the linear elasticity cannot describe the core
-    structure properly, and a real medium is not infinitely large. While :math:`r_max` can
-    be defined based on the real dislocation density, the choice of :math:`r_min` should be
-    done carefully.
     """
     if r_min <= 0:
         raise ValueError("r_min must be a positive float")
