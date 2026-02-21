@@ -228,7 +228,9 @@ class LinearElasticity:
             check_unique=check_unique,
         )
 
-    get_point_defect_displacement.__doc__ += inclusion.point_defect_explanation
+    get_point_defect_displacement.__doc__ = (
+        get_point_defect_displacement.__doc__ or ""
+    ) + inclusion.point_defect_explanation
 
     def get_point_defect_strain(
         self,
@@ -263,7 +265,9 @@ class LinearElasticity:
             check_unique=check_unique,
         )
 
-    get_point_defect_strain.__doc__ += inclusion.point_defect_explanation
+    get_point_defect_strain.__doc__ = (
+        get_point_defect_strain.__doc__ or ""
+    ) + inclusion.point_defect_explanation
 
     def get_point_defect_stress(
         self,
@@ -295,7 +299,9 @@ class LinearElasticity:
             optimize=optimize,
         )
 
-    get_point_defect_stress.__doc__ += inclusion.point_defect_explanation
+    get_point_defect_stress.__doc__ = (
+        get_point_defect_stress.__doc__ or ""
+    ) + inclusion.point_defect_explanation
 
     def get_point_defect_energy_density(
         self,
@@ -327,7 +333,9 @@ class LinearElasticity:
             optimize=optimize,
         )
 
-    get_point_defect_energy_density.__doc__ += inclusion.point_defect_explanation
+    get_point_defect_energy_density.__doc__ = (
+        get_point_defect_energy_density.__doc__ or ""
+    ) + inclusion.point_defect_explanation
 
     def get_dislocation_displacement(
         self,

@@ -153,7 +153,7 @@ def voigt_average(
 
 
 def _get_einsum_str(
-    shape: tuple[int, ...], inverse: bool = True, axes: np.ndarray | None = None
+    shape: tuple[int, ...], inverse: bool = True, axes: np.ndarray
 ) -> str:
     """
     Get the einsum string for the given shape.

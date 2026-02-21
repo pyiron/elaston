@@ -413,8 +413,8 @@ class Anisotropic(Green):
             )
 
 
-Anisotropic.__doc__ = Green.__doc__ + Anisotropic.__doc__
-Isotropic.__doc__ = Green.__doc__ + Isotropic.__doc__
+Anisotropic.__doc__ = (Green.__doc__ or "") + (Anisotropic.__doc__ or "")
+Isotropic.__doc__ = (Green.__doc__ or "") + (Isotropic.__doc__ or "")
 
 
 def get_greens_function(
@@ -463,4 +463,6 @@ def get_greens_function(
     )
 
 
-get_greens_function.__doc__ += Green.__doc__
+get_greens_function.__doc__ = (get_greens_function.__doc__ or "") + (
+    Green.__doc__ or ""
+)
