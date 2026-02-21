@@ -153,13 +153,14 @@ def voigt_average(
 
 
 def _get_einsum_str(
-    shape: tuple[int, ...], inverse: bool = True, axes: np.ndarray
+    shape: tuple[int, ...], axes: np.ndarray, inverse: bool = True
 ) -> str:
     """
     Get the einsum string for the given shape.
 
     Args:
         shape (tuple): Shape of the tensor.
+        axes (numpy.ndarray): Axes to rotate.
         inverse (bool): Whether to use the inverse einsum string.
 
     Returns:
@@ -226,7 +227,7 @@ def _rotate_tensor(
         axes = np.where(np.array(v.shape) == 3)[0]
     axes = np.atleast_1d(axes)
     return np.einsum(
-        _get_einsum_str(v.shape, inverse=inverse, axes=axes),
+        _get_einsum_str(v.shape, axes=axes, inverse=inverse),
         *len(axes) * [orthonormalize(orientation)],
         v,
     ).reshape(tensor.shape)
