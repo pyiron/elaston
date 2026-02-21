@@ -238,3 +238,4 @@ def get_compliance_tensor(
     S = np.linalg.inv(elastic_tensor)
     if voigt:
         return S
+    return C_from_voigt(S, inverse=True)
