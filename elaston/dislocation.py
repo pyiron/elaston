@@ -53,16 +53,16 @@ class Dislocation:
 
     @cached_property
     def p(self) -> np.ndarray:
-        coeff: np.ndarray = np.polyfit(
+        coeff = np.polyfit(
             self.fit_range, np.linalg.det(self._get_pmat(self.fit_range)), 6
         )
-        p: np.ndarray = np.roots(coeff)
+        p = np.roots(coeff)
         p = p[np.imag(p) > 0]
         return p
 
     @cached_property
     def Ak(self) -> np.ndarray:
-        Ak: list[np.ndarray] = []
+        Ak = []
         for mat in self._get_pmat(self.p):
             values, vectors = np.linalg.eig(mat.T)
             Ak.append(vectors.T[np.absolute(values).argmin()])
@@ -70,12 +70,12 @@ class Dislocation:
 
     @cached_property
     def D(self) -> np.ndarray:
-        F: np.ndarray = np.einsum("n,ij->nij", self.p, self.elastic_tensor[:, 1, :, 1])
+        F = np.einsum("n,ij->nij", self.p, self.elastic_tensor[:, 1, :, 1])
         F += self.elastic_tensor[:, 1, :, 0]
         F = np.einsum("nik,nk->ni", F, self.Ak)
         F = np.concatenate((F.T, self.Ak.T), axis=0)
         F = np.concatenate((np.real(F), -np.imag(F)), axis=-1)
-        D: np.ndarray = np.linalg.solve(
+        D = np.linalg.solve(
             F, np.concatenate((np.zeros(3), self.burgers_vector))
         )
         return D[:3] + 1j * D[3:]
@@ -85,7 +85,7 @@ class Dislocation:
         return np.stack((np.ones_like(self.p), self.p, np.zeros_like(self.p)), axis=-1)
 
     def _get_z(self, positions: np.ndarray) -> np.ndarray:
-        z: np.ndarray = np.stack((np.ones_like(self.p), self.p), axis=-1)
+        z = np.stack((np.ones_like(self.p), self.p), axis=-1)
         return np.einsum("nk,...k->...n", z, np.asarray(positions)[..., :2])
 
     def get_displacement(self, positions: np.ndarray) -> np.ndarray:
@@ -116,7 +116,7 @@ class Dislocation:
         Returns:
             ((n,3,3)-array): Strain tensors
         """
-        strain: np.ndarray = np.imag(
+        strain = np.imag(
             np.einsum(
                 "ni,n,...n,nj->...ij",
                 self.Ak,
