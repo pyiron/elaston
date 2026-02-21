@@ -347,6 +347,13 @@ def initialize_elastic_tensor(
 
     Returns:
         np.ndarray: Elastic tensor in Voigt notation
+
+    You can define either the full elastic tensor via C_tensor, some
+    components of the elastic tensor or the elastic moduli. If you
+    define the elastic moduli, the elastic tensor will be calculated
+    from them. When two components of the elastic tensor are given, the
+    resulting tensor will be isotropic. If at least three components are
+    given, there must be at least C_11, C_12, and C_44.
     """
     is_tensor = check_is_tensor(
         C_tensor=C_tensor,
