@@ -2,9 +2,10 @@
 # Copyright (c) Max-Planck-Institut für Eisenforschung GmbH - Computational Materials Design (CM) Department
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
+from typing import Annotated
+
 import numpy as np
 from semantikon.converter import units
-from semantikon.metadata import u
 
 from elaston.green import get_greens_function
 
@@ -87,13 +88,13 @@ Vol. 1. Elsevier, 2012.
 
 @units
 def get_point_defect_displacement(
-    C: u(np.ndarray, units="=C"),
-    x: u(np.ndarray, units="=x"),
-    P: u(np.ndarray, units="=P"),
+    C: Annotated[np.ndarray, {"units": "=C"}],
+    x: Annotated[np.ndarray, {"units": "=x"}],
+    P: Annotated[np.ndarray, {"units": "=P"}],
     n_mesh: int = 100,
     optimize: bool = True,
     check_unique: bool = False,
-) -> u(np.ndarray, units="=P/C/x**2"):
+) -> Annotated[np.ndarray, {"units": "=P/C/x**2"}]:
     """
     Displacement field around a point defect
 
@@ -125,13 +126,13 @@ def get_point_defect_displacement(
 
 @units
 def get_point_defect_strain(
-    C: u(np.ndarray, units="=C"),
-    x: u(np.ndarray, units="=x"),
-    P: u(np.ndarray, units="=P"),
+    C: Annotated[np.ndarray, {"units": "=C"}],
+    x: Annotated[np.ndarray, {"units": "=x"}],
+    P: Annotated[np.ndarray, {"units": "=P"}],
     n_mesh: int = 100,
     optimize: bool = True,
     check_unique: bool = False,
-) -> u(np.ndarray, units="=P/C/x**3"):
+) -> Annotated[np.ndarray, {"units": "=P/C/x**3"}]:
     """
     Strain field around a point defect using the Green's function method
 
@@ -164,12 +165,12 @@ def get_point_defect_strain(
 
 @units
 def get_point_defect_stress(
-    C: u(np.ndarray, units="=C"),
-    x: u(np.ndarray, units="=x"),
-    P: u(np.ndarray, units="=P"),
+    C: Annotated[np.ndarray, {"units": "=C"}],
+    x: Annotated[np.ndarray, {"units": "=x"}],
+    P: Annotated[np.ndarray, {"units": "=P"}],
     n_mesh: int = 100,
     optimize: bool = True,
-) -> u(np.ndarray, units="=P/x**3"):
+) -> Annotated[np.ndarray, {"units": "=P/x**3"}]:
     """
     Stress field around a point defect using the Green's function method
 
@@ -198,12 +199,12 @@ def get_point_defect_stress(
 
 @units
 def get_point_defect_energy_density(
-    C: u(np.ndarray, units="=C"),
-    x: u(np.ndarray, units="=x"),
-    P: u(np.ndarray, units="=P"),
+    C: Annotated[np.ndarray, {"units": "=C"}],
+    x: Annotated[np.ndarray, {"units": "=x"}],
+    P: Annotated[np.ndarray, {"units": "=P"}],
     n_mesh: int = 100,
     optimize: bool = True,
-) -> u(np.ndarray, units="=P**2/C/x**6"):
+) -> Annotated[np.ndarray, {"units": "=P**2/C/x**6"}]:
     """
     Energy density field around a point defect using the Green's function method
 

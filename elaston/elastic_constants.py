@@ -2,9 +2,10 @@
 # Copyright (c) Max-Planck-Institut für Eisenforschung GmbH - Computational Materials Design (CM) Department
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
+from typing import Annotated
+
 import numpy as np
 from semantikon.converter import units
-from semantikon.metadata import u
 
 from elaston import tools
 
@@ -120,16 +121,16 @@ def get_elastic_tensor_from_tensor(
 
 @units
 def _convert_elastic_constants(
-    C_11: u(float, units="=A"),
-    C_12: u(float, units="=A"),
-    C_13: u(float, units="=A"),
-    C_22: u(float, units="=A"),
-    C_23: u(float, units="=A"),
-    C_33: u(float, units="=A"),
-    C_44: u(float, units="=A"),
-    C_55: u(float, units="=A"),
-    C_66: u(float, units="=A"),
-) -> u(np.ndarray, units="=A"):
+    C_11: Annotated[float, {"units": "=A"}],
+    C_12: Annotated[float, {"units": "=A"}],
+    C_13: Annotated[float, {"units": "=A"}],
+    C_22: Annotated[float, {"units": "=A"}],
+    C_23: Annotated[float, {"units": "=A"}],
+    C_33: Annotated[float, {"units": "=A"}],
+    C_44: Annotated[float, {"units": "=A"}],
+    C_55: Annotated[float, {"units": "=A"}],
+    C_66: Annotated[float, {"units": "=A"}],
+) -> Annotated[np.ndarray, {"units": "=A"}]:
     return np.array(
         [
             [C_11, C_12, C_13, 0, 0, 0],
@@ -174,10 +175,10 @@ def get_elastic_tensor_from_moduli(
 
 @units
 def _convert_elastic_moduli(
-    E: u(float, units="=A"),
-    nu: u(float, units="=A"),
-    mu: u(float, units="=A"),
-) -> u(np.ndarray, units="=A"):
+    E: Annotated[float, {"units": "=A"}],
+    nu: Annotated[float, {"units": "=A"}],
+    mu: Annotated[float, {"units": "=A"}],
+) -> Annotated[np.ndarray, {"units": "=A"}]:
     return np.linalg.inv(
         [
             [1 / E, -nu / E, -nu / E, 0, 0, 0],
@@ -208,8 +209,8 @@ def get_voigt_average(C: np.ndarray) -> dict[str, float]:
 
 @units
 def _get_reuss_average_values(
-    C: u(np.ndarray, units="=A"),
-) -> u(np.ndarray, units="=A"):
+    C: Annotated[np.ndarray, {"units": "=A"}],
+) -> Annotated[np.ndarray, {"units": "=A"}]:
     S = np.linalg.inv(C)
     S[3:, 3:] /= 4
     S = get_voigt_average(S)

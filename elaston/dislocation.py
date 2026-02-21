@@ -3,10 +3,10 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 from functools import cached_property
+from typing import Annotated
 
 import numpy as np
 from semantikon.converter import units
-from semantikon.metadata import u
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -131,10 +131,10 @@ class Dislocation:
 
 @units
 def get_dislocation_displacement(
-    elastic_tensor: u(np.ndarray, units="=e"),
+    elastic_tensor: Annotated[np.ndarray, {"units": "=e"}],
     positions: np.ndarray,
-    burgers_vector: u(np.ndarray, units="=b"),
-) -> u(np.ndarray, units="=b"):
+    burgers_vector: Annotated[np.ndarray, {"units": "=b"}],
+) -> Annotated[np.ndarray, {"units": "=b"}]:
     """
     Displacement field around a dislocation according to anisotropic elasticity theory
     described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
@@ -153,10 +153,10 @@ def get_dislocation_displacement(
 
 @units
 def get_dislocation_strain(
-    elastic_tensor: u(np.ndarray, units="=e"),
-    positions: u(np.ndarray, units="=p"),
-    burgers_vector: u(np.ndarray, units="=b"),
-) -> u(np.ndarray, units="=b/p"):
+    elastic_tensor: Annotated[np.ndarray, {"units": "=e"}],
+    positions: Annotated[np.ndarray, {"units": "=p"}],
+    burgers_vector: Annotated[np.ndarray, {"units": "=b"}],
+) -> Annotated[np.ndarray, {"units": "=b/p"}]:
     """
     Strain field around a dislocation according to anisotropic elasticity theory
     described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
@@ -175,10 +175,10 @@ def get_dislocation_strain(
 
 @units
 def get_dislocation_stress(
-    elastic_tensor: u(np.ndarray, units="=e"),
-    positions: u(np.ndarray, units="=p"),
-    burgers_vector: u(np.ndarray, units="=b"),
-) -> u(np.ndarray, units="=e*b/p"):
+    elastic_tensor: Annotated[np.ndarray, {"units": "=e"}],
+    positions: Annotated[np.ndarray, {"units": "=p"}],
+    burgers_vector: Annotated[np.ndarray, {"units": "=b"}],
+) -> Annotated[np.ndarray, {"units": "=e*b/p"}]:
     """
     Stress field around a dislocation according to anisotropic elasticity theory
     described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
@@ -198,10 +198,10 @@ def get_dislocation_stress(
 
 @units
 def get_dislocation_energy_density(
-    elastic_tensor: u(np.ndarray, units="=e"),
-    positions: u(np.ndarray, units="=p"),
-    burgers_vector: u(np.ndarray, units="=b"),
-) -> u(np.ndarray, units="=e*b**2/p**2"):
+    elastic_tensor: Annotated[np.ndarray, {"units": "=e"}],
+    positions: Annotated[np.ndarray, {"units": "=p"}],
+    burgers_vector: Annotated[np.ndarray, {"units": "=b"}],
+) -> Annotated[np.ndarray, {"units": "=e*b**2/p**2"}]:
     """
     Energy density field around a dislocation (product of stress and strain, cf. corresponding
     methods)
@@ -221,12 +221,12 @@ def get_dislocation_energy_density(
 
 @units
 def get_dislocation_energy(
-    elastic_tensor: u(np.ndarray, units="=e"),
-    burgers_vector: u(np.ndarray, units="=b"),
-    r_min: u(float, units="=r"),
-    r_max: u(float, units="=r"),
+    elastic_tensor: Annotated[np.ndarray, {"units": "=e"}],
+    burgers_vector: Annotated[np.ndarray, {"units": "=b"}],
+    r_min: Annotated[float, {"units": "=r"}],
+    r_max: Annotated[float, {"units": "=r"}],
     mesh: int = 100,
-) -> u(float, units="=e*b**2"):
+) -> Annotated[float, {"units": "=e*b**2"}]:
     """
     Energy per unit length along the dislocation line.
 
@@ -255,10 +255,10 @@ def get_dislocation_energy(
 
 @units
 def get_dislocation_force(
-    stress: u(np.ndarray, units="=s"),
+    stress: Annotated[np.ndarray, {"units": "=s"}],
     glide_plane: np.ndarray,
-    burgers_vector: u(np.ndarray, units="=b"),
-) -> u(np.ndarray, units="=s*b"):
+    burgers_vector: Annotated[np.ndarray, {"units": "=b"}],
+) -> Annotated[np.ndarray, {"units": "=s*b"}]:
     """
     Force per unit length along the dislocation line.
 

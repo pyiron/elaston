@@ -3,10 +3,10 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 import string
+from typing import Annotated
 
 import numpy as np
 from semantikon.converter import units
-from semantikon.metadata import u
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -89,8 +89,8 @@ def index_from_voigt(i: int, j: int) -> int:
 
 @units
 def C_from_voigt(
-    C_in: u(np.ndarray, units="=C"), inverse: bool = False
-) -> u(np.ndarray, units="=C"):
+    C_in: Annotated[np.ndarray, {"units": "=C"}], inverse: bool = False
+) -> Annotated[np.ndarray, {"units": "=C"}]:
     """
     Convert elastic tensor in Voigt notation to matrix notation.
 
@@ -117,7 +117,9 @@ def C_from_voigt(
 
 
 @units
-def C_to_voigt(C_in: u(np.ndarray, units="=C")) -> u(np.ndarray, units="=C"):
+def C_to_voigt(
+    C_in: Annotated[np.ndarray, {"units": "=C"}],
+) -> Annotated[np.ndarray, {"units": "=C"}]:
     """
     Convert elastic tensor in matrix notation to Voigt notation.
 
@@ -142,10 +144,10 @@ def C_to_voigt(C_in: u(np.ndarray, units="=C")) -> u(np.ndarray, units="=C"):
 
 @units
 def voigt_average(
-    C_11: u(float, units="=C"),
-    C_12: u(float, units="=C"),
-    C_44: u(float, units="=C"),
-) -> u(np.ndarray, units="=C"):
+    C_11: Annotated[float, {"units": "=C"}],
+    C_12: Annotated[float, {"units": "=C"}],
+    C_44: Annotated[float, {"units": "=C"}],
+) -> Annotated[np.ndarray, {"units": "=C"}]:
     """Make isotropic elastic tensor from C_11, C_12, and C_44."""
     return np.array([[3, 2, 4], [1, 4, -2], [1, -1, 3]]) / 5 @ [C_11, C_12, C_44]
 
@@ -232,9 +234,9 @@ def _rotate_tensor(
 
 @units
 def get_compliance_tensor(
-    elastic_tensor: u(np.ndarray, units="=C"),
+    elastic_tensor: Annotated[np.ndarray, {"units": "=C"}],
     voigt: bool = False,
-) -> u(np.ndarray, units="=1/C"):
+) -> Annotated[np.ndarray, {"units": "=1/C"}]:
     S = np.linalg.inv(elastic_tensor)
     if voigt:
         return S
