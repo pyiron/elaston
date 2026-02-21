@@ -75,9 +75,7 @@ class Dislocation:
         F = np.einsum("nik,nk->ni", F, self.Ak)
         F = np.concatenate((F.T, self.Ak.T), axis=0)
         F = np.concatenate((np.real(F), -np.imag(F)), axis=-1)
-        D = np.linalg.solve(
-            F, np.concatenate((np.zeros(3), self.burgers_vector))
-        )
+        D = np.linalg.solve(F, np.concatenate((np.zeros(3), self.burgers_vector)))
         return D[:3] + 1j * D[3:]
 
     @property
