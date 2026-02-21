@@ -79,7 +79,7 @@ class LinearElasticity:
         poissons_ratio: float | None = None,
         shear_modulus: float | None = None,
         orientation: np.ndarray | None = None,
-    ) -> None:
+    ):
         """
         Args:
             C_tensor ((6, 6)-array, (3, 3, 3, 3)-array): Elastic tensor in

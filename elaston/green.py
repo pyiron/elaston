@@ -111,7 +111,7 @@ class Isotropic(Green):
         shear_modulus: float,
         min_distance: float = 0,
         optimize: bool = True,
-    ) -> None:
+    ):
         """
         Args:
             poissons_ratio (float): Poissons ratio

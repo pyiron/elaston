@@ -36,9 +36,9 @@ class Dislocation:
         """
         assert np.shape(elastic_tensor) == (3, 3, 3, 3)
         assert np.shape(burgers_vector) == (3,)
-        self.elastic_tensor: np.ndarray = elastic_tensor
-        self.burgers_vector: np.ndarray = burgers_vector
-        self.fit_range: np.ndarray = np.linspace(0, 1, 10)
+        self.elastic_tensor = elastic_tensor
+        self.burgers_vector = burgers_vector
+        self.fit_range = np.linspace(0, 1, 10)
 
     def _get_pmat(self, x: np.ndarray) -> np.ndarray:
         return (
