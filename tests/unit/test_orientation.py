@@ -11,7 +11,9 @@ class TestOrientation(unittest.TestCase):
             orient = orientation.get_dislocation_orientation(
                 dislocation_type="screw", crystal=t
             )
-            self.assertEqual(orient["dislocation_line"], orient["burgers_vector"])
+            self.assertEqual(
+                orient["dislocation_line"].tolist(), orient["burgers_vector"].tolist()
+            )
             for d in ["screw", "edge"]:
                 orient = orientation.get_dislocation_orientation(
                     dislocation_type=d, crystal=t

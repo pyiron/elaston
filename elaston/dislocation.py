@@ -3,10 +3,10 @@
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
 from functools import cached_property
+from typing import Annotated
 
 import numpy as np
 from semantikon.converter import units
-from semantikon.metadata import u
 
 __author__ = "Sam Waseda"
 __copyright__ = (
@@ -28,7 +28,7 @@ class Dislocation:
     All notations follow the original paper.
     """
 
-    def __init__(self, elastic_tensor, burgers_vector):
+    def __init__(self, elastic_tensor: np.ndarray, burgers_vector: np.ndarray) -> None:
         """
         Args:
             elastic_tensor ((3,3,3,3)-array): Elastic tensor
@@ -40,7 +40,7 @@ class Dislocation:
         self.burgers_vector = burgers_vector
         self.fit_range = np.linspace(0, 1, 10)
 
-    def _get_pmat(self, x):
+    def _get_pmat(self, x: np.ndarray) -> np.ndarray:
         return (
             self.elastic_tensor[:, 0, :, 0]
             + np.einsum(
@@ -52,7 +52,7 @@ class Dislocation:
         )
 
     @cached_property
-    def p(self):
+    def p(self) -> np.ndarray:
         coeff = np.polyfit(
             self.fit_range, np.linalg.det(self._get_pmat(self.fit_range)), 6
         )
@@ -61,7 +61,7 @@ class Dislocation:
         return p
 
     @cached_property
-    def Ak(self):
+    def Ak(self) -> np.ndarray:
         Ak = []
         for mat in self._get_pmat(self.p):
             values, vectors = np.linalg.eig(mat.T)
@@ -69,7 +69,7 @@ class Dislocation:
         return np.array(Ak)
 
     @cached_property
-    def D(self):
+    def D(self) -> np.ndarray:
         F = np.einsum("n,ij->nij", self.p, self.elastic_tensor[:, 1, :, 1])
         F += self.elastic_tensor[:, 1, :, 0]
         F = np.einsum("nik,nk->ni", F, self.Ak)
@@ -79,14 +79,14 @@ class Dislocation:
         return D[:3] + 1j * D[3:]
 
     @property
-    def dzdx(self):
+    def dzdx(self) -> np.ndarray:
         return np.stack((np.ones_like(self.p), self.p, np.zeros_like(self.p)), axis=-1)
 
-    def _get_z(self, positions):
+    def _get_z(self, positions: np.ndarray) -> np.ndarray:
         z = np.stack((np.ones_like(self.p), self.p), axis=-1)
         return np.einsum("nk,...k->...n", z, np.asarray(positions)[..., :2])
 
-    def get_displacement(self, positions):
+    def get_displacement(self, positions: np.ndarray) -> np.ndarray:
         """
         Displacement vectors
 
@@ -103,7 +103,7 @@ class Dislocation:
             )
         ) / (2 * np.pi)
 
-    def get_strain(self, positions):
+    def get_strain(self, positions: np.ndarray) -> np.ndarray:
         """
         Strain tensors
 
@@ -129,10 +129,10 @@ class Dislocation:
 
 @units
 def get_dislocation_displacement(
-    elastic_tensor: u(np.ndarray, units="=e"),
+    elastic_tensor: Annotated[np.ndarray, {"units": "=e"}],
     positions: np.ndarray,
-    burgers_vector: u(np.ndarray, units="=b"),
-) -> u(np.ndarray, units="=b"):
+    burgers_vector: Annotated[np.ndarray, {"units": "=b"}],
+) -> Annotated[np.ndarray, {"units": "=b"}]:
     """
     Displacement field around a dislocation according to anisotropic elasticity theory
     described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
@@ -151,10 +151,10 @@ def get_dislocation_displacement(
 
 @units
 def get_dislocation_strain(
-    elastic_tensor: u(np.ndarray, units="=e"),
-    positions: u(np.ndarray, units="=p"),
-    burgers_vector: u(np.ndarray, units="=b"),
-) -> u(np.ndarray, units="=b/p"):
+    elastic_tensor: Annotated[np.ndarray, {"units": "=e"}],
+    positions: Annotated[np.ndarray, {"units": "=p"}],
+    burgers_vector: Annotated[np.ndarray, {"units": "=b"}],
+) -> Annotated[np.ndarray, {"units": "=b/p"}]:
     """
     Strain field around a dislocation according to anisotropic elasticity theory
     described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
@@ -173,10 +173,10 @@ def get_dislocation_strain(
 
 @units
 def get_dislocation_stress(
-    elastic_tensor: u(np.ndarray, units="=e"),
-    positions: u(np.ndarray, units="=p"),
-    burgers_vector: u(np.ndarray, units="=b"),
-) -> u(np.ndarray, units="=e*b/p"):
+    elastic_tensor: Annotated[np.ndarray, {"units": "=e"}],
+    positions: Annotated[np.ndarray, {"units": "=p"}],
+    burgers_vector: Annotated[np.ndarray, {"units": "=b"}],
+) -> Annotated[np.ndarray, {"units": "=e*b/p"}]:
     """
     Stress field around a dislocation according to anisotropic elasticity theory
     described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
@@ -196,10 +196,10 @@ def get_dislocation_stress(
 
 @units
 def get_dislocation_energy_density(
-    elastic_tensor: u(np.ndarray, units="=e"),
-    positions: u(np.ndarray, units="=p"),
-    burgers_vector: u(np.ndarray, units="=b"),
-) -> u(np.ndarray, units="=e*b**2/p**2"):
+    elastic_tensor: Annotated[np.ndarray, {"units": "=e"}],
+    positions: Annotated[np.ndarray, {"units": "=p"}],
+    burgers_vector: Annotated[np.ndarray, {"units": "=b"}],
+) -> Annotated[np.ndarray, {"units": "=e*b**2/p**2"}]:
     """
     Energy density field around a dislocation (product of stress and strain, cf. corresponding
     methods)
@@ -219,12 +219,12 @@ def get_dislocation_energy_density(
 
 @units
 def get_dislocation_energy(
-    elastic_tensor: u(np.ndarray, units="=e"),
-    burgers_vector: u(np.ndarray, units="=b"),
-    r_min: u(float, units="=r"),
-    r_max: u(float, units="=r"),
+    elastic_tensor: Annotated[np.ndarray, {"units": "=e"}],
+    burgers_vector: Annotated[np.ndarray, {"units": "=b"}],
+    r_min: Annotated[float, {"units": "=r"}],
+    r_max: Annotated[float, {"units": "=r"}],
     mesh: int = 100,
-) -> u(float, units="=e*b**2"):
+) -> Annotated[float, {"units": "=e*b**2"}]:
     """
     Energy per unit length along the dislocation line.
 
@@ -271,10 +271,10 @@ def get_dislocation_energy(
 
 @units
 def get_dislocation_force(
-    stress: u(np.ndarray, units="=s"),
+    stress: Annotated[np.ndarray, {"units": "=s"}],
     glide_plane: np.ndarray,
-    burgers_vector: u(np.ndarray, units="=b"),
-) -> u(np.ndarray, units="=s*b"):
+    burgers_vector: Annotated[np.ndarray, {"units": "=b"}],
+) -> Annotated[np.ndarray, {"units": "=s*b"}]:
     """
     Force per unit length along the dislocation line.
 

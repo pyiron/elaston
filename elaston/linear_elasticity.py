@@ -62,24 +62,23 @@ class LinearElasticity:
     >>> stress_one = medium.get_dislocation_stress([0, distance, 0], partial_one)
     >>> print('Choose `distance` in the way that the value below corresponds to SFE')
     >>> medium.get_dislocation_force(stress_one, [0, 1, 0], partial_two)
-
     """
 
     def __init__(
         self,
-        C_tensor=None,
-        C_11=None,
-        C_12=None,
-        C_13=None,
-        C_22=None,
-        C_33=None,
-        C_44=None,
-        C_55=None,
-        C_66=None,
-        youngs_modulus=None,
-        poissons_ratio=None,
-        shear_modulus=None,
-        orientation=None,
+        C_tensor: np.ndarray | list | None = None,
+        C_11: float | None = None,
+        C_12: float | None = None,
+        C_13: float | None = None,
+        C_22: float | None = None,
+        C_33: float | None = None,
+        C_44: float | None = None,
+        C_55: float | None = None,
+        C_66: float | None = None,
+        youngs_modulus: float | None = None,
+        poissons_ratio: float | None = None,
+        shear_modulus: float | None = None,
+        orientation: np.ndarray | None = None,
     ):
         """
         Args:
@@ -109,8 +108,8 @@ class LinearElasticity:
         - Ni: 243.0, 160.0, 140.0
         - W: 411.0, 248.0, 160.0
         """
-        self._orientation = None
-        self._elastic_tensor = tools.C_from_voigt(
+        self._orientation: np.ndarray | None = None
+        self._elastic_tensor: np.ndarray = tools.C_from_voigt(
             elastic_constants.initialize_elastic_tensor(
                 C_tensor=C_tensor,
                 C_11=C_11,
@@ -130,7 +129,7 @@ class LinearElasticity:
             self.orientation = orientation
 
     @property
-    def orientation(self):
+    def orientation(self) -> np.ndarray | None:
         """
         Rotation matrix that defines the orientation of the system. If set,
         the elastic tensor will be rotated accordingly. For example a box with
@@ -145,24 +144,27 @@ class LinearElasticity:
         return self._orientation
 
     @orientation.setter
-    def orientation(self, r):
+    def orientation(self, r: np.ndarray) -> None:
         self._orientation = tools.orthonormalize(r)
 
-    def get_elastic_tensor(self, voigt=False, rotate=True):
-        C = self._elastic_tensor.copy()
+    def get_elastic_tensor(
+        self, voigt: bool = False, rotate: bool = True
+    ) -> np.ndarray:
+        C: np.ndarray = self._elastic_tensor.copy()
         if self.orientation is not None and rotate:
             C = tools.crystal_to_box(C, self.orientation)
         if voigt:
             C = tools.C_to_voigt(C)
         return C
 
-    def get_compliance_tensor(self, rotate=True, voigt=False):
-        """Compliance matrix in Voigt notation."""
+    def get_compliance_tensor(
+        self, rotate: bool = True, voigt: bool = False
+    ) -> np.ndarray:
         return tools.get_compliance_tensor(
             self.get_elastic_tensor(voigt=True, rotate=rotate), voigt=voigt
         )
 
-    def get_zener_ratio(self):
+    def get_zener_ratio(self) -> float:
         """
         Zener ratio or the anisotropy index. If 1, the medium is isotropic. If
         isotropic, the analytical form of the Green's function is used for the
@@ -172,17 +174,17 @@ class LinearElasticity:
             self.get_elastic_tensor(voigt=True, rotate=False)
         )
 
-    def is_cubic(self):
+    def is_cubic(self) -> bool:
         return elastic_constants.is_cubic(
             self.get_elastic_tensor(voigt=True, rotate=False)
         )
 
-    def is_isotropic(self):
+    def is_isotropic(self) -> bool:
         return elastic_constants.is_isotropic(
             self.get_elastic_tensor(voigt=True, rotate=False)
         )
 
-    def get_elastic_moduli(self):
+    def get_elastic_moduli(self) -> dict[str, float]:
         if not self.is_isotropic():
             raise ValueError(
                 "The material must be isotropic. Re-instantiate with isotropic"
@@ -200,7 +202,7 @@ class LinearElasticity:
         n_mesh: int = 100,
         optimize: bool = True,
         check_unique: bool = False,
-    ):
+    ) -> np.ndarray:
         """
         Displacement field around a point defect
 
@@ -226,7 +228,9 @@ class LinearElasticity:
             check_unique=check_unique,
         )
 
-    get_point_defect_displacement.__doc__ += inclusion.point_defect_explanation
+    get_point_defect_displacement.__doc__ = (
+        get_point_defect_displacement.__doc__ or ""
+    ) + inclusion.point_defect_explanation
 
     def get_point_defect_strain(
         self,
@@ -235,7 +239,7 @@ class LinearElasticity:
         n_mesh: int = 100,
         optimize: bool = True,
         check_unique: bool = False,
-    ):
+    ) -> np.ndarray:
         """
         Strain field around a point defect using the Green's function method
 
@@ -261,7 +265,9 @@ class LinearElasticity:
             check_unique=check_unique,
         )
 
-    get_point_defect_strain.__doc__ += inclusion.point_defect_explanation
+    get_point_defect_strain.__doc__ = (
+        get_point_defect_strain.__doc__ or ""
+    ) + inclusion.point_defect_explanation
 
     def get_point_defect_stress(
         self,
@@ -269,7 +275,7 @@ class LinearElasticity:
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
         optimize: bool = True,
-    ):
+    ) -> np.ndarray:
         """
         Stress field around a point defect using the Green's function method
 
@@ -293,7 +299,9 @@ class LinearElasticity:
             optimize=optimize,
         )
 
-    get_point_defect_stress.__doc__ += inclusion.point_defect_explanation
+    get_point_defect_stress.__doc__ = (
+        get_point_defect_stress.__doc__ or ""
+    ) + inclusion.point_defect_explanation
 
     def get_point_defect_energy_density(
         self,
@@ -301,7 +309,7 @@ class LinearElasticity:
         dipole_tensor: np.ndarray,
         n_mesh: int = 100,
         optimize: bool = True,
-    ):
+    ) -> np.ndarray:
         """
         Energy density field around a point defect using the Green's function method
 
@@ -325,13 +333,15 @@ class LinearElasticity:
             optimize=optimize,
         )
 
-    get_point_defect_energy_density.__doc__ += inclusion.point_defect_explanation
+    get_point_defect_energy_density.__doc__ = (
+        get_point_defect_energy_density.__doc__ or ""
+    ) + inclusion.point_defect_explanation
 
     def get_dislocation_displacement(
         self,
         positions: np.ndarray,
         burgers_vector: np.ndarray,
-    ):
+    ) -> np.ndarray:
         """
         Displacement field around a dislocation according to anisotropic
         elasticity theory described by
@@ -354,7 +364,7 @@ class LinearElasticity:
         self,
         positions: np.ndarray,
         burgers_vector: np.ndarray,
-    ):
+    ) -> np.ndarray:
         """
         Strain field around a dislocation according to anisotropic elasticity theory
         described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
@@ -375,7 +385,7 @@ class LinearElasticity:
         self,
         positions: np.ndarray,
         burgers_vector: np.ndarray,
-    ):
+    ) -> np.ndarray:
         """
         Stress field around a dislocation according to anisotropic elasticity theory
         described by [Eshelby](https://doi.org/10.1016/0001-6160(53)90099-6).
@@ -396,7 +406,7 @@ class LinearElasticity:
         self,
         positions: np.ndarray,
         burgers_vector: np.ndarray,
-    ):
+    ) -> np.ndarray:
         """
         Energy density field around a dislocation (product of stress and
         strain, cf. corresponding methods)
@@ -419,7 +429,7 @@ class LinearElasticity:
         r_min: float,
         r_max: float,
         mesh: int = 100,
-    ):
+    ) -> float:
         """
         Energy per unit length along the dislocation line.
 
@@ -462,7 +472,7 @@ class LinearElasticity:
         stress: np.ndarray,
         glide_plane: np.ndarray,
         burgers_vector: np.ndarray,
-    ):
+    ) -> np.ndarray:
         """
         Force per unit length along the dislocation line. This method is
         useful for estaimting the distance between partial dislocations. At
@@ -490,7 +500,7 @@ class LinearElasticity:
         """
         return dislocation.get_dislocation_force(stress, glide_plane, burgers_vector)
 
-    def get_voigt_average(self):
+    def get_voigt_average(self) -> "LinearElasticity":
         """
         Voigt average of the elastic tensor. The Voigt average is defined as
         the arithmetic mean of the elastic tensor. The Voigt average is
@@ -500,7 +510,7 @@ class LinearElasticity:
             **elastic_constants.get_voigt_average(self.get_elastic_tensor(voigt=True))
         )
 
-    def get_reuss_average(self):
+    def get_reuss_average(self) -> "LinearElasticity":
         """
         Reuss average of the elastic tensor. The Reuss average is obtained from
         the arithmetic mean of the compliance tensor. The Reuss average is

@@ -47,7 +47,9 @@ class Green(ABC):
     """
 
     @abstractmethod
-    def _get_greens_function(self, r, derivative=0, fourier=False):
+    def _get_greens_function(
+        self, r: np.ndarray, derivative: int = 0, fourier: bool = False
+    ) -> np.ndarray:
         """
         Args:
             r ((n,3)-array): Positions for which to calculate the Green's function
@@ -61,7 +63,13 @@ class Green(ABC):
                 increment, a 3d-axis is added.
         """
 
-    def get_greens_function(self, r, derivative=0, fourier=False, check_unique=False):
+    def get_greens_function(
+        self,
+        r: np.ndarray,
+        derivative: int = 0,
+        fourier: bool = False,
+        check_unique: bool = False,
+    ) -> np.ndarray:
         """
         Args:
             r ((n,3)-array): Positions for which to calculate the Green's function
@@ -97,7 +105,13 @@ class Isotropic(Green):
         G = A \\delta_{ij} / r + B r_i r_j / r^3
     """
 
-    def __init__(self, poissons_ratio, shear_modulus, min_distance=0, optimize=True):
+    def __init__(
+        self,
+        poissons_ratio: float,
+        shear_modulus: float,
+        min_distance: float = 0,
+        optimize: bool = True,
+    ):
         """
         Args:
             poissons_ratio (float): Poissons ratio
@@ -106,13 +120,13 @@ class Isotropic(Green):
                 in order to avoid numerical instability for the Green's function
             optimize (bool): cf. `optimize` in `numpy.einsum`
         """
-        self.poissons_ratio = poissons_ratio
-        self.shear_modulus = shear_modulus
-        self.min_dist = min_distance
-        self.optimize = optimize
+        self.poissons_ratio: float = poissons_ratio
+        self.shear_modulus: float = shear_modulus
+        self.min_dist: float = min_distance
+        self.optimize: bool = optimize
 
     @cached_property
-    def A(self):
+    def A(self) -> float:
         """
         First coefficient of the Green's function. For more, cf. DocString in
         the class level.
@@ -120,14 +134,14 @@ class Isotropic(Green):
         return (3 - 4 * self.poissons_ratio) * self.B
 
     @cached_property
-    def B(self):
+    def B(self) -> float:
         """
         Second coefficient of the Green's function. For more, cf. DocString in
         the class level.
         """
         return 1 / (16 * np.pi * self.shear_modulus * (1 - self.poissons_ratio))
 
-    def G(self, r):
+    def G(self, r: np.ndarray) -> np.ndarray:
         """Green's function."""
         R_inv = 1 / np.linalg.norm(r, axis=-1)
         G = self.A * np.eye(3) + self.B * np.einsum(
@@ -135,7 +149,7 @@ class Isotropic(Green):
         )
         return np.einsum("...ij,...->...ij", G, R_inv)
 
-    def G_fourier(self, k):
+    def G_fourier(self, k: np.ndarray) -> np.ndarray:
         """Fourier transform of the Green's function"""
         K = np.linalg.norm(k, axis=-1)
         if self.min_dist == 0:
@@ -174,7 +188,7 @@ class Isotropic(Green):
             )
         )
 
-    def dG(self, r):
+    def dG(self, r: np.ndarray) -> np.ndarray:
         """First derivative of the Green's function."""
         shape = np.shape(r)
         r = np.atleast_2d(r)
@@ -195,7 +209,7 @@ class Isotropic(Green):
         v[distance_condition] *= 0
         return v.reshape(shape + (3, 3))
 
-    def ddG(self, r):
+    def ddG(self, r: np.ndarray) -> np.ndarray:
         """Second derivative of the Green's function."""
         shape = np.shape(r)
         r = np.atleast_2d(r)
@@ -246,7 +260,9 @@ class Isotropic(Green):
         v[distance_condition] *= 0
         return v.reshape(shape + (3, 3, 3))
 
-    def _get_greens_function(self, r, derivative=0, fourier=False):
+    def _get_greens_function(
+        self, r: np.ndarray, derivative: int = 0, fourier: bool = False
+    ) -> np.ndarray:
         if fourier:
             return self.G_fourier(r)
         elif derivative == 0:
@@ -275,7 +291,9 @@ class Anisotropic(Green):
       solutions and is therefore much faster.
     """
 
-    def __init__(self, elastic_tensor, n_mesh=100, optimize=True):
+    def __init__(
+        self, elastic_tensor: np.array, n_mesh: int = 100, optimize: bool = True
+    ):
         """
         Args:
             elastic_tensor ((3,3,3,3)-array): Elastic tensor
@@ -289,7 +307,7 @@ class Anisotropic(Green):
         self.optimize = optimize
 
     @cached_property
-    def z(self):
+    def z(self) -> np.ndarray:
         """Unit vector in the direction of the azimuthal angle."""
         return np.einsum(
             "i...x,in->n...x",
@@ -298,7 +316,7 @@ class Anisotropic(Green):
         )
 
     @cached_property
-    def Ms(self):
+    def Ms(self) -> np.ndarray:
         """Inverse of the matrix `Ms`."""
         return np.linalg.inv(
             np.einsum(
@@ -307,17 +325,17 @@ class Anisotropic(Green):
         )
 
     @cached_property
-    def T(self):
+    def T(self) -> np.ndarray:
         """Normalized `r`."""
         return tools.normalize(self.r)
 
     @cached_property
-    def zT(self):
+    def zT(self) -> np.ndarray:
         zT = np.einsum("...p,...w->...pw", self.z, self.T)
         return zT + np.einsum("...ij->...ji", zT)
 
     @cached_property
-    def F(self):
+    def F(self) -> np.ndarray:
         return np.einsum(
             "jpnw,...ij,...nr,...pw->...ir",
             self.C,
@@ -328,12 +346,12 @@ class Anisotropic(Green):
         )
 
     @cached_property
-    def MF(self):
+    def MF(self) -> np.ndarray:
         MF = np.einsum("...ij,...nr->...ijnr", self.F, self.Ms)
         return MF + np.einsum("...ijnr->...nrij", MF)
 
     @property
-    def Air(self):
+    def Air(self) -> np.ndarray:
         Air = np.einsum("...pw,...ijnr->...ijnrpw", self.zT, self.MF)
         Air -= 2 * np.einsum(
             "...ij,...nr,...p,...w->...ijnrpw",
@@ -347,7 +365,7 @@ class Anisotropic(Green):
         return Air
 
     @property
-    def _integrand_second_derivative(self):
+    def _integrand_second_derivative(self) -> np.ndarray:
         results = -2 * np.einsum("...sm,...ir->...isrm", self.zT, self.F)
         results += 2 * np.einsum(
             "...s,...m,...ir->...isrm", self.T, self.T, self.Ms, optimize=self.optimize
@@ -358,12 +376,14 @@ class Anisotropic(Green):
         return results
 
     @property
-    def _integrand_first_derivative(self):
+    def _integrand_first_derivative(self) -> np.ndarray:
         results = np.einsum("...s,...ir->...isr", self.z, self.F)
         results -= np.einsum("...s,...ir->...isr", self.T, self.Ms)
         return results
 
-    def _get_greens_function(self, r, derivative=0, fourier=False):
+    def _get_greens_function(
+        self, r: np.ndarray, derivative: int = 0, fourier: bool = False
+    ) -> np.ndarray:
         self.r = np.asarray(r)
         if fourier:
             G = np.einsum(
@@ -393,8 +413,8 @@ class Anisotropic(Green):
             )
 
 
-Anisotropic.__doc__ = Green.__doc__ + Anisotropic.__doc__
-Isotropic.__doc__ = Green.__doc__ + Isotropic.__doc__
+Anisotropic.__doc__ = (Green.__doc__ or "") + (Anisotropic.__doc__ or "")
+Isotropic.__doc__ = (Green.__doc__ or "") + (Isotropic.__doc__ or "")
 
 
 def get_greens_function(
@@ -405,7 +425,7 @@ def get_greens_function(
     n_mesh: int = 100,
     optimize: bool = True,
     check_unique: bool = False,
-):
+) -> np.ndarray:
     """
     Green's function of the equilibrium condition:
 
@@ -443,4 +463,6 @@ def get_greens_function(
     )
 
 
-get_greens_function.__doc__ += Green.__doc__
+get_greens_function.__doc__ = (get_greens_function.__doc__ or "") + (
+    Green.__doc__ or ""
+)
