@@ -23,6 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
+    "numpy>=2.0",
     "semantikon==1.1.0",
 ]
 dynamic = [ "version",]
