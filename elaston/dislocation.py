@@ -263,7 +263,7 @@ def get_dislocation_energy(
     strain = get_dislocation_strain(elastic_tensor, r, burgers_vector=burgers_vector)
     return (
         np.einsum("ijkl,nkl,nij->", elastic_tensor, strain, strain)
-        / np.diff(theta_range)[0]
+        * np.diff(theta_range)[0]
         * r_min**2
         * np.log(r_max / r_min)
     )

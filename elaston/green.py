@@ -178,7 +178,7 @@ class Isotropic(Green):
                 )
                 + self.B
                 * np.einsum(
-                    "...,...i,...j->nij",
+                    "...,...i,...j->...ij",
                     np.cos(K * self.min_dist) / K**4
                     - 3 * np.sin(K * self.min_dist) / (K**5 * self.min_dist),
                     k,
@@ -306,7 +306,7 @@ class Anisotropic(Green):
         )
         self.optimize = optimize
 
-    @cached_property
+    @property
     def z(self) -> np.ndarray:
         """Unit vector in the direction of the azimuthal angle."""
         return np.einsum(
@@ -315,7 +315,7 @@ class Anisotropic(Green):
             [np.cos(self.phi_range), np.sin(self.phi_range)],
         )
 
-    @cached_property
+    @property
     def Ms(self) -> np.ndarray:
         """Inverse of the matrix `Ms`."""
         return np.linalg.inv(
@@ -324,17 +324,17 @@ class Anisotropic(Green):
             )
         )
 
-    @cached_property
+    @property
     def T(self) -> np.ndarray:
         """Normalized `r`."""
         return tools.normalize(self.r)
 
-    @cached_property
+    @property
     def zT(self) -> np.ndarray:
         zT = np.einsum("...p,...w->...pw", self.z, self.T)
         return zT + np.einsum("...ij->...ji", zT)
 
-    @cached_property
+    @property
     def F(self) -> np.ndarray:
         return np.einsum(
             "jpnw,...ij,...nr,...pw->...ir",
@@ -345,7 +345,7 @@ class Anisotropic(Green):
             optimize=self.optimize,
         )
 
-    @cached_property
+    @property
     def MF(self) -> np.ndarray:
         MF = np.einsum("...ij,...nr->...ijnr", self.F, self.Ms)
         return MF + np.einsum("...ijnr->...nrij", MF)
