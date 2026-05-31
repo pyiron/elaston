@@ -308,7 +308,7 @@ def get_elastic_moduli(C: np.ndarray) -> dict[str, float]:
         "youngs_modulus": (C_11 - C_12) * (C_11 + 2 * C_12) / (C_11 + C_12),
         "poissons_ratio": C_12 / (C_11 + C_12),
         "shear_modulus": C_44,
-        "lamé_first_parameter": (C_12 + C_44) / 2,
+        "lamé_first_parameter": C_12,
         "bulk_modulus": (C_11 + 2 * C_12) / 3,
     }
 
