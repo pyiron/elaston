@@ -178,7 +178,7 @@ class Isotropic(Green):
                 )
                 + self.B
                 * np.einsum(
-                    "...,...i,...j->nij",
+                    "...,...i,...j->...ij",
                     np.cos(K * self.min_dist) / K**4
                     - 3 * np.sin(K * self.min_dist) / (K**5 * self.min_dist),
                     k,
