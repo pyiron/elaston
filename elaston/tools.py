@@ -58,14 +58,17 @@ def get_plane(T: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Get a plane perpendicular to a vector.
 
+    Selects the standard basis vector least aligned with T as a reference to
+    ensure a deterministic, well-conditioned result for any input direction.
+
     Args:
-        T (numpy.ndarray): A vector.
+        T (numpy.ndarray): A unit vector or array of unit vectors (..., 3).
 
     Returns:
-        tuple: A pair of vectors that span the plane.
+        tuple: A pair of vectors that span the plane perpendicular to T.
     """
-    x = normalize(np.random.random(T.shape))
-    x = normalize(x - np.einsum("...i,...i,...j->...j", x, T, T))
+    ref = np.eye(3)[np.argmin(np.abs(T), axis=-1)]
+    x = normalize(ref - np.einsum("...i,...i,...j->...j", ref, T, T))
     y = np.cross(T, x)
     return x, y
 
