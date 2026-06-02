@@ -9,7 +9,7 @@ dependencies:
 - versioneer
 - coveralls
 - coverage
-- numpy =2.4.4
+- numpy =2.4.6
 - pint =0.25.3
 - semantikon =1.2.0
 - hatchling =1.29.0
