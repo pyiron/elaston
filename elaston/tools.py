@@ -233,7 +233,7 @@ def _rotate_tensor(
         _get_einsum_str(v.shape, axes=axes, inverse=inverse),
         *len(axes) * [orthonormalize(orientation)],
         v,
-    ).reshape(tensor.shape)
+    ).reshape(np.shape(tensor))
 
 
 @units
