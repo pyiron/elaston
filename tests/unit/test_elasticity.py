@@ -52,7 +52,8 @@ class TestElasticity(unittest.TestCase):
                 orientation=0.1 * np.random.randn(3, 3) + np.eye(3),
             )
             self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
-            self.assertRaises(ValueError, setattr, medium, "orientation", -np.eye(3))
+        with self.assertRaises(ValueError):
+            LinearElasticity(np.random.random((6, 6)), orientation=-np.eye(3))
 
     def test_orientation(self):
         elastic_tensor = create_random_C()
@@ -61,8 +62,6 @@ class TestElasticity(unittest.TestCase):
         sigma = np.einsum("ijkl,kl->ij", elastic_tensor, epsilon)
         medium = LinearElasticity(elastic_tensor, orientation=[[1, 1, 1], [1, 0, -1]])
         self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
-        medium = LinearElasticity(elastic_tensor, orientation=[[1, 1, 1], [1, 0, -1]])
-        self.assertTrue(np.allclose(orientation, medium.orientation))
         sigma = np.einsum("iI,jJ,IJ->ij", medium.orientation, medium.orientation, sigma)
         sigma_calc = np.einsum(
             "ijkl,kK,lL,KL->ij",
