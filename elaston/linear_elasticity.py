@@ -125,7 +125,7 @@ class LinearElasticity:
             )
         )
         if orientation is not None:
-            self.orientation = orientation
+            self._orientation = tools.orthonormalize(orientation)
 
     @property
     def orientation(self) -> np.ndarray | None:
@@ -141,10 +141,6 @@ class LinearElasticity:
         specify the third axis as it is automatically calculated.
         """
         return self._orientation
-
-    @orientation.setter
-    def orientation(self, r: np.ndarray) -> None:
-        self._orientation = tools.orthonormalize(r)
 
     def get_elastic_tensor(
         self, voigt: bool = False, rotate: bool = True

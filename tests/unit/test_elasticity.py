@@ -47,22 +47,21 @@ class TestElasticity(unittest.TestCase):
         for p in [1, ureg.gigapascal]:
             medium = LinearElasticity(np.random.random((6, 6)) * p)
             self.assertIsNone(medium.orientation)
-            medium.orientation = 0.1 * np.random.randn(3, 3) + np.eye(3)
+            medium = LinearElasticity(
+                np.random.random((6, 6)) * p,
+                orientation=0.1 * np.random.randn(3, 3) + np.eye(3),
+            )
             self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
-            self.assertRaises(ValueError, setattr, medium, "orientation", -np.eye(3))
+        with self.assertRaises(ValueError):
+            LinearElasticity(np.random.random((6, 6)), orientation=-np.eye(3))
 
     def test_orientation(self):
         elastic_tensor = create_random_C()
         epsilon = np.random.random((3, 3))
         epsilon += epsilon.T
         sigma = np.einsum("ijkl,kl->ij", elastic_tensor, epsilon)
-        medium = LinearElasticity(
-            elastic_tensor, orientation=np.array([[1, 1, 1], [1, 0, -1]])
-        )
-        orientation = medium.orientation
-        self.assertAlmostEqual(np.linalg.det(orientation), 1)
-        medium.orientation = np.array([[1, 1, 1], [1, 0, -1]])
-        self.assertTrue(np.allclose(orientation, medium.orientation))
+        medium = LinearElasticity(elastic_tensor, orientation=[[1, 1, 1], [1, 0, -1]])
+        self.assertAlmostEqual(np.linalg.det(medium.orientation), 1)
         sigma = np.einsum("iI,jJ,IJ->ij", medium.orientation, medium.orientation, sigma)
         sigma_calc = np.einsum(
             "ijkl,kK,lL,KL->ij",
@@ -152,8 +151,9 @@ class TestElasticity(unittest.TestCase):
     def test_dislocation_force(self):
         for with_units in [True, False]:
             elastic_tensor = create_random_C(with_units=with_units)
-            medium = LinearElasticity(elastic_tensor)
-            medium.orientation = [[1, -2, 1], [1, 1, 1], [-1, 0, 1]]
+            medium = LinearElasticity(
+                elastic_tensor, orientation=[[1, -2, 1], [1, 1, 1], [-1, 0, 1]]
+            )
             lattice_constant = 3.52
             position = np.array([0.0, 10.0, 0.0])
             if with_units:
