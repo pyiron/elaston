@@ -1,4 +1,3 @@
-# coding: utf-8
 # Copyright (c) Max-Planck-Institut für Eisenforschung GmbH - Computational Materials Design (CM) Department
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
@@ -74,8 +73,8 @@ def get_dislocation_orientation(
 
 
 def get_shockley_partials(
-    burgers_vector: np.ndarray = np.array([1, -1, 0]),
-    glide_plane: np.ndarray = np.array([1, 1, 1]),
+    burgers_vector: np.ndarray | None = None,
+    glide_plane: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Get the Shockley partials for a dislocation in fcc materials.
@@ -87,6 +86,8 @@ def get_shockley_partials(
     Returns:
         (np.ndarray, np.ndarray): Shockley partials.
     """
+    burgers_vector = burgers_vector or np.array([1, -1, 0])
+    glide_plane = glide_plane or np.array([1, 1, 1])
     assert np.shape(burgers_vector) == np.shape(glide_plane) == (3,)
     if not np.isclose(np.dot(burgers_vector, glide_plane), 0):
         raise ValueError("Burgers vector and glide plane are not orthogonal.")

@@ -1,4 +1,3 @@
-# coding: utf-8
 # Copyright (c) Max-Planck-Institut für Eisenforschung GmbH - Computational Materials Design (CM) Department
 # Distributed under the terms of "New BSD License", see the LICENSE file.
 
@@ -46,10 +45,10 @@ def check_is_tensor(**kwargs: float | np.ndarray | None) -> bool:
             and/or shear modulus
     """
     d = {k: v for k, v in kwargs.items() if v is not None}
-    if len(d) < 2 and "C_tensor" not in d.keys():
+    if len(d) < 2 and "C_tensor" not in d:
         raise ValueError("At least two of the elastic constants must be given")
-    if any([k.startswith("C_") for k in d.keys()]):
-        if any([not k.startswith("C_") for k in d.keys()]):
+    if any(k.startswith("C_") for k in d):
+        if any(not k.startswith("C_") for k in d):
             raise ValueError(
                 "Either elastic constants or Young's modulus, Poisson's ratio"
                 " and/or shear modulus must be given but not both"
@@ -246,10 +245,8 @@ def is_cubic(C: np.ndarray) -> bool:
     if np.shape(C) == (3, 3, 3, 3):
         C = tools.C_to_voigt(C)
     return all(
-        [
-            np.isclose(np.ptp(C[ind]), 0)
-            for ind in [get_C_11_indices(), get_C_12_indices(), get_C_44_indices()]
-        ]
+        np.isclose(np.ptp(C[ind]), 0)
+        for ind in [get_C_11_indices(), get_C_12_indices(), get_C_44_indices()]
     )
 
 
