@@ -24,7 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "numpy==2.4.6",
-    "semantikon==1.4.2",
+    "semantikon==1.4.3",
 ]
 dynamic = [ "version",]
 authors = [
