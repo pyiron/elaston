@@ -16,6 +16,12 @@ We will offer pip and conda at some point. For now, you can install the package 
 pip install .
 ```
 
+or you can install it via conda:
+
+```bash
+conda install conda-forge::elaston
+```
+
 ## Features
 
 - Calculation of elastic constants
